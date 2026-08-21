@@ -5,7 +5,7 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.renderer.GeoRenderer;
+import software.bernie.geckolib.renderer.base.GeoRenderer;
 
 public class RaevyxNightEmissiveLayer extends NightEmissiveLayer<Raevyx> {
     private static final Identifier EMISSIVE_TEXTURE =

@@ -7,7 +7,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -28,38 +28,38 @@ public final class IvyOctopusPlushieItem extends Item {
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
+    public @NotNull InteractionResult use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (level.isClientSide) {
-            return InteractionResultHolder.success(stack);
+            return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)) {
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
         if (player.getCooldowns().isOnCooldown(this)) {
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
 
         UUID boundOwnerUuid = getBoundOwnerUuid(stack);
         if (boundOwnerUuid != null && !boundOwnerUuid.equals(player.getUUID())) {
             player.displayClientMessage(Component.translatable("message.saintsdragons.ivy_plushie.not_owner"), true);
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
 
         IvyTheDragonMerchant ivy = findLoadedIvy(serverPlayer, getBoundIvyUuid(stack));
         if (ivy == null) {
             player.displayClientMessage(Component.translatable("message.saintsdragons.ivy_plushie.not_loaded"), true);
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
         if (!ivy.summonNear(serverPlayer)) {
             player.displayClientMessage(Component.translatable("message.saintsdragons.ivy_plushie.no_safe_position"), true);
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
 
         bindTo(stack, ivy, serverPlayer);
         player.getCooldowns().addCooldown(this, USE_COOLDOWN_TICKS);
-        return InteractionResultHolder.success(stack);
+        return InteractionResult.SUCCESS;
     }
 
     public static void bindTo(ItemStack stack, IvyTheDragonMerchant ivy, ServerPlayer owner) {

@@ -22,12 +22,12 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class VolitansGroundChunkEntity extends Entity implements GeoEntity {
@@ -189,11 +189,11 @@ public class VolitansGroundChunkEntity extends Entity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationState<E> state) {
-        state.getController().setAnimation(isDespawning() ? DESPAWN : SPAWN);
+    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
+        state.controller().setAnimation(isDespawning() ? DESPAWN : SPAWN);
         return PlayState.CONTINUE;
     }
 

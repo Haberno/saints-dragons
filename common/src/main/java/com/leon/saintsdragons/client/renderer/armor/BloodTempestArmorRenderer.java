@@ -4,10 +4,10 @@ import com.leon.saintsdragons.client.model.armor.BloodTempestArmorModel;
 import com.leon.saintsdragons.common.item.BloodTempestArmorItem;
 import com.leon.saintsdragons.client.renderer.vfx.BloodTempestAfterimageRenderContext;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.cache.model.GeoBone;
 import software.bernie.geckolib.core.object.Color;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 

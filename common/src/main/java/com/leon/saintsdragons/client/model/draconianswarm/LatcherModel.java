@@ -5,7 +5,7 @@ import com.leon.saintsdragons.server.entity.draconianswarm.Latcher;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
@@ -33,14 +33,14 @@ public class LatcherModel extends GeoModel<Latcher> {
     }
 
     @Override
-    public void setCustomAnimations(Latcher entity, long instanceId, AnimationState<Latcher> animationState) {
+    public void setCustomAnimations(Latcher entity, long instanceId, AnimationTest<Latcher> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
 
         if (!entity.isAlive()) {
             return;
         }
 
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
         float pitchRad = Mth.clamp(entity.getFlightPitchRadians(partialTick), -0.95F, 0.95F);
         float speed = Mth.clamp((float) entity.getDeltaMovement().length(), 0.0F, 0.7F);
         float dragYaw = Mth.clamp(entity.getTailDragYawRadians(partialTick), -0.95F, 0.95F);

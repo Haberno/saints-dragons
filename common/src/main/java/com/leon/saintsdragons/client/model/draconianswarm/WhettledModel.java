@@ -4,7 +4,7 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.draconianswarm.Whettled;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.model.GeoModel;
 
 public class WhettledModel extends GeoModel<Whettled> {
@@ -30,12 +30,12 @@ public class WhettledModel extends GeoModel<Whettled> {
     }
 
     @Override
-    public void setCustomAnimations(Whettled entity, long instanceId, AnimationState<Whettled> animationState) {
+    public void setCustomAnimations(Whettled entity, long instanceId, AnimationTest<Whettled> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
         if (!entity.isAlive()) {
             return;
         }
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
         float pitch = Mth.clamp(entity.getFlightPitchRadians(partialTick), -0.95F, 0.95F);
         float drag = Mth.clamp(entity.getTailDragYawRadians(partialTick), -0.95F, 0.95F);
         getBone("root").ifPresent(bone -> bone.setRotX(bone.getInitialSnapshot().getRotX() + pitch));

@@ -2,10 +2,10 @@ package com.leon.saintsdragons.server.entity.dragons.stegonaut.handlers;
 
 import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 
 
 public class StegonautAnimationHandler {
@@ -56,13 +56,13 @@ public class StegonautAnimationHandler {
         AnimationHelper.triggerRestAnimation(drake, AnimationHelper.WAKE_UP);
     }
 
-    public PlayState handleMovementAnimation(AnimationState<Stegonaut> state) {
+    public PlayState handleMovementAnimation(AnimationTest<Stegonaut> state) {
         if (AnimationHelper.holdTriggeredAnimation(
                 state, JUMP_TRANSITION_TICKS, JUMP_ANIM, JUMP_LANDED_ANIM)) {
             return PlayState.CONTINUE;
         }
         if (drake.isInWaterOrBubble()) {
-            state.getController().transitionLength(GROUND_TRANSITIONS.water());
+            state.controller().transitionLength(GROUND_TRANSITIONS.water());
             state.setAndContinue(SWIM_ANIM);
             return PlayState.CONTINUE;
         }
@@ -130,8 +130,8 @@ public class StegonautAnimationHandler {
                 RawAnimation.begin().thenPlay("animation.stegonaut.eat"));
     }
 
-    public PlayState actionPredicate(AnimationState<Stegonaut> state) {
-        state.getController().transitionLength(ACTION_TRANSITION_TICKS);
+    public PlayState actionPredicate(AnimationTest<Stegonaut> state) {
+        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 }

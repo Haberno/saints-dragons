@@ -3,10 +3,10 @@ package com.leon.saintsdragons.server.entity.dragons.volitans.handlers;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
 import com.leon.saintsdragons.server.flight.DragonFlightStateEvaluator;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 
 public final class VolitansAnimationHandler {
     public static final String MOVEMENT_CONTROLLER = AnimationHelper.MOVEMENT_CONTROLLER;
@@ -143,12 +143,12 @@ public final class VolitansAnimationHandler {
         controller.triggerableAnim("volitans_die", DIE);
     }
 
-    public PlayState movementPredicate(AnimationState<Volitans> state) {
+    public PlayState movementPredicate(AnimationTest<Volitans> state) {
         if (dragon.isDying()) {
             return PlayState.STOP;
         }
 
-        var controller = state.getController();
+        var controller = state.controller();
         if (dragon.isTamingStunned()) {
             controller.transitionLength(GROUND_TRANSITIONS.idle());
             state.setAndContinue(dragon.isInWaterOrBubble() ? UNDERWATER_STUNNED : STUNNED);
@@ -215,7 +215,7 @@ public final class VolitansAnimationHandler {
                 GROUND_TRANSITIONS.moving(), GROUND_TRANSITIONS.idle(), true
         );
     }
-    public PlayState flightPredicate(AnimationState<Volitans> state) {
+    public PlayState flightPredicate(AnimationTest<Volitans> state) {
         if (dragon.isDying() || dragon.isTamingStunned()) {
             return PlayState.STOP;
         }
@@ -232,7 +232,7 @@ public final class VolitansAnimationHandler {
             visualState = DragonFlightStateEvaluator.VisualState.GLIDE_DOWN;
         } else {
             int mode = dragon.getSyncedFlightMode();
-            float animationPitchRad = -dragon.getFlightPitchRadians(state.getPartialTick());
+            float animationPitchRad = -dragon.getFlightPitchRadians(state.renderState().getPartialTick());
             visualState = DragonFlightStateEvaluator.evaluateVisualState(
                     mode,
                     dragon.isRiddenByOwner(),
@@ -246,18 +246,18 @@ public final class VolitansAnimationHandler {
         }
         return AnimationHelper.handleFlightState(state, visualState, FLIGHT_ANIMATIONS, FLIGHT_TRANSITIONS);
     }
-    public PlayState actionPredicate(AnimationState<Volitans> state) {
-        state.getController().transitionLength(ACTION_TRANSITION_TICKS);
+    public PlayState actionPredicate(AnimationTest<Volitans> state) {
+        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 
-    public PlayState fastActionPredicate(AnimationState<Volitans> state) {
-        state.getController().transitionLength(FAST_ACTION_TRANSITION_TICKS);
+    public PlayState fastActionPredicate(AnimationTest<Volitans> state) {
+        state.controller().transitionLength(FAST_ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 
-    public PlayState airActionPredicate(AnimationState<Volitans> state) {
-        state.getController().transitionLength(AIR_ACTION_TRANSITION_TICKS);
+    public PlayState airActionPredicate(AnimationTest<Volitans> state) {
+        state.controller().transitionLength(AIR_ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 }

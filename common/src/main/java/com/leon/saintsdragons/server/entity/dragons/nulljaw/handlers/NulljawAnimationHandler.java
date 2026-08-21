@@ -3,10 +3,10 @@ package com.leon.saintsdragons.server.entity.dragons.nulljaw.handlers;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
 
 import com.leon.saintsdragons.server.entity.dragons.nulljaw.Nulljaw;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 
 public final class NulljawAnimationHandler {
     public static final String ACTION_CONTROLLER = "actions";
@@ -30,7 +30,7 @@ public final class NulljawAnimationHandler {
         this.dragon = dragon;
     }
 
-    public PlayState movementPredicate(AnimationState<Nulljaw> state) {
+    public PlayState movementPredicate(AnimationTest<Nulljaw> state) {
         if (dragon.isDeadOrDying()) {
             return PlayState.STOP;
         }
@@ -40,7 +40,7 @@ public final class NulljawAnimationHandler {
             return dance;
         }
 
-        state.getController().transitionLength(MOVEMENT_TRANSITION_TICKS);
+        state.controller().transitionLength(MOVEMENT_TRANSITION_TICKS);
         if (dragon.isMovingForAnimation()) {
             AnimationHelper.setAndContinue(state, HOVER);
         } else {
@@ -49,18 +49,18 @@ public final class NulljawAnimationHandler {
         return PlayState.CONTINUE;
     }
 
-    public PlayState actionPredicate(AnimationState<Nulljaw> state) {
-        state.getController().transitionLength(ACTION_TRANSITION_TICKS);
+    public PlayState actionPredicate(AnimationTest<Nulljaw> state) {
+        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 
-    public PlayState instantPredicate(AnimationState<Nulljaw> state) {
-        state.getController().transitionLength(INSTANT_TRANSITION_TICKS);
+    public PlayState instantPredicate(AnimationTest<Nulljaw> state) {
+        state.controller().transitionLength(INSTANT_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 
-    public PlayState mountedPredicate(AnimationState<Nulljaw> state) {
-        state.getController().transitionLength(MOUNTED_TRANSITION_TICKS);
+    public PlayState mountedPredicate(AnimationTest<Nulljaw> state) {
+        state.controller().transitionLength(MOUNTED_TRANSITION_TICKS);
         if (!dragon.isVehicle()) {
             return PlayState.STOP;
         }

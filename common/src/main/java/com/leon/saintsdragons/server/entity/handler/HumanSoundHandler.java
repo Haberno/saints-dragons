@@ -21,7 +21,7 @@ public class HumanSoundHandler {
         this.profile = profile != null ? profile : HumanSoundProfile.EMPTY;
     }
 
-    public void handleAnimationSound(Object keyframeData, software.bernie.geckolib.core.animation.AnimationController<?> controller) {
+    public void handleAnimationSound(Object keyframeData, software.bernie.geckolib.animation.AnimationController<?> controller) {
         if (!entity.level().isClientSide) return;
         if (keyframeData == null) return;
         String raw = extractSoundString(keyframeData);

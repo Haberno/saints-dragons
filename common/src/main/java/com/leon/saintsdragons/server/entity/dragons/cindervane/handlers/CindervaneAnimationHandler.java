@@ -2,10 +2,10 @@ package com.leon.saintsdragons.server.entity.dragons.cindervane.handlers;
 import com.leon.saintsdragons.server.entity.dragons.cindervane.Cindervane;
 import com.leon.saintsdragons.server.flight.DragonFlightStateEvaluator;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 
 
 public class CindervaneAnimationHandler {
@@ -117,7 +117,7 @@ public class CindervaneAnimationHandler {
         amphithere.triggerAnim(MOVEMENT_CONTROLLER, DRINKING_TRIGGER);
     }
 
-    public PlayState movementPredicate(AnimationState<Cindervane> state) {
+    public PlayState movementPredicate(AnimationTest<Cindervane> state) {
         boolean aerialState = amphithere.isFlying() || amphithere.isTakeoff() || amphithere.isLanding() || amphithere.isHovering();
 
         if (amphithere.isDying()) {
@@ -134,16 +134,16 @@ public class CindervaneAnimationHandler {
         boolean inWater = amphithere.isInWater() || amphithere.isInWaterOrBubble();
 
         if (!aerialState && inWater) {
-            state.getController().transitionLength(GROUND_TRANSITIONS.water());
+            state.controller().transitionLength(GROUND_TRANSITIONS.water());
             state.setAndContinue(SWIM);
-            state.getController().setAnimationSpeed(1.0f);
+            state.controller().setAnimationSpeed(1.0f);
             return PlayState.CONTINUE;
         }
 
         if (!aerialState && amphithere.isFallingForAnimation()) {
-            state.getController().transitionLength(GROUND_TRANSITIONS.falling());
+            state.controller().transitionLength(GROUND_TRANSITIONS.falling());
             state.setAndContinue(FALLING);
-            state.getController().setAnimationSpeed(1.0f);
+            state.controller().setAnimationSpeed(1.0f);
             return PlayState.CONTINUE;
         }
 
@@ -153,23 +153,23 @@ public class CindervaneAnimationHandler {
 
         PlayState dance = AnimationHelper.tryHandleDance(state, amphithere, GROUND_TRANSITIONS.idle());
         if (dance != null) {
-            state.getController().setAnimationSpeed(1.0f);
+            state.controller().setAnimationSpeed(1.0f);
             return dance;
         }
 
         if (amphithere.isVehicle()) {
             int groundState = amphithere.getEffectiveGroundState();
             if (groundState == 2) {
-                state.getController().transitionLength(GROUND_TRANSITIONS.moving());
+                state.controller().transitionLength(GROUND_TRANSITIONS.moving());
                 state.setAndContinue(RUN);
             } else if (groundState == 1) {
-                state.getController().transitionLength(GROUND_TRANSITIONS.moving());
+                state.controller().transitionLength(GROUND_TRANSITIONS.moving());
                 state.setAndContinue(WALK);
             } else {
-                state.getController().transitionLength(GROUND_TRANSITIONS.idle());
+                state.controller().transitionLength(GROUND_TRANSITIONS.idle());
                 state.setAndContinue(IDLE);
             }
-            state.getController().setAnimationSpeed(1.0f);
+            state.controller().setAnimationSpeed(1.0f);
             return PlayState.CONTINUE;
         }
         PlayState sitPose = AnimationHelper.tryHandleRestPose(
@@ -179,7 +179,7 @@ public class CindervaneAnimationHandler {
             return sitPose;
         }
 
-        state.getController().setAnimationSpeed(1.0f);
+        state.controller().setAnimationSpeed(1.0f);
 
         return AnimationHelper.handleGroundMovement(
                 state, amphithere, IDLE, WALK, RUN,
@@ -187,7 +187,7 @@ public class CindervaneAnimationHandler {
         );
     }
 
-    public PlayState flightPredicate(AnimationState<Cindervane> state) {
+    public PlayState flightPredicate(AnimationTest<Cindervane> state) {
         if (amphithere.isDying()) {
             return PlayState.STOP;
         }
@@ -198,19 +198,19 @@ public class CindervaneAnimationHandler {
         if (amphithere.isTakeoff()) {
             return AnimationHelper.handleTakeoff(state, false, FLIGHT_ANIMATIONS, FLIGHT_TRANSITIONS);
         }
-        var visualState = amphithere.getVisualFlightState(state.getPartialTick());
+        var visualState = amphithere.getVisualFlightState(state.renderState().getPartialTick());
         if (amphithere.isHoldingRiderDiveMomentum()
                 || visualState == DragonFlightStateEvaluator.VisualState.GLIDE_DOWN) {
             visualState = DragonFlightStateEvaluator.VisualState.GLIDE;
         }
         return AnimationHelper.handleFlightState(state, visualState, FLIGHT_ANIMATIONS, FLIGHT_TRANSITIONS);
     }
-    public PlayState actionPredicate(AnimationState<Cindervane> state) {
-        state.getController().transitionLength(ACTION_TRANSITION_TICKS);
+    public PlayState actionPredicate(AnimationTest<Cindervane> state) {
+        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
-    public PlayState fastActionPredicate(AnimationState<Cindervane> state) {
-        state.getController().transitionLength(FAST_ACTION_TRANSITION_TICKS);
+    public PlayState fastActionPredicate(AnimationTest<Cindervane> state) {
+        state.controller().transitionLength(FAST_ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 }

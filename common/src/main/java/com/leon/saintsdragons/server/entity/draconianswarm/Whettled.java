@@ -16,10 +16,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 
 public class Whettled extends AbstractDraconianSwarmEntity implements CombatBodyFacingLock {
     private static final EntityDataAccessor<Boolean> DATA_COMBAT_FACING =
@@ -165,15 +165,15 @@ public class Whettled extends AbstractDraconianSwarmEntity implements CombatBody
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, MOVEMENT_CONTROLLER, 4, state -> {
+        controllers.add(new AnimationController<>(MOVEMENT_CONTROLLER, 4, state -> {
             state.setAndContinue(IDLE_MOVE);
             return PlayState.CONTINUE;
         }).triggerableAnim(CLAW_TRIGGER, CLAW)
                 .triggerableAnim(HORN_TRIGGER, HORN));
-        controllers.add(new AnimationController<>(this, ACTION_CONTROLLER, 1, state -> PlayState.STOP)
+        controllers.add(new AnimationController<>(ACTION_CONTROLLER, 1, state -> PlayState.STOP)
                 .triggerableAnim(SPAWN_TRIGGER, SPAWN)
                 .triggerableAnim(DIE_TRIGGER, DIE));
-        controllers.add(new AnimationController<>(this, EYE_CONTROLLER, 1, state -> {
+        controllers.add(new AnimationController<>(EYE_CONTROLLER, 1, state -> {
             state.setAndContinue(IDLE_EYE);
             return PlayState.CONTINUE;
         }));

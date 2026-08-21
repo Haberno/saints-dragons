@@ -69,12 +69,12 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.animal.Pufferfish;
+import net.minecraft.world.entity.animal.fish.Pufferfish;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -86,9 +86,9 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import java.util.EnumSet;
 import java.util.Map;
@@ -332,14 +332,14 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         this.riderController = new VolitansRiderController(this);
         this.swimSteering = new GenericSwimSteeringController(this);
         this.asyncSwimController = new AsyncSwimController(this, this.swimSteering);
-        this.movementController = new AnimationController<>(this, "movement",
+        this.movementController = new AnimationController<>("movement",
                 VolitansAnimationHandler.MOVEMENT_TRIGGER_TRANSITION_TICKS, animationHandler::movementPredicate);
-        this.actionController = new AnimationController<>(this, VolitansAnimationHandler.ACTION_CONTROLLER, 4, animationHandler::actionPredicate);
-        this.fastActionController = new AnimationController<>(this, VolitansAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
+        this.actionController = new AnimationController<>(VolitansAnimationHandler.ACTION_CONTROLLER, 4, animationHandler::actionPredicate);
+        this.fastActionController = new AnimationController<>(VolitansAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
         this.flightController = AnimationHelper.createFlightController(this, getFlightAnimationTransitionTicks(), animationHandler::flightPredicate);
-        this.airActionController = new AnimationController<>(this, VolitansAnimationHandler.AIR_ACTION_CONTROLLER, 1, animationHandler::airActionPredicate);
-        this.vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
-        this.interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
+        this.airActionController = new AnimationController<>(VolitansAnimationHandler.AIR_ACTION_CONTROLLER, 1, animationHandler::airActionPredicate);
+        this.vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
+        this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         setupAnimationControllers();
 
         if (!level.isClientSide) {
@@ -422,7 +422,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     public static boolean canSpawnHere(EntityType<? extends Volitans> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         if (!TamableAnimal.checkMobSpawnRules(type, level, spawnType, pos, random)) {
@@ -443,7 +443,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     public @NotNull SpawnGroupData finalizeSpawn(
             @NotNull ServerLevelAccessor level,
             @NotNull DifficultyInstance difficulty,
-            @NotNull MobSpawnType spawnReason,
+            @NotNull EntitySpawnReason spawnReason,
             @Nullable SpawnGroupData spawnData,
             @Nullable CompoundTag dataTag
     ) {
@@ -2284,7 +2284,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     private Vec3 riderGroundBurstSteeringDirection() {
         if (getControllingPassenger() instanceof Player) {
-            return DragonMotionMath.horizontalRelativeMovement(
+            return DragonMotionMath.horizontalRelative(
                     this.getYRot(),
                     this.entityData.get(DATA_RIDER_NUDGE_STEER_OFFSET)
             );

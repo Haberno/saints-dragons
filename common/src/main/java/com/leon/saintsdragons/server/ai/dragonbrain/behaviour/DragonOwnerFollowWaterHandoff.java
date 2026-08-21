@@ -4,7 +4,7 @@ import com.leon.saintsdragons.server.ai.navigation.PathNavigateGround;
 import com.leon.saintsdragons.server.entity.base.RideableDragonBase;
 import com.leon.saintsdragons.server.entity.base.RideableFlyingDragon;
 import com.leon.saintsdragons.server.entity.interfaces.SemiAquaticDragon;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import org.jetbrains.annotations.Nullable;
 
 final class DragonOwnerFollowWaterHandoff {
@@ -32,11 +32,11 @@ final class DragonOwnerFollowWaterHandoff {
 
         dragon = candidate;
         navigation = groundNavigation;
-        originalWaterMalus = candidate.getPathfindingMalus(BlockPathTypes.WATER);
-        originalWaterBorderMalus = candidate.getPathfindingMalus(BlockPathTypes.WATER_BORDER);
+        originalWaterMalus = candidate.getPathfindingMalus(PathType.WATER);
+        originalWaterBorderMalus = candidate.getPathfindingMalus(PathType.WATER_BORDER);
         groundNavigation.setWaterEntryAllowed(true);
-        candidate.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        candidate.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 0.0F);
+        candidate.setPathfindingMalus(PathType.WATER, 0.0F);
+        candidate.setPathfindingMalus(PathType.WATER_BORDER, 0.0F);
     }
 
     void release() {
@@ -44,8 +44,8 @@ final class DragonOwnerFollowWaterHandoff {
             return;
         }
         navigation.setWaterEntryAllowed(false);
-        dragon.setPathfindingMalus(BlockPathTypes.WATER, originalWaterMalus);
-        dragon.setPathfindingMalus(BlockPathTypes.WATER_BORDER, originalWaterBorderMalus);
+        dragon.setPathfindingMalus(PathType.WATER, originalWaterMalus);
+        dragon.setPathfindingMalus(PathType.WATER_BORDER, originalWaterBorderMalus);
         dragon = null;
         navigation = null;
     }

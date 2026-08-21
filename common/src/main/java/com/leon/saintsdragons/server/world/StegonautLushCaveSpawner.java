@@ -10,7 +10,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.server.level.ServerLevel;
@@ -75,7 +75,7 @@ public final class StegonautLushCaveSpawner {
             return;
         }
 
-        if (!DragonSpawnRules.passesNearbyDragonDensityCheck(level, MobSpawnType.NATURAL, spawnPos, Stegonaut.class)) {
+        if (!DragonSpawnRules.passesNearbyDragonDensityCheck(level, EntitySpawnReason.NATURAL, spawnPos, Stegonaut.class)) {
             return;
         }
 
@@ -129,7 +129,7 @@ public final class StegonautLushCaveSpawner {
                 if (!canFitStegonautAt(level, pos)) {
                     continue;
                 }
-                if (Stegonaut.canSpawnHere(ModEntities.STEGONAUT.get(), level, MobSpawnType.NATURAL, pos, random)) {
+                if (Stegonaut.canSpawnHere(ModEntities.STEGONAUT.get(), level, EntitySpawnReason.NATURAL, pos, random)) {
                     return pos;
                 }
             }
@@ -151,7 +151,7 @@ public final class StegonautLushCaveSpawner {
         int targetCount = Mth.nextInt(random, minGroupSize, maxGroupSize);
         int spawned = 0;
 
-        if (spawnOne(level, origin, MobSpawnType.NATURAL)) {
+        if (spawnOne(level, origin, EntitySpawnReason.NATURAL)) {
             spawned++;
         } else {
             return false;
@@ -159,7 +159,7 @@ public final class StegonautLushCaveSpawner {
 
         for (int i = 1; i < targetCount; i++) {
             BlockPos nearby = findNearbyPackPos(level, origin, random);
-            if (nearby != null && spawnOne(level, nearby, MobSpawnType.EVENT)) {
+            if (nearby != null && spawnOne(level, nearby, EntitySpawnReason.EVENT)) {
                 spawned++;
             }
         }
@@ -167,7 +167,7 @@ public final class StegonautLushCaveSpawner {
         return spawned > 0;
     }
 
-    private static boolean spawnOne(ServerLevel level, BlockPos pos, MobSpawnType spawnType) {
+    private static boolean spawnOne(ServerLevel level, BlockPos pos, EntitySpawnReason spawnType) {
         Stegonaut stegonaut = ModEntities.STEGONAUT.get().create(level);
         if (stegonaut == null) {
             return false;

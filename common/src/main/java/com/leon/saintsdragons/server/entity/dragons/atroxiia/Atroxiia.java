@@ -50,7 +50,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.TamableAnimal;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.Brain;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -63,13 +63,13 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.Map;
@@ -207,8 +207,8 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     public Atroxiia(EntityType<? extends TamableAnimal> type, Level level) {
         super(type, level);
         this.setMaxUpStep(MAX_UP_STEP);
-        this.setPathfindingMalus(BlockPathTypes.POWDER_SNOW, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_POWDER_SNOW, 0.0F);
+        this.setPathfindingMalus(PathType.POWDER_SNOW, 0.0F);
+        this.setPathfindingMalus(PathType.DANGER_POWDER_SNOW, 0.0F);
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, 0.18F);
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
         if (!level.isClientSide) {
@@ -219,7 +219,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
     public static boolean canSpawnHere(EntityType<? extends Atroxiia> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         return DragonSpawnRules.hasDryGroundSpawnSpace(level, pos)
@@ -245,13 +245,13 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        var movementController = new AnimationController<>(this, AnimationHelper.MOVEMENT_CONTROLLER, MOVEMENT_TRANSITION_TICKS,
+        var movementController = new AnimationController<>(AnimationHelper.MOVEMENT_CONTROLLER, MOVEMENT_TRANSITION_TICKS,
                 animationHandler::movementPredicate);
-        var interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1,
+        var interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1,
                 AnimationHelper::interactionIdle);
-        var fastActionController = new AnimationController<>(this, AtroxiiaAnimationHandler.FAST_ACTION_CONTROLLER, 1,
+        var fastActionController = new AnimationController<>(AtroxiiaAnimationHandler.FAST_ACTION_CONTROLLER, 1,
                 animationHandler::fastActionPredicate);
-        var vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2,
+        var vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2,
                 AnimationHelper::vocalIdle);
         AnimationHelper.registerStepKeyframes(this, movementController);
         AnimationHelper.registerSoundKeyframes(this, movementController, vocalController, interactionController);

@@ -69,7 +69,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.control.BodyRotationControl;
 import net.minecraft.world.entity.projectile.Projectile;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -90,8 +90,8 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.RawAnimation;
 import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import java.util.List;
 import java.util.UUID;
@@ -953,7 +953,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
 
     protected int chooseSpawnTextureVariant(@NotNull ServerLevelAccessor levelAccessor,
                                             @NotNull DifficultyInstance difficulty,
-                                            @NotNull MobSpawnType reason,
+                                            @NotNull EntitySpawnReason reason,
                                             @Nullable SpawnGroupData spawnData,
                                             @Nullable CompoundTag spawnTag) {
         return SaintsDragonVariantRegistry.variantIdToLegacy(getDragonVariantTypeId(),
@@ -962,7 +962,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
 
     protected Identifier chooseSpawnTextureVariantId(@NotNull ServerLevelAccessor levelAccessor,
                                                           @NotNull DifficultyInstance difficulty,
-                                                          @NotNull MobSpawnType reason,
+                                                          @NotNull EntitySpawnReason reason,
                                                           @Nullable SpawnGroupData spawnData,
                                                           @Nullable CompoundTag spawnTag) {
         return SaintsDragonVariantRegistry.chooseSpawnVariant(levelAccessor, this);
@@ -1048,7 +1048,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     @Override
-    public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor levelAccessor, @NotNull DifficultyInstance difficulty, @NotNull MobSpawnType reason,
+    public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor levelAccessor, @NotNull DifficultyInstance difficulty, @NotNull EntitySpawnReason reason,
                                                  @Nullable SpawnGroupData spawnData, @Nullable CompoundTag spawnTag) {
         SpawnGroupData data = super.finalizeSpawn(levelAccessor, difficulty, reason, spawnData, spawnTag);
         ensureGenderInitialized();
@@ -1060,7 +1060,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             setTextureVariantId(chosenVariant);
         }
 
-        if (this.isBaby() && reason == MobSpawnType.SPAWN_EGG) {
+        if (this.isBaby() && reason == EntitySpawnReason.SPAWN_EGG) {
             BlockPos safePos = findSafeBabySpawnPos(levelAccessor, this.blockPosition());
             if (safePos != null && safePos.getY() < this.getY()) {
                 this.moveTo(this.getX(), safePos.getY(), this.getZ(), this.getYRot(), this.getXRot());

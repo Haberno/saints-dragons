@@ -2,10 +2,10 @@ package com.leon.saintsdragons.server.entity.dragons.atroxiia.handlers;
 
 import com.leon.saintsdragons.server.entity.dragons.atroxiia.Atroxiia;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 
 public record AtroxiiaAnimationHandler(Atroxiia dragon) {
     public static final String MOVEMENT_CONTROLLER = AnimationHelper.MOVEMENT_CONTROLLER;
@@ -48,23 +48,23 @@ public record AtroxiiaAnimationHandler(Atroxiia dragon) {
             new AnimationHelper.Transitions(4, 4, 4, 4, 4, 4, 4, 4);
     private static final int JUMP_TRANSITION_TICKS = 1;
 
-    public PlayState movementPredicate(AnimationState<Atroxiia> state) {
+    public PlayState movementPredicate(AnimationTest<Atroxiia> state) {
         if (AnimationHelper.holdTriggeredAnimation(
                 state, JUMP_TRANSITION_TICKS, JUMP, JUMP_LANDED)) {
             return PlayState.CONTINUE;
         }
         if (dragon.isTamingStunned()) {
-            state.getController().transitionLength(GROUND_TRANSITIONS.stunned());
+            state.controller().transitionLength(GROUND_TRANSITIONS.stunned());
             state.setAndContinue(STUNNED);
             return PlayState.CONTINUE;
         }
         if (dragon.isScentAssessing()) {
-            state.getController().transitionLength(GROUND_TRANSITIONS.idle());
+            state.controller().transitionLength(GROUND_TRANSITIONS.idle());
             state.setAndContinue(INVESTIGATING);
             return PlayState.CONTINUE;
         }
         if (dragon.isInWaterOrBubble()) {
-            state.getController().transitionLength(GROUND_TRANSITIONS.water());
+            state.controller().transitionLength(GROUND_TRANSITIONS.water());
             boolean moving = dragon.getDeltaMovement().lengthSqr() > 0.0025D
                     || Math.abs(dragon.getLastRiderForward()) > 0.02F
                     || Math.abs(dragon.getLastRiderStrafe()) > 0.02F;
@@ -108,8 +108,8 @@ public record AtroxiiaAnimationHandler(Atroxiia dragon) {
         AnimationHelper.register(controller, "jump_landed", JUMP_LANDED);
     }
 
-    public PlayState fastActionPredicate(AnimationState<Atroxiia> state) {
-        state.getController().transitionLength(1);
+    public PlayState fastActionPredicate(AnimationTest<Atroxiia> state) {
+        state.controller().transitionLength(1);
         return PlayState.STOP;
     }
 

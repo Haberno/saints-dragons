@@ -32,7 +32,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -206,15 +206,15 @@ public final class AsyncDragonPathfinder {
             AABB relativeBounds = dragon.getBoundingBox().move(-origin.x, -origin.y, -origin.z);
             boolean canPassThroughTrees = dragon instanceof DragonEntity dragonEntity
                     && DragonDestructionManager.canApplyPassiveTreeDestruction(serverLevel, dragonEntity);
-            float configuredWaterMalus = dragon.getPathfindingMalus(BlockPathTypes.WATER);
+            float configuredWaterMalus = dragon.getPathfindingMalus(PathType.WATER);
             boolean waterEntryAllowed = dragon.isInWaterOrBubble()
                     || dragon.getNavigation() instanceof PathNavigateGround navigation
                     && navigation.isWaterEntryAllowed();
             boolean allowWater = !avoidWater
                     && waterEntryAllowed
                     && (configuredWaterMalus >= 0.0F || dragon.isInWaterOrBubble());
-            Map<BlockPathTypes, Float> pathMalus = new EnumMap<>(BlockPathTypes.class);
-            for (BlockPathTypes pathType : BlockPathTypes.values()) {
+            Map<PathType, Float> pathMalus = new EnumMap<>(PathType.class);
+            for (PathType pathType : PathType.values()) {
                 pathMalus.put(pathType, dragon.getPathfindingMalus(pathType));
             }
             DragonPathSearchDebug.SearchSession debugSession =

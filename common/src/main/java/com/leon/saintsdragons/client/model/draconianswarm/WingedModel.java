@@ -5,7 +5,7 @@ import com.leon.saintsdragons.server.entity.draconianswarm.Winged;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
@@ -32,13 +32,13 @@ public class WingedModel extends GeoModel<Winged> {
     }
 
     @Override
-    public void setCustomAnimations(Winged entity, long instanceId, AnimationState<Winged> animationState) {
+    public void setCustomAnimations(Winged entity, long instanceId, AnimationTest<Winged> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
         if (!entity.isAlive()) {
             return;
         }
 
-        float pitch = Mth.clamp(entity.getFlightPitchRadians(animationState.getPartialTick()), -0.95F, 0.95F);
+        float pitch = Mth.clamp(entity.getFlightPitchRadians(animationState.renderState().getPartialTick()), -0.95F, 0.95F);
         getBone("root").ifPresent(bone -> bone.setRotX(bone.getInitialSnapshot().getRotX() + pitch));
 
         EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);

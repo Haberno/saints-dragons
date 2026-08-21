@@ -1,11 +1,20 @@
 package com.leon.saintsdragons.client.model;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.leon.saintsdragons.client.renderer.GeoRenderDataTickets;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import net.minecraft.resources.Identifier;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
+import software.bernie.geckolib.renderer.base.BoneSnapshots;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
+import software.bernie.geckolib.renderer.base.RenderPassInfo;
 
-public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEntityGeoModel<T> {
+import javax.annotation.Nullable;
+import java.util.Optional;
+
+public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEntityGeoModel<T>
+        implements CustomBonePoseModel<T> {
     protected final Identifier model;
     protected final Identifier babyModel;
     protected final Identifier animation;
@@ -14,6 +23,7 @@ public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEn
     protected final Identifier femaleTexture;
     protected final Identifier babyMaleTexture;
     protected final Identifier babyFemaleTexture;
+    private BoneSnapshots currentSnapshots;
 
     protected DragonGeoModel(String dragonId) {
         this(dragonId, true);
@@ -21,13 +31,13 @@ public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEn
 
     protected DragonGeoModel(String dragonId, boolean hasBabyResources) {
         super(SaintsDragonsCommon.rl(dragonId));
-        this.model = SaintsDragonsCommon.rl("geo/entity/" + dragonId + ".geo.json");
-        this.animation = SaintsDragonsCommon.rl("animations/entity/" + dragonId + ".animation.json");
+        this.model = SaintsDragonsCommon.rl("geckolib/models/entity/" + dragonId + ".geo.json");
+        this.animation = SaintsDragonsCommon.rl("geckolib/animations/entity/" + dragonId + ".animation.json");
         this.maleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/" + dragonId + ".png");
         this.femaleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/" + dragonId + "_female.png");
         if (hasBabyResources) {
-            this.babyModel = SaintsDragonsCommon.rl("geo/entity/baby_" + dragonId + ".geo.json");
-            this.babyAnimation = SaintsDragonsCommon.rl("animations/entity/baby_" + dragonId + ".animation.json");
+            this.babyModel = SaintsDragonsCommon.rl("geckolib/models/entity/baby_" + dragonId + ".geo.json");
+            this.babyAnimation = SaintsDragonsCommon.rl("geckolib/animations/entity/baby_" + dragonId + ".animation.json");
             this.babyMaleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/baby_" + dragonId + ".png");
             this.babyFemaleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/baby_" + dragonId + "_female.png");
         } else {
@@ -39,12 +49,14 @@ public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEn
     }
 
     @Override
-    public Identifier getModelResource(T entity) {
+    public Identifier getModelResource(GeoRenderState renderState) {
+        T entity = getAnimatable(renderState);
         return entity != null && entity.isBaby() ? babyModel : model;
     }
 
     @Override
-    public Identifier getTextureResource(T entity) {
+    public Identifier getTextureResource(GeoRenderState renderState) {
+        T entity = getAnimatable(renderState);
         if (entity == null) {
             return maleTexture;
         }
@@ -68,5 +80,33 @@ public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEn
 
     protected Identifier getBabyTexture(T entity) {
         return entity.isFemale() ? babyFemaleTexture : babyMaleTexture;
+    }
+
+    @Override
+    public void addAdditionalStateData(T animatable, @Nullable Object relatedObject, GeoRenderState renderState) {
+        renderState.addGeckolibData(GeoRenderDataTickets.ANIMATABLE, animatable);
+    }
+
+    @SuppressWarnings("unchecked")
+    private T getAnimatable(GeoRenderState renderState) {
+        return (T) renderState.getGeckolibData(GeoRenderDataTickets.ANIMATABLE);
+    }
+
+    public Optional<BoneSnapshot> getBone(String boneName) {
+        return currentSnapshots == null ? Optional.empty() : currentSnapshots.get(boneName);
+    }
+
+    public void setCustomAnimations(T entity, long instanceId, LegacyAnimationState<T> animationState) {
+    }
+
+    @Override
+    public final void applyCustomBonePose(T entity, RenderPassInfo<? extends GeoRenderState> renderPassInfo,
+                                          BoneSnapshots snapshots) {
+        currentSnapshots = snapshots;
+        try {
+            setCustomAnimations(entity, entity.getId(), new LegacyAnimationState<>(renderPassInfo.renderState()));
+        } finally {
+            currentSnapshots = null;
+        }
     }
 }

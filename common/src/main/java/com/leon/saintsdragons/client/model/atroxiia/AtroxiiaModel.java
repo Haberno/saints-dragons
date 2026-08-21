@@ -5,10 +5,10 @@ import com.leon.saintsdragons.client.model.DragonModelPoseHelper;
 import com.leon.saintsdragons.client.ui.DraconicCodexScreen;
 import com.leon.saintsdragons.server.entity.dragons.atroxiia.Atroxiia;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.model.data.EntityModelData;
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 
 
 public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
@@ -27,7 +27,7 @@ public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
     }
 
     @Override
-    public void setCustomAnimations(Atroxiia entity, long instanceId, AnimationState<Atroxiia> animationState) {
+    public void setCustomAnimations(Atroxiia entity, long instanceId, LegacyAnimationState<Atroxiia> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
 
         if (DraconicCodexScreen.RENDERING_IN_GUI.get()) {
@@ -36,18 +36,18 @@ public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
         if (entity.isScentAssessing()) {
             return;
         }
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        LegacyEntityModelData modelData = animationState.entityModelData();
         if (modelData == null) {
             return;
         }
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
 
         if (entity.isAlive()) {
             if (entity.isDeadOrDying()) {
                 return;
             }
             if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
-                applyNeckFollow(entity, modelData, animationState.getPartialTick());
+                applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
             applyGroundNeckTurn(entity, partialTick);
@@ -71,13 +71,13 @@ public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
         if (!entity.isInWaterOrBubble()) {
             return;
         }
-        GeoBone body = getBone("heightController").orElse(null);
+        BoneSnapshot body = getBone("heightController").orElse(null);
         if (body != null) {
             body.setRotX(body.getRotX() + entity.getSwimPitchRadians(partialTick));
         }
     }
 
-    private void applyNeckFollow(Atroxiia entity, EntityModelData modelData, float partialTick) {
+    private void applyNeckFollow(Atroxiia entity, LegacyEntityModelData modelData, float partialTick) {
 
         float lookPitchRad = modelData.headPitch() * Mth.DEG_TO_RAD;
         if (entity.isFlying()) {

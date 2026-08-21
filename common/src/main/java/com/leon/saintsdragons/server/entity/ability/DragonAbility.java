@@ -4,9 +4,9 @@ import com.leon.saintsdragons.server.entity.ability.DragonAbilitySection.*;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 
 import java.util.Random;
 
@@ -102,10 +102,10 @@ public abstract class DragonAbility<T extends LivingEntity> {
     }
 
     @SuppressWarnings("unused")
-    public <E extends GeoEntity> PlayState animationPredicate(AnimationState<E> e) {
+    public <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> e) {
         if (activeAnimation == null || activeAnimation.getAnimationStages().isEmpty())
             return PlayState.STOP;
-        e.getController().setAnimation(activeAnimation);
+        e.controller().setAnimation(activeAnimation);
         return PlayState.CONTINUE;
     }
     public void nextSection() {

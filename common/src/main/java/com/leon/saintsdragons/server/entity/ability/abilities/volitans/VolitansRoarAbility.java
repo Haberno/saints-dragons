@@ -264,7 +264,7 @@ public class VolitansRoarAbility extends DragonAbility<Volitans> {
         Vec3 spawnPos = center.add(horizontal.scale(radius));
         spine.setPos(spawnPos.x, spawnPos.y, spawnPos.z);
         spine.shoot(direction.x, direction.y, direction.z, speed, 0.0F);
-        spine.pickup = net.minecraft.world.entity.projectile.AbstractArrow.Pickup.DISALLOWED;
+        spine.pickup = net.minecraft.world.entity.projectile.arrow.AbstractArrow.Pickup.DISALLOWED;
         dragon.level().addFreshEntity(spine);
     }
 }

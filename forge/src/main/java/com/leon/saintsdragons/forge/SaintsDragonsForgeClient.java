@@ -12,7 +12,7 @@ import com.leon.saintsdragons.client.renderer.block.DraconianNucleusRenderer;
 import com.leon.saintsdragons.client.model.block.DraconicCrucibleEntity;
 import com.leon.saintsdragons.client.renderer.block.DraconicCrucibleRenderer;
 import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.RecipeBookCategories;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.EntityRenderersEvent;

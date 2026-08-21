@@ -10,7 +10,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.Heightmap;
@@ -75,7 +75,7 @@ public final class RaevyxStormSpawner {
             return;
         }
 
-        if (!DragonSpawnRules.passesNearbyDragonDensityCheck(level, MobSpawnType.NATURAL, spawnPos, Raevyx.class)) {
+        if (!DragonSpawnRules.passesNearbyDragonDensityCheck(level, EntitySpawnReason.NATURAL, spawnPos, Raevyx.class)) {
             return;
         }
 
@@ -118,7 +118,7 @@ public final class RaevyxStormSpawner {
             if (!level.canSeeSky(pos)) {
                 continue;
             }
-            if (!Raevyx.canSpawnHere(ModEntities.RAEVYX.get(), level, MobSpawnType.NATURAL, pos, random)) {
+            if (!Raevyx.canSpawnHere(ModEntities.RAEVYX.get(), level, EntitySpawnReason.NATURAL, pos, random)) {
                 continue;
             }
             if (!canFitRaevyxAt(level, pos)) {
@@ -142,7 +142,7 @@ public final class RaevyxStormSpawner {
         int targetCount = Mth.nextInt(random, minGroupSize, maxGroupSize);
         int spawned = 0;
 
-        if (spawnOne(level, origin, MobSpawnType.NATURAL)) {
+        if (spawnOne(level, origin, EntitySpawnReason.NATURAL)) {
             spawned++;
         } else {
             return false;
@@ -150,7 +150,7 @@ public final class RaevyxStormSpawner {
 
         for (int i = 1; i < targetCount; i++) {
             BlockPos nearby = findNearbyPackPos(level, origin, random);
-            if (nearby != null && spawnOne(level, nearby, MobSpawnType.EVENT)) {
+            if (nearby != null && spawnOne(level, nearby, EntitySpawnReason.EVENT)) {
                 spawned++;
             }
         }
@@ -158,7 +158,7 @@ public final class RaevyxStormSpawner {
         return spawned > 0;
     }
 
-    private static boolean spawnOne(ServerLevel level, BlockPos pos, MobSpawnType spawnType) {
+    private static boolean spawnOne(ServerLevel level, BlockPos pos, EntitySpawnReason spawnType) {
         Raevyx raevyx = ModEntities.RAEVYX.get().create(level);
         if (raevyx == null) {
             return false;
@@ -184,7 +184,7 @@ public final class RaevyxStormSpawner {
             if (!level.canSeeSky(pos)) {
                 continue;
             }
-            if (Raevyx.canSpawnHere(ModEntities.RAEVYX.get(), level, MobSpawnType.EVENT, pos, random)
+            if (Raevyx.canSpawnHere(ModEntities.RAEVYX.get(), level, EntitySpawnReason.EVENT, pos, random)
                     && canFitRaevyxAt(level, pos)) {
                 return pos;
             }

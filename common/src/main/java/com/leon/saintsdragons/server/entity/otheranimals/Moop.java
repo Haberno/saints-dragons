@@ -7,25 +7,25 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.PanicGoal;
 import net.minecraft.world.entity.ai.goal.RandomSwimmingGoal;
-import net.minecraft.world.entity.animal.AbstractFish;
-import net.minecraft.world.entity.animal.WaterAnimal;
+import net.minecraft.world.entity.animal.fish.AbstractFish;
+import net.minecraft.world.entity.animal.fish.WaterAnimal;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Moop extends AbstractFish implements GeoEntity {
@@ -49,7 +49,7 @@ public class Moop extends AbstractFish implements GeoEntity {
 
     public static boolean canSpawnHere(EntityType<Moop> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         return WaterAnimal.checkSurfaceWaterAnimalSpawnRules(type, level, spawnType, pos, random);
@@ -81,7 +81,7 @@ public class Moop extends AbstractFish implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, MOVEMENT_CONTROLLER, 4, this::movementPredicate));
+        controllers.add(new AnimationController<>(MOVEMENT_CONTROLLER, 4, this::movementPredicate));
     }
 
     @Override
@@ -89,7 +89,7 @@ public class Moop extends AbstractFish implements GeoEntity {
         return animationCache;
     }
 
-    private PlayState movementPredicate(AnimationState<Moop> state) {
+    private PlayState movementPredicate(AnimationTest<Moop> state) {
         if (!isInWaterOrBubble()) {
             state.setAndContinue(ON_LAND);
             return PlayState.CONTINUE;

@@ -12,18 +12,18 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class ArrowOfVenomEntity extends AbstractArrow implements GeoEntity {
@@ -94,12 +94,12 @@ public class ArrowOfVenomEntity extends AbstractArrow implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationState<E> state) {
+    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
         if (entityData.get(IMPACTED)) {
-            state.getController().setAnimation(IMPACT);
+            state.controller().setAnimation(IMPACT);
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;

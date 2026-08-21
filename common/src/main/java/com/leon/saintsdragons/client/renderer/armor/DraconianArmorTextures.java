@@ -1,7 +1,7 @@
 package com.leon.saintsdragons.client.renderer.armor;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
-import net.minecraft.Util;
+import net.minecraft.util.Util;
 import net.minecraft.resources.Identifier;
 
 public final class DraconianArmorTextures {

@@ -2,10 +2,10 @@ package com.leon.saintsdragons.server.entity.dragons.varasuchus.handlers;
 
 import com.leon.saintsdragons.server.entity.dragons.varasuchus.Varasuchus;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 
 public record VarasuchusAnimationHandler(Varasuchus drake) {
     public static final String MOVEMENT_CONTROLLER = AnimationHelper.MOVEMENT_CONTROLLER;
@@ -65,7 +65,7 @@ public record VarasuchusAnimationHandler(Varasuchus drake) {
         controller.triggerableAnim("horn_gore", HORN_GORE);
     }
 
-    public PlayState movementPredicate(AnimationState<Varasuchus> state) {
+    public PlayState movementPredicate(AnimationTest<Varasuchus> state) {
         if (drake.isDying()) {
             return PlayState.STOP;
         }
@@ -73,7 +73,7 @@ public record VarasuchusAnimationHandler(Varasuchus drake) {
                 state, JUMP_TRANSITION_TICKS, JUMP, JUMP_LANDED, JUMP2, JUMP_LANDED2)) {
             return PlayState.CONTINUE;
         }
-        var controller = state.getController();
+        var controller = state.controller();
         controller.setAnimationSpeed(1.0F);
 
         if (drake.isWildRideAnimationActive()) {
@@ -146,12 +146,12 @@ public record VarasuchusAnimationHandler(Varasuchus drake) {
         return PlayState.CONTINUE;
     }
 
-    public PlayState actionPredicate(AnimationState<Varasuchus> state) {
-        state.getController().transitionLength(ACTION_TRANSITION_TICKS);
+    public PlayState actionPredicate(AnimationTest<Varasuchus> state) {
+        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
-    public PlayState fastActionPredicate(AnimationState<Varasuchus> state) {
-        state.getController().transitionLength(FAST_ACTION_TRANSITION_TICKS);
+    public PlayState fastActionPredicate(AnimationTest<Varasuchus> state) {
+        state.controller().transitionLength(FAST_ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
     public void setupMovementController(AnimationController<Varasuchus> controller) {

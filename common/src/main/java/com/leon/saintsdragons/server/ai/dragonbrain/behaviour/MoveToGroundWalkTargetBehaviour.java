@@ -21,7 +21,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.memory.MemoryStatus;
 import net.minecraft.world.entity.ai.memory.WalkTarget;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
 
@@ -338,12 +338,12 @@ public class MoveToGroundWalkTargetBehaviour<T extends RideableDragonBase> exten
             return;
         }
 
-        originalWaterMalus = dragon.getPathfindingMalus(BlockPathTypes.WATER);
-        originalWaterBorderMalus = dragon.getPathfindingMalus(BlockPathTypes.WATER_BORDER);
+        originalWaterMalus = dragon.getPathfindingMalus(PathType.WATER);
+        originalWaterBorderMalus = dragon.getPathfindingMalus(PathType.WATER_BORDER);
         waterHandoffActive = true;
         navigation.setWaterEntryAllowed(true);
-        dragon.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        dragon.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 0.0F);
+        dragon.setPathfindingMalus(PathType.WATER, 0.0F);
+        dragon.setPathfindingMalus(PathType.WATER_BORDER, 0.0F);
     }
 
     private void releaseWaterHandoff(T dragon) {
@@ -353,8 +353,8 @@ public class MoveToGroundWalkTargetBehaviour<T extends RideableDragonBase> exten
         if (dragon.getNavigation() instanceof PathNavigateGround navigation) {
             navigation.setWaterEntryAllowed(false);
         }
-        dragon.setPathfindingMalus(BlockPathTypes.WATER, originalWaterMalus);
-        dragon.setPathfindingMalus(BlockPathTypes.WATER_BORDER, originalWaterBorderMalus);
+        dragon.setPathfindingMalus(PathType.WATER, originalWaterMalus);
+        dragon.setPathfindingMalus(PathType.WATER_BORDER, originalWaterBorderMalus);
         waterHandoffActive = false;
     }
 

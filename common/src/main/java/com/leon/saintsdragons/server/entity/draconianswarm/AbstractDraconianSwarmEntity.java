@@ -24,7 +24,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.ai.control.BodyRotationControl;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -42,12 +42,12 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelReader;
 import net.minecraft.world.level.ServerLevelAccessor;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.UUID;
@@ -83,10 +83,10 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
         this.navigation = createSwarmNavigation(level);
         this.moveControl = new AsyncSwarmFlightMoveControl(this, this.swarmFlightController);
         this.setNoGravity(true);
-        this.setPathfindingMalus(BlockPathTypes.WALKABLE, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER_BORDER, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.FENCE, -1.0F);
+        this.setPathfindingMalus(PathType.WALKABLE, -1.0F);
+        this.setPathfindingMalus(PathType.WATER, -1.0F);
+        this.setPathfindingMalus(PathType.WATER_BORDER, -1.0F);
+        this.setPathfindingMalus(PathType.FENCE, -1.0F);
     }
 
     protected static DragonAttributeConfig swarmConfig() {
@@ -188,7 +188,7 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     @Override
     public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor level,
                                                  @NotNull DifficultyInstance difficulty,
-                                                 @NotNull MobSpawnType spawnType,
+                                                 @NotNull EntitySpawnReason spawnType,
                                                  @Nullable SpawnGroupData spawnGroupData,
                                                  @Nullable CompoundTag tag) {
         SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData, tag);

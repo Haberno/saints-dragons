@@ -47,7 +47,7 @@ import net.minecraft.world.entity.ExperienceOrb;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.OwnableEntity;
-import net.minecraft.world.entity.RelativeMovement;
+import net.minecraft.world.entity.Relative;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -64,17 +64,17 @@ import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.ai.goal.target.HurtByTargetGoal;
 import net.minecraft.world.entity.ai.goal.target.NearestAttackableTargetGoal;
 import net.minecraft.world.entity.ai.navigation.PathNavigation;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import net.minecraft.world.entity.monster.Evoker;
-import net.minecraft.world.entity.monster.Pillager;
-import net.minecraft.world.entity.monster.Vindicator;
+import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.entity.monster.illager.Evoker;
+import net.minecraft.world.entity.monster.illager.Pillager;
+import net.minecraft.world.entity.monster.illager.Vindicator;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.entity.monster.Witch;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.ai.control.BodyRotationControl;
-import net.minecraft.world.entity.npc.AbstractVillager;
+import net.minecraft.world.entity.npc.villager.AbstractVillager;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.vehicle.Boat;
+import net.minecraft.world.entity.vehicle.boat.Boat;
 import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -111,12 +111,12 @@ import net.minecraft.util.Mth;
 import com.leon.saintsdragons.server.entity.controller.GenericLookControl;
 import com.leon.saintsdragons.util.math.SmoothValue;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.object.PlayState;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.object.PlayState;
+import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.core.keyframe.event.ParticleKeyframeEvent;
 import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
 import software.bernie.geckolib.util.GeckoLibUtil;
@@ -328,8 +328,8 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         this.lookControl = new GenericLookControl(this);
         this.swimSteering = new GenericSwimSteeringController(this);
         this.asyncSwimController = new AsyncSwimController(this, this.swimSteering);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER_BORDER, 0.0F);
         this.soundHandler = new HumanSoundHandler(this, new IvySoundProfile());
         this.restockInterval = Math.max(1, resolveRestockInterval());
         this.nextRestockGameTime = level.getGameTime() + this.restockInterval;
@@ -488,7 +488,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
 
         if (changingDimensions) {
             if (!teleportTo(destinationLevel, destinationPosition.x, destinationPosition.y, destinationPosition.z,
-                    Set.<RelativeMovement>of(), getYRot(), getXRot())) {
+                    Set.<Relative>of(), getYRot(), getXRot())) {
                 return false;
             }
         } else {
@@ -1353,23 +1353,23 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         AnimationController<IvyTheDragonMerchant> movementController =
-                new AnimationController<>(this, "movement", 3, this::animationPredicate)
+                new AnimationController<>("movement", 3, this::animationPredicate)
                         .receiveTriggeredAnimations();
         movementController.setSoundKeyframeHandler(this::handleSoundKeyframe);
         movementController.setParticleKeyframeHandler(this::handleParticleKeyframe);
         setupMovementController(movementController);
 
         AnimationController<IvyTheDragonMerchant> downedController =
-                new AnimationController<>(this, DOWNED_CONTROLLER, 1, this::downedAnimationPredicate);
+                new AnimationController<>(DOWNED_CONTROLLER, 1, this::downedAnimationPredicate);
         downedController.setSoundKeyframeHandler(this::handleSoundKeyframe);
 
         AnimationController<IvyTheDragonMerchant> passiveUseController =
-                new AnimationController<>(this, PASSIVE_USE_CONTROLLER, 1, state -> PlayState.STOP);
+                new AnimationController<>(PASSIVE_USE_CONTROLLER, 1, state -> PlayState.STOP);
         passiveUseController.setSoundKeyframeHandler(this::handleSoundKeyframe);
         setupPassiveUseController(passiveUseController);
 
         AnimationController<IvyTheDragonMerchant> instantController =
-                new AnimationController<>(this, INSTANT_CONTROLLER, 1, this::instantAnimationPredicate)
+                new AnimationController<>(INSTANT_CONTROLLER, 1, this::instantAnimationPredicate)
                         .receiveTriggeredAnimations();
         instantController.setSoundKeyframeHandler(this::handleSoundKeyframe);
         setupInstantController(instantController);
@@ -1378,7 +1378,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     private void handleSoundKeyframe(SoundKeyframeEvent<IvyTheDragonMerchant> event) {
-        soundHandler.handleAnimationSound(event.getKeyframeData(), event.getController());
+        soundHandler.handleAnimationSound(event.getKeyframeData(), event.controller());
     }
 
     private void handleParticleKeyframe(ParticleKeyframeEvent<IvyTheDragonMerchant> event) {
@@ -1393,10 +1393,10 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
     }
 
-    private <T extends GeoEntity> PlayState animationPredicate(AnimationState<T> state) {
+    private <T extends GeoEntity> PlayState animationPredicate(AnimationTest<T> state) {
         if (deathTime > 0 || getDeathAnimation() != 0 || !isAlive()) {
-            if (state.getController().isPlayingTriggeredAnimation()) {
-                state.getController().forceAnimationReset();
+            if (state.controller().isPlayingTriggeredAnimation()) {
+                state.controller().forceAnimationReset();
             }
             return PlayState.STOP;
         }
@@ -1413,7 +1413,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         if (isRidingCompanionVehicle()) {
             clearMovementTriggerIfNeeded(state);
             AnimationHelper.setAndContinue(state, MOUNTING);
-            state.getController().transitionLength(2);
+            state.controller().transitionLength(2);
             return PlayState.CONTINUE;
         }
         TradeAnimState tradeState = getTradeAnimState();
@@ -1426,12 +1426,12 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                 || isIdleVariantActive()) {
             return PlayState.CONTINUE;
         }
-        if (!getBoxingCombat().isActive() && state.getController().isPlayingTriggeredAnimation()) {
+        if (!getBoxingCombat().isActive() && state.controller().isPlayingTriggeredAnimation()) {
             return PlayState.CONTINUE;
         }
 
         if (wasMovementStopped || wasDownedOrArisingAnimation) {
-            state.getController().forceAnimationReset();
+            state.controller().forceAnimationReset();
             wasMovementStopped = false;
             wasDownedOrArisingAnimation = false;
         }
@@ -1442,7 +1442,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
 
         if (getBoxingCombat().isActive()) {
-            state.getController().transitionLength(1);
+            state.controller().transitionLength(1);
         }
 
         if (getBoxingCombat().applyMovementAnimation(state)) {
@@ -1451,7 +1451,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
 
         if (wasBoxingAnimation) {
-            state.getController().forceAnimationReset();
+            state.controller().forceAnimationReset();
             wasBoxingAnimation = false;
         }
 
@@ -1460,37 +1460,37 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         return PlayState.CONTINUE;
     }
 
-    private void clearMovementTriggerIfNeeded(AnimationState<?> state) {
-        if (state.getController().isPlayingTriggeredAnimation()) {
-            state.getController().forceAnimationReset();
+    private void clearMovementTriggerIfNeeded(AnimationTest<?> state) {
+        if (state.controller().isPlayingTriggeredAnimation()) {
+            state.controller().forceAnimationReset();
         }
     }
 
-    private <T extends GeoEntity> PlayState downedAnimationPredicate(AnimationState<T> state) {
+    private <T extends GeoEntity> PlayState downedAnimationPredicate(AnimationTest<T> state) {
         if (deathTime > 0 || getDeathAnimation() != 0 || !isAlive()) {
             if (getDeathAnimation() == 1 || (getDeathAnimation() == 0 && isTame())) {
                 AnimationHelper.setAndContinue(state, DIE);
-                state.getController().transitionLength(1);
+                state.controller().transitionLength(1);
                 return PlayState.CONTINUE;
             }
             return PlayState.STOP;
         }
         if (isDowned()) {
             AnimationHelper.setAndContinue(state, ABOUT_TO_DIE);
-            state.getController().transitionLength(1);
+            state.controller().transitionLength(1);
             return PlayState.CONTINUE;
         }
         if (getDownedAriseTicks() > 0) {
             AnimationHelper.setAndContinue(state, ARISE);
-            state.getController().transitionLength(1);
+            state.controller().transitionLength(1);
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
-    private <T extends GeoEntity> PlayState instantAnimationPredicate(AnimationState<T> state) {
+    private <T extends GeoEntity> PlayState instantAnimationPredicate(AnimationTest<T> state) {
         if (deathTime > 0 && (getDeathAnimation() == 2 || !isTame())) {
-            state.getController().transitionLength(1);
+            state.controller().transitionLength(1);
             AnimationHelper.setAndContinue(state, ACTUALLY_DIE);
             return PlayState.CONTINUE;
         }

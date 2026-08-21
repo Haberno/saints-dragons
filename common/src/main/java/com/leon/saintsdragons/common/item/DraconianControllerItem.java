@@ -7,7 +7,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -43,16 +42,16 @@ public class DraconianControllerItem extends Item {
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
+    public @NotNull InteractionResult use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (level.isClientSide) {
-            return InteractionResultHolder.success(stack);
+            return InteractionResult.SUCCESS;
         }
 
         return useController(level, player)
-                ? InteractionResultHolder.success(stack)
-                : InteractionResultHolder.fail(stack);
+                ? InteractionResult.SUCCESS
+                : InteractionResult.FAIL;
     }
 
     @Override

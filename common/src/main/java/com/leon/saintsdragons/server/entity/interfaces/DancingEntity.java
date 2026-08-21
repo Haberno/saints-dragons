@@ -5,7 +5,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.entity.JukeboxBlockEntity;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animation.RawAnimation;
 
 public interface DancingEntity {
     int JUKEBOX_DANCE_RANGE = 16;

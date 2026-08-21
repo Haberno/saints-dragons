@@ -8,10 +8,10 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.cindervane.Cindervane;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.model.data.EntityModelData;
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 
 public class CindervaneModel extends DragonGeoModel<Cindervane> {
     private static final float DEG_TO_RAD = Mth.DEG_TO_RAD;
@@ -34,22 +34,22 @@ public class CindervaneModel extends DragonGeoModel<Cindervane> {
     }
 
     @Override
-    public void setCustomAnimations(Cindervane entity, long instanceId, AnimationState<Cindervane> animationState) {
+    public void setCustomAnimations(Cindervane entity, long instanceId, LegacyAnimationState<Cindervane> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
 
         if (DraconicCodexScreen.RENDERING_IN_GUI.get()) {
             return;
         }
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        LegacyEntityModelData modelData = animationState.entityModelData();
         if (modelData == null) return;
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
 
         if (entity.isAlive()) {
             if (entity.isDeadOrDying()){
                 return;
             }
             if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
-                applyNeckFollow(entity, modelData, animationState.getPartialTick());
+                applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
             applyBankingRoll(entity, animationState);
@@ -79,32 +79,32 @@ public class CindervaneModel extends DragonGeoModel<Cindervane> {
         DragonModelPoseHelper.applyBodyYawDeviation(this, entity, "root", partialTick, -1.0f, true);
     }
 
-    private void applyBankingRoll(Cindervane entity, AnimationState<Cindervane> state) {
+    private void applyBankingRoll(Cindervane entity, LegacyAnimationState<Cindervane> state) {
         var bodyOpt = getBone("body");
         if (bodyOpt.isEmpty()) {
             return;
         }
 
-        GeoBone body = bodyOpt.get();
-        var snap = body.getInitialSnapshot();
+        BoneSnapshot body = bodyOpt.get();
+        var snap = body;
 
-        float partialTick = state.getPartialTick();
+        float partialTick = state.renderState().getPartialTick();
         float bankAngleDeg = entity.getBankAngleDegrees(partialTick);
         float bankAngleRad = Mth.clamp(-bankAngleDeg * Mth.DEG_TO_RAD, -Mth.HALF_PI, Mth.HALF_PI);
         float barrelRollRad = entity.getSmoothedRoll(partialTick);
         body.setRotZ(snap.getRotZ() + bankAngleRad + barrelRollRad);
     }
 
-    private void applyFlightPitch(Cindervane entity, AnimationState<Cindervane> state) {
+    private void applyFlightPitch(Cindervane entity, LegacyAnimationState<Cindervane> state) {
         var rootOpt = getBone("root");
         if (rootOpt.isEmpty()) {
             return;
         }
 
-        GeoBone root = rootOpt.get();
-        var snap = root.getInitialSnapshot();
+        BoneSnapshot root = rootOpt.get();
+        var snap = root;
 
-        float partialTick = state.getPartialTick();
+        float partialTick = state.renderState().getPartialTick();
         float pitchRad = entity.getFlightPitchRadians(partialTick);
         pitchRad = Mth.clamp(pitchRad, -Mth.HALF_PI, Mth.HALF_PI);
 
@@ -164,7 +164,7 @@ public class CindervaneModel extends DragonGeoModel<Cindervane> {
         DragonModelPoseHelper.applyGroundNeckTurn(this, entity, partialTick, NECK, 25.0);
     }
 
-    private void applyNeckFollow(Cindervane entity, EntityModelData modelData, float partialTick) {
+    private void applyNeckFollow(Cindervane entity, LegacyEntityModelData modelData, float partialTick) {
 
         float lookPitchRad = modelData.headPitch() * Mth.DEG_TO_RAD;
         if (entity.isFlying()) {

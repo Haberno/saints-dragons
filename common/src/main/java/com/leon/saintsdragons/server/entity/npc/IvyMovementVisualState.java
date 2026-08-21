@@ -2,8 +2,8 @@ package com.leon.saintsdragons.server.entity.npc;
 
 import com.leon.saintsdragons.util.animation.AnimationHelper;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
 
 final class IvyMovementVisualState {
     private static final int MIN_AIRBORNE_TICKS = 4;
@@ -19,7 +19,7 @@ final class IvyMovementVisualState {
     IvyMovementVisualState() {
     }
 
-    void apply(AnimationState<?> state,
+    void apply(AnimationTest<?> state,
                IvyTheDragonMerchant ivy,
                RawAnimation idle,
                RawAnimation sit,
@@ -33,7 +33,7 @@ final class IvyMovementVisualState {
                RawAnimation swimFast,
                RawAnimation waterWadeIdle,
                RawAnimation waterWading) {
-        state.getController().transitionLength(4);
+        state.controller().transitionLength(4);
         State resolved = resolve(state, ivy);
         switch (resolved) {
             case SWIM_FAST -> AnimationHelper.setAndContinue(state, swimFast);
@@ -51,7 +51,7 @@ final class IvyMovementVisualState {
         }
     }
 
-    private State resolve(AnimationState<?> state, IvyTheDragonMerchant ivy) {
+    private State resolve(AnimationTest<?> state, IvyTheDragonMerchant ivy) {
         boolean grounded = ivy.onGround();
         boolean inFluid = ivy.isInWaterOrBubble() || ivy.isInLava();
         double yVelocity = ivy.getDeltaMovement().y;
@@ -94,7 +94,7 @@ final class IvyMovementVisualState {
         return normalGroundState(state, ivy);
     }
 
-    private State waterState(AnimationState<?> state, IvyTheDragonMerchant ivy) {
+    private State waterState(AnimationTest<?> state, IvyTheDragonMerchant ivy) {
         Vec3 velocity = ivy.getDeltaMovement();
         double horizontalSpeedSqr = velocity.horizontalDistanceSqr();
         boolean moving = ivy.getAsyncSwimController().isMoving()
@@ -118,7 +118,7 @@ final class IvyMovementVisualState {
         maxAirDrop = 0.0D;
     }
 
-    private static State normalGroundState(AnimationState<?> state, IvyTheDragonMerchant ivy) {
+    private static State normalGroundState(AnimationTest<?> state, IvyTheDragonMerchant ivy) {
         if (state.isMoving()) {
             return ivy.isRunning() ? State.RUN : State.WALK;
         }

@@ -8,10 +8,10 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.cache.object.GeoBone;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.model.data.EntityModelData;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 public class RaevyxModel extends DragonGeoModel<Raevyx> {
     private static final float DEG_TO_RAD = Mth.DEG_TO_RAD;
     private static final WeightedBoneChain NECK_FOLLOW = WeightedBoneChain.of(
@@ -47,7 +47,7 @@ public class RaevyxModel extends DragonGeoModel<Raevyx> {
     }
 
     @Override
-    public void setCustomAnimations(Raevyx entity, long instanceId, AnimationState<Raevyx> animationState) {
+    public void setCustomAnimations(Raevyx entity, long instanceId, LegacyAnimationState<Raevyx> animationState) {
 
         super.setCustomAnimations(entity, instanceId, animationState);
         if (DraconicCodexScreen.RENDERING_IN_GUI.get()) {
@@ -56,15 +56,15 @@ public class RaevyxModel extends DragonGeoModel<Raevyx> {
         if (entity.isScentAssessing()) {
             return;
         }
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        LegacyEntityModelData modelData = animationState.entityModelData();
         if (modelData == null) return;
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
         if (entity.isAlive()) {
             if (entity.isDeadOrDying()){
                 return;
             }
             if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
-                applyNeckFollow(entity, modelData, animationState.getPartialTick());
+                applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
             applyBankingRoll(entity, animationState);
@@ -80,27 +80,27 @@ public class RaevyxModel extends DragonGeoModel<Raevyx> {
         DragonModelPoseHelper.applyBodyYawDeviation(this, entity, "root", partialTick, -1.0f, true);
     }
 
-    private void applyBankingRoll(Raevyx entity, AnimationState<Raevyx> state) {
+    private void applyBankingRoll(Raevyx entity, LegacyAnimationState<Raevyx> state) {
         var bodyOpt = getBone("body");
         if (bodyOpt.isEmpty()) return;
 
-        GeoBone body = bodyOpt.get();
-        var snap = body.getInitialSnapshot();
-        float partialTick = state.getPartialTick();
+        BoneSnapshot body = bodyOpt.get();
+        var snap = body;
+        float partialTick = state.renderState().getPartialTick();
         float bankAngleDeg = entity.getBankAngleDegrees(partialTick);
         float bankAngleRad = Mth.clamp(-bankAngleDeg * Mth.DEG_TO_RAD, -Mth.HALF_PI, Mth.HALF_PI);
         float barrelRollRad = entity.getSmoothedRoll(partialTick);
         body.setRotZ(snap.getRotZ() + bankAngleRad + barrelRollRad);
     }
 
-    private void applyFlightPitch(Raevyx entity, AnimationState<Raevyx> state) {
+    private void applyFlightPitch(Raevyx entity, LegacyAnimationState<Raevyx> state) {
         var rootOpt = getBone("root");
         if (rootOpt.isEmpty()) return;
 
-        GeoBone root = rootOpt.get();
-        var snap = root.getInitialSnapshot();
+        BoneSnapshot root = rootOpt.get();
+        var snap = root;
 
-        float partialTick = state.getPartialTick();
+        float partialTick = state.renderState().getPartialTick();
         float pitchRad = entity.getFlightPitchRadians(partialTick);
         pitchRad = Mth.clamp(pitchRad, -Mth.HALF_PI, Mth.HALF_PI);
 
@@ -154,7 +154,7 @@ public class RaevyxModel extends DragonGeoModel<Raevyx> {
         DragonModelPoseHelper.applyGroundNeckTurn(this, entity, partialTick, NECK_FOLLOW, 25.0);
     }
 
-    private void applyNeckFollow(Raevyx entity, EntityModelData modelData, float partialTick) {
+    private void applyNeckFollow(Raevyx entity, LegacyEntityModelData modelData, float partialTick) {
 
         float totalYawRad = DragonModelPoseHelper.lookYawWithBodyDeviation(entity, modelData, partialTick, 2.0);
         float lookPitchRad = modelData.headPitch() * Mth.DEG_TO_RAD;

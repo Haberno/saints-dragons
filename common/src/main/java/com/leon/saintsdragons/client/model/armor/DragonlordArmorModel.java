@@ -9,7 +9,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.model.GeoModel;
 
 import java.util.Map;
@@ -24,7 +24,7 @@ public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
 
     @Override
     public void setCustomAnimations(DragonlordArmorItem animatable, long instanceId,
-                                    AnimationState<DragonlordArmorItem> animationState) {
+                                    AnimationTest<DragonlordArmorItem> animationState) {
         super.setCustomAnimations(animatable, instanceId, animationState);
 
         Entity wearer = animationState.getData(DataTickets.ENTITY);
@@ -37,7 +37,7 @@ public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
             return;
         }
 
-        float blend = getDivePose(living, animationState.getPartialTick());
+        float blend = getDivePose(living, animationState.renderState().getPartialTick());
         if (blend <= 0.001F) {
             return;
         }

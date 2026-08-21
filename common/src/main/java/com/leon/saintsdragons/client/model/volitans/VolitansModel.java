@@ -8,10 +8,10 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.model.data.EntityModelData;
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 
 public class VolitansModel extends DragonGeoModel<Volitans> {
     private static final float DEG_TO_RAD = Mth.DEG_TO_RAD;
@@ -43,7 +43,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
     }
 
     @Override
-    public void setCustomAnimations(Volitans entity, long instanceId, AnimationState<Volitans> animationState) {
+    public void setCustomAnimations(Volitans entity, long instanceId, LegacyAnimationState<Volitans> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
 
         if (DraconicCodexScreen.RENDERING_IN_GUI.get()) {
@@ -53,24 +53,24 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
             return;
         }
 
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        LegacyEntityModelData modelData = animationState.entityModelData();
         if (modelData == null) return;
         if (entity.isAlive()){
             if (entity.isDeadOrDying()){
                 return;
             }
             if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
-                applyNeckFollow(entity, modelData, animationState.getPartialTick());
+                applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
-            applyBodyRotationDeviation(entity, animationState.getPartialTick());
+            applyBodyRotationDeviation(entity, animationState.renderState().getPartialTick());
             applyBankingRoll(entity, animationState);
             applyFlightPitch(entity, animationState);
-            applyDiveWingPose(entity, animationState.getPartialTick());
-            applyNeckBankingLean(entity, animationState.getPartialTick());
-            applyGroundNeckTurn(entity, animationState.getPartialTick());
-            applySwimPitch(entity, animationState.getPartialTick());
-            applySwimRoll(entity, animationState.getPartialTick());
-            applyTailDrag(entity, animationState.getPartialTick());
+            applyDiveWingPose(entity, animationState.renderState().getPartialTick());
+            applyNeckBankingLean(entity, animationState.renderState().getPartialTick());
+            applyGroundNeckTurn(entity, animationState.renderState().getPartialTick());
+            applySwimPitch(entity, animationState.renderState().getPartialTick());
+            applySwimRoll(entity, animationState.renderState().getPartialTick());
+            applyTailDrag(entity, animationState.renderState().getPartialTick());
 
         }
     }
@@ -79,30 +79,30 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
         DragonModelPoseHelper.applyBodyYawDeviation(this, entity, "root", partialTick, -1.0f, true);
     }
 
-    private void applyBankingRoll(Volitans entity, AnimationState<Volitans> state) {
+    private void applyBankingRoll(Volitans entity, LegacyAnimationState<Volitans> state) {
         var bodyOpt = getBone("body");
         if (bodyOpt.isEmpty()) {
             return;
         }
-        GeoBone body = bodyOpt.get();
-        var snap = body.getInitialSnapshot();
-        float partialTick = state.getPartialTick();
+        BoneSnapshot body = bodyOpt.get();
+        var snap = body;
+        float partialTick = state.renderState().getPartialTick();
         float bankAngleDeg = entity.getBankAngleDegrees(partialTick);
         float bankAngleRad = Mth.clamp(-bankAngleDeg * Mth.DEG_TO_RAD, -Mth.HALF_PI, Mth.HALF_PI);
         float barrelRollRad = entity.getSmoothedRoll(partialTick);
         body.setRotZ(snap.getRotZ() + bankAngleRad + barrelRollRad);
     }
 
-    private void applyFlightPitch(Volitans entity, AnimationState<Volitans> state) {
+    private void applyFlightPitch(Volitans entity, LegacyAnimationState<Volitans> state) {
         var rootOpt = getBone("root");
         if (rootOpt.isEmpty()) {
             return;
         }
 
-        GeoBone root = rootOpt.get();
-        var snap = root.getInitialSnapshot();
+        BoneSnapshot root = rootOpt.get();
+        var snap = root;
 
-        float partialTick = state.getPartialTick();
+        float partialTick = state.renderState().getPartialTick();
         float pitchRad = entity.getFlightPitchRadians(partialTick);
         pitchRad = Mth.clamp(pitchRad, -Mth.HALF_PI, Mth.HALF_PI);
 
@@ -142,7 +142,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
         });
     }
 
-    private void applyNeckFollow(Volitans entity, EntityModelData modelData, float partialTick) {
+    private void applyNeckFollow(Volitans entity, LegacyEntityModelData modelData, float partialTick) {
         float totalYawRad = DragonModelPoseHelper.lookYawWithBodyDeviation(entity, modelData, partialTick, 2.0);
         float lookPitchRad = modelData.headPitch() * Mth.DEG_TO_RAD;
         if (entity.isFlying()) {
@@ -180,7 +180,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
             return;
         }
 
-        GeoBone body = bodyOpt.get();
+        BoneSnapshot body = bodyOpt.get();
         float swimPitchRad = Mth.clamp(entity.getFlightPitchRadians(partialTick), -Mth.HALF_PI, Mth.HALF_PI);
         body.setRotX(body.getRotX() - swimPitchRad * 0.75f);
     }
@@ -195,7 +195,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
             return;
         }
 
-        GeoBone body = bodyOpt.get();
+        BoneSnapshot body = bodyOpt.get();
         double velocity = entity.getYawVelocity().get(partialTick);
         velocity = Mth.clamp(velocity, -30.0, 30.0);
         float swimRollRad = (float) velocity * Mth.DEG_TO_RAD * 0.35f;

@@ -8,10 +8,10 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.varasuchus.Varasuchus;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.model.data.EntityModelData;
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 
 public class VarasuchusModel extends DragonGeoModel<Varasuchus> {
     private static final Identifier VOID_KISSED_TEXTURE =
@@ -44,7 +44,7 @@ public class VarasuchusModel extends DragonGeoModel<Varasuchus> {
     }
 
     @Override
-    public void setCustomAnimations(Varasuchus entity, long instanceId, AnimationState<Varasuchus> animationState) {
+    public void setCustomAnimations(Varasuchus entity, long instanceId, LegacyAnimationState<Varasuchus> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
         if (DraconicCodexScreen.RENDERING_IN_GUI.get()) {
             return;
@@ -52,15 +52,15 @@ public class VarasuchusModel extends DragonGeoModel<Varasuchus> {
         if (entity.isScentAssessing()) {
             return;
         }
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        LegacyEntityModelData modelData = animationState.entityModelData();
         if (modelData == null) return;
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
         if (entity.isAlive()){
             if (entity.isDeadOrDying()){
                 return;
             }
             if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
-                applyNeckFollow(entity, modelData, animationState.getPartialTick());
+                applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
             applyGroundNeckTurn(entity, partialTick);
@@ -77,7 +77,7 @@ public class VarasuchusModel extends DragonGeoModel<Varasuchus> {
         DragonModelPoseHelper.applyGroundNeckTurn(this, entity, partialTick, NECK_TURN, 25.0);
     }
 
-    private void applyNeckFollow(Varasuchus entity, EntityModelData modelData, float partialTick) {
+    private void applyNeckFollow(Varasuchus entity, LegacyEntityModelData modelData, float partialTick) {
         float lookPitchRad = modelData.headPitch() * Mth.DEG_TO_RAD;
         float totalYawRad = DragonModelPoseHelper.lookYawWithBodyDeviation(entity, modelData, partialTick, 2.0);
         DragonModelPoseHelper.applyWeightedNeckFollow(this, entity, NECK_FOLLOW, lookPitchRad, totalYawRad);
@@ -95,7 +95,7 @@ public class VarasuchusModel extends DragonGeoModel<Varasuchus> {
         if (bodyOpt.isEmpty()) {
             return;
         }
-        GeoBone body = bodyOpt.get();
+        BoneSnapshot body = bodyOpt.get();
         float swimPitchRad = entity.getSwimPitchRadians(partialTick);
         body.setRotX(body.getRotX() + swimPitchRad);
     }

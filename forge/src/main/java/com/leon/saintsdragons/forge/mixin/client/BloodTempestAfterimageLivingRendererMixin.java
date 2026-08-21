@@ -3,7 +3,7 @@ package com.leon.saintsdragons.forge.mixin.client;
 import com.leon.saintsdragons.client.renderer.vfx.BloodTempestAfterimageRenderContext;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.player.AbstractClientPlayer;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.LivingEntityRenderer;
 import net.minecraft.world.entity.LivingEntity;
 import org.spongepowered.asm.mixin.Mixin;

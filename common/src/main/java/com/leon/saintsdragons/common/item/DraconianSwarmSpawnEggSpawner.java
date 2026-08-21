@@ -7,7 +7,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.block.state.BlockState;
 
@@ -40,7 +40,7 @@ public final class DraconianSwarmSpawnEggSpawner {
     }
 
     private static boolean spawn(EntityType<? extends Mob> type, ServerLevel level, BlockPos pos) {
-        Entity entity = type.spawn(level, pos, MobSpawnType.SPAWN_EGG);
+        Entity entity = type.spawn(level, pos, EntitySpawnReason.SPAWN_EGG);
         return entity != null;
     }
 }

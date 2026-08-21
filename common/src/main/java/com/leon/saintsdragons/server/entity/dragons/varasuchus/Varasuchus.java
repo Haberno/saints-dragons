@@ -69,16 +69,16 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.block.Block;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.phys.Vec3;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -110,8 +110,8 @@ public class Varasuchus extends RideableGroundDragon implements SemiAquaticDrago
     public Varasuchus(EntityType<? extends Varasuchus> type, Level level) {
         super(type, level);
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, SHAKE_DECAY_PER_TICK);
-        this.setPathfindingMalus(BlockPathTypes.WATER, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER_BORDER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER, 0.0F);
+        this.setPathfindingMalus(PathType.WATER_BORDER, 0.0F);
         this.setMaxUpStep(1.4F);
         this.groundNavigation = new PathNavigateGround(this, level);
         this.landMoveControl = new MoveControl(this);
@@ -122,11 +122,11 @@ public class Varasuchus extends RideableGroundDragon implements SemiAquaticDrago
         this.moveControl = this.landMoveControl;
         this.lookControl = this.landLookControl;
         this.riderController = new VarasuchusRiderController(this);
-        this.movementController = new AnimationController<>(this, "movement", 2, animationHandler::movementPredicate);
-        this.actionController = new AnimationController<>(this, VarasuchusAnimationHandler.ACTION_CONTROLLER, 4, animationHandler::actionPredicate);
-        this.fastActionController = new AnimationController<>(this, VarasuchusAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
-        this.vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
-        this.interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
+        this.movementController = new AnimationController<>("movement", 2, animationHandler::movementPredicate);
+        this.actionController = new AnimationController<>(VarasuchusAnimationHandler.ACTION_CONTROLLER, 4, animationHandler::actionPredicate);
+        this.fastActionController = new AnimationController<>(VarasuchusAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
+        this.vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
+        this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         setupAnimationControllers();
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
         if (!level.isClientSide) {
@@ -154,10 +154,10 @@ public class Varasuchus extends RideableGroundDragon implements SemiAquaticDrago
     @Override
     protected Identifier chooseSpawnTextureVariantId(@NotNull ServerLevelAccessor levelAccessor,
                                                           @NotNull DifficultyInstance difficulty,
-                                                          @NotNull MobSpawnType reason,
+                                                          @NotNull EntitySpawnReason reason,
                                                           @Nullable SpawnGroupData spawnData,
                                                           @Nullable CompoundTag spawnTag) {
-        if (reason == MobSpawnType.SPAWN_EGG && shouldUseVoidKissedVariant(levelAccessor.getLevel())) {
+        if (reason == EntitySpawnReason.SPAWN_EGG && shouldUseVoidKissedVariant(levelAccessor.getLevel())) {
             return VOID_KISSED_VARIANT_ID;
         }
         return super.chooseSpawnTextureVariantId(levelAccessor, difficulty, reason, spawnData, spawnTag);
@@ -166,7 +166,7 @@ public class Varasuchus extends RideableGroundDragon implements SemiAquaticDrago
     @Override
     public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor levelAccessor,
                                                  @NotNull DifficultyInstance difficulty,
-                                                 @NotNull MobSpawnType reason,
+                                                 @NotNull EntitySpawnReason reason,
                                                  @Nullable SpawnGroupData spawnData,
                                                  @Nullable CompoundTag spawnTag) {
         SpawnGroupData data = super.finalizeSpawn(levelAccessor, difficulty, reason, spawnData, spawnTag);
@@ -1104,7 +1104,7 @@ public class Varasuchus extends RideableGroundDragon implements SemiAquaticDrago
 
     public static boolean canSpawnHere(EntityType<? extends Varasuchus> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         boolean mobRules = Mob.checkMobSpawnRules(type, level, spawnType, pos, random);

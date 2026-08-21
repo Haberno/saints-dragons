@@ -27,7 +27,7 @@ import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -50,11 +50,11 @@ import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Mossback extends Animal implements GeoEntity {
@@ -110,7 +110,7 @@ public class Mossback extends Animal implements GeoEntity {
 
     public static boolean canSpawnHere(EntityType<Mossback> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         return Animal.checkAnimalSpawnRules(type, level, spawnType, pos, random);
@@ -359,7 +359,7 @@ public class Mossback extends Animal implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        var thrownController = new AnimationController<>(this, "thrown", 1, state -> {
+        var thrownController = new AnimationController<>("thrown", 1, state -> {
             if (isThrown() || isThrownAirborne()) {
                 state.setAndContinue(isBaby() ? BABY_THROWN : THROWN);
                 return PlayState.CONTINUE;
@@ -367,7 +367,7 @@ public class Mossback extends Animal implements GeoEntity {
             return PlayState.STOP;
         });
 
-        var landedController = new AnimationController<>(this, "landed", 1, state -> {
+        var landedController = new AnimationController<>("landed", 1, state -> {
             if (getLandedTicks() > 0) {
                 state.setAndContinue(isBaby() ? BABY_LANDED : LANDED);
                 return PlayState.CONTINUE;
@@ -375,7 +375,7 @@ public class Mossback extends Animal implements GeoEntity {
             return PlayState.STOP;
         });
 
-        var movementController = new AnimationController<>(this, "movement", 2, state -> {
+        var movementController = new AnimationController<>("movement", 2, state -> {
             if (isThrown() || isThrownAirborne()) {
                 return PlayState.STOP;
             }

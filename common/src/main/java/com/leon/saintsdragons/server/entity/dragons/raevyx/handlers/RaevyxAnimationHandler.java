@@ -4,11 +4,11 @@ import com.leon.saintsdragons.common.registry.ModSounds;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
 import com.leon.saintsdragons.server.flight.DragonFlightStateEvaluator;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.object.PlayState;
 
 public record RaevyxAnimationHandler(Raevyx wyvern) {
     public static final String MOVEMENT_CONTROLLER = AnimationHelper.MOVEMENT_CONTROLLER;
@@ -176,12 +176,12 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
                 RawAnimation.begin().thenPlay("animation.raevyx.eat"));
     }
 
-    public PlayState movementPredicate(AnimationState<Raevyx> state) {
+    public PlayState movementPredicate(AnimationTest<Raevyx> state) {
         if (wyvern.isDying()) {
             return PlayState.STOP;
         }
         if (wyvern.isScentAssessing() && !wyvern.isTamingStunned()) {
-            state.getController().transitionLength(GROUND_TRANSITIONS.idle());
+            state.controller().transitionLength(GROUND_TRANSITIONS.idle());
             state.setAndContinue(INVESTIGATING);
             return PlayState.CONTINUE;
         }
@@ -202,7 +202,7 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
         }
 
         @Override
-        public PlayState handle(AnimationState<Raevyx> state,
+        public PlayState handle(AnimationTest<Raevyx> state,
                                 Raevyx dragon,
                                 AnimationHelper.Animations animations,
                                 AnimationHelper.Transitions transitions) {
@@ -216,7 +216,7 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
                 return PlayState.STOP;
             }
             if (dragon.isDashing()) {
-                state.getController().transitionLength(transitions.moving());
+                state.controller().transitionLength(transitions.moving());
                 state.setAndContinue(dragon.wasLastDashRight() ? DASH_FORWARD_LEFT : DASH_FORWARD_RIGHT);
                 return PlayState.CONTINUE;
             }
@@ -224,7 +224,7 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
         }
     }
 
-    public PlayState flightPredicate(AnimationState<Raevyx> state) {
+    public PlayState flightPredicate(AnimationTest<Raevyx> state) {
         if (wyvern.isDying() || wyvern.isTamingStunned()) {
             return PlayState.STOP;
         }
@@ -240,8 +240,8 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
                     FLIGHT_TRANSITIONS
             );
         }
-        boolean invertedGlide = isInvertedGlideWindow(state.getPartialTick());
-        DragonFlightStateEvaluator.VisualState visualState = wyvern.getVisualFlightState(state.getPartialTick());
+        boolean invertedGlide = isInvertedGlideWindow(state.renderState().getPartialTick());
+        DragonFlightStateEvaluator.VisualState visualState = wyvern.getVisualFlightState(state.renderState().getPartialTick());
         if (invertedGlide
                 || wyvern.isHoldingRiderDiveMomentum()
                 || visualState == DragonFlightStateEvaluator.VisualState.GLIDE_DOWN) {
@@ -258,13 +258,13 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
         return offsetDegrees <= INVERTED_GLIDE_ROLL_WINDOW_DEGREES;
     }
 
-    public PlayState raevyxActionPredicate(AnimationState<Raevyx> state) {
-        state.getController().transitionLength(ACTION_TRANSITION_TICKS);
+    public PlayState raevyxActionPredicate(AnimationTest<Raevyx> state) {
+        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 
-    public PlayState raevyxFastActionPredicate(AnimationState<Raevyx> state) {
-        state.getController().transitionLength(FAST_ACTION_TRANSITION_TICKS);
+    public PlayState raevyxFastActionPredicate(AnimationTest<Raevyx> state) {
+        state.controller().transitionLength(FAST_ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 

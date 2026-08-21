@@ -18,7 +18,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
@@ -82,7 +82,7 @@ final class AsyncGroundPathSearch {
                           boolean allowWater,
                           double waterMalus,
                           boolean canPassThroughTrees,
-                          Map<BlockPathTypes, Float> pathMalus,
+                          Map<PathType, Float> pathMalus,
                           BooleanSupplier cancelled) {
         this(
                 new SnapshotTerrainView(snapshot, canPassThroughTrees, pathMalus),
@@ -464,7 +464,7 @@ final class AsyncGroundPathSearch {
             BlockPos pos = BlockPos.of(current);
             Node node = new Node(pos.getX(), pos.getY(), pos.getZ());
             NodeEvaluation evaluation = evaluateNode(pos);
-            node.type = evaluation.water() ? BlockPathTypes.WATER : BlockPathTypes.WALKABLE;
+            node.type = evaluation.water() ? PathType.WATER : PathType.WALKABLE;
             node.costMalus = (float) evaluation.malus();
             nodes.add(node);
             Long previous = cameFrom.get(current);
@@ -537,11 +537,11 @@ final class AsyncGroundPathSearch {
         private final ImmutableBlockSnapshot snapshot;
         private final Predicate<BlockState> passableTreeBlocks;
         private final Predicate<BlockState> ignoredBlocks;
-        private final Map<BlockPathTypes, Float> pathMalus;
+        private final Map<PathType, Float> pathMalus;
 
         private SnapshotTerrainView(ImmutableBlockSnapshot snapshot,
                                     boolean canPassThroughTrees,
-                                    Map<BlockPathTypes, Float> pathMalus) {
+                                    Map<PathType, Float> pathMalus) {
             this.snapshot = snapshot;
             this.passableTreeBlocks = canPassThroughTrees
                     ? DragonDestructionManager::isPassivelyBreakableTreeBlock
@@ -625,12 +625,12 @@ final class AsyncGroundPathSearch {
                     if (this.passableTreeBlocks.test(state)) {
                         continue;
                     }
-                    BlockPathTypes pathType = state.is(Blocks.LADDER)
-                            ? BlockPathTypes.WALKABLE
+                    PathType pathType = state.is(Blocks.LADDER)
+                            ? PathType.WALKABLE
                             : WalkNodeEvaluator.getBlockPathTypeStatic(this.snapshot, cursor);
-                    if (pathType == BlockPathTypes.WATER
-                            || pathType == BlockPathTypes.WATER_BORDER
-                            || pathType == BlockPathTypes.LAVA) {
+                    if (pathType == PathType.WATER
+                            || pathType == PathType.WATER_BORDER
+                            || pathType == PathType.LAVA) {
                         continue;
                     }
                     float configuredMalus = this.pathMalus.getOrDefault(pathType, 0.0F);

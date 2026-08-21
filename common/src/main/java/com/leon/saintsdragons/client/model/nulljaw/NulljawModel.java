@@ -6,10 +6,10 @@ import com.leon.saintsdragons.client.model.DragonModelPoseHelper.WeightedBoneCha
 import com.leon.saintsdragons.client.ui.DraconicCodexScreen;
 import com.leon.saintsdragons.server.entity.dragons.nulljaw.Nulljaw;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.model.data.EntityModelData;
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 
 public final class NulljawModel extends DragonGeoModel<Nulljaw> {
     private static final WeightedBoneChain NECK_FOLLOW = WeightedBoneChain.of(
@@ -26,19 +26,19 @@ public final class NulljawModel extends DragonGeoModel<Nulljaw> {
     }
 
     @Override
-    public void setCustomAnimations(Nulljaw entity, long instanceId, AnimationState<Nulljaw> animationState) {
+    public void setCustomAnimations(Nulljaw entity, long instanceId, LegacyAnimationState<Nulljaw> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
 
         if (DraconicCodexScreen.RENDERING_IN_GUI.get()) {
             return;
         }
 
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        LegacyEntityModelData modelData = animationState.entityModelData();
         if (modelData == null || !entity.isAlive() || entity.isDeadOrDying()) {
             return;
         }
 
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
         applyBodyRotationDeviation(entity, partialTick);
         applyFlightPitch(entity, partialTick);
         if (!entity.isInWaterOrBubble()) {
@@ -58,11 +58,11 @@ public final class NulljawModel extends DragonGeoModel<Nulljaw> {
         }
 
         float pitchRad = Mth.clamp(entity.getFlightPitchRadians(partialTick), -Mth.HALF_PI, Mth.HALF_PI);
-        GeoBone body = bodyOpt.get();
+        BoneSnapshot body = bodyOpt.get();
         body.setRotX(body.getRotX() + pitchRad);
     }
 
-    private void applyNeckFollow(Nulljaw entity, EntityModelData modelData, float partialTick) {
+    private void applyNeckFollow(Nulljaw entity, LegacyEntityModelData modelData, float partialTick) {
         if (entity.isVehicle()) {
             return;
         }

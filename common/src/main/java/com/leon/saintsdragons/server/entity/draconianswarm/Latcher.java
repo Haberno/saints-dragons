@@ -11,10 +11,10 @@ import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 
 public class Latcher extends AbstractDraconianSwarmEntity {
     private static final double BITE_EXTRA_REACH = 1.25D;
@@ -102,11 +102,11 @@ public class Latcher extends AbstractDraconianSwarmEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, MOVEMENT_CONTROLLER, 4, state -> {
+        controllers.add(new AnimationController<>(MOVEMENT_CONTROLLER, 4, state -> {
             state.setAndContinue(isMovingForAnimation() ? MOVE : IDLE);
             return PlayState.CONTINUE;
         }));
-        controllers.add(new AnimationController<>(this, ACTION_CONTROLLER, 1, state -> PlayState.STOP)
+        controllers.add(new AnimationController<>(ACTION_CONTROLLER, 1, state -> PlayState.STOP)
                 .triggerableAnim(BITE_TRIGGER, BITE)
                 .triggerableAnim(BITE_MOVE_TRIGGER, BITE_MOVE)
                 .triggerableAnim(SPAWN_TRIGGER, SPAWN)

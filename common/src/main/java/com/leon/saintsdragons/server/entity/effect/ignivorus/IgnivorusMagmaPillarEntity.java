@@ -27,12 +27,12 @@ import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
@@ -349,14 +349,14 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>(this, "controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationState<E> state) {
+    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
         if (isSubsiding()) {
-            state.getController().setAnimation(SUBSIDE_ANIMATION);
+            state.controller().setAnimation(SUBSIDE_ANIMATION);
         } else {
-            state.getController().setAnimation(EMERGE_ANIMATION);
+            state.controller().setAnimation(EMERGE_ANIMATION);
         }
         return PlayState.CONTINUE;
     }

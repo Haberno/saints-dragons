@@ -85,7 +85,7 @@ import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
@@ -101,7 +101,7 @@ import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.AABB;
@@ -109,9 +109,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.sounds.SoundEvents;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import javax.annotation.Nonnull;
 
@@ -334,16 +334,16 @@ public class Cindervane extends RideableFlyingDragon implements ShakesScreen, Pa
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, 0.12F);
         this.setMaxUpStep(1.1F);
         this.riderController = new CindervaneRiderController(this);
-        this.movementController = new AnimationController<>(this, "movement", 2, animationHandler::movementPredicate);
-        this.actionController = new AnimationController<>(this, CindervaneAnimationHandler.ACTION_CONTROLLER, 5, animationHandler::actionPredicate);
-        this.fastActionController = new AnimationController<>(this, CindervaneAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
+        this.movementController = new AnimationController<>("movement", 2, animationHandler::movementPredicate);
+        this.actionController = new AnimationController<>(CindervaneAnimationHandler.ACTION_CONTROLLER, 5, animationHandler::actionPredicate);
+        this.fastActionController = new AnimationController<>(CindervaneAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
         this.flightController = AnimationHelper.createFlightController(this, getFlightAnimationTransitionTicks(), animationHandler::flightPredicate);
-        this.vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
-        this.interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
+        this.vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
+        this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         setupAnimationControllers();
-        this.setPathfindingMalus(BlockPathTypes.LEAVES, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.LEAVES, -1.0F);
+        this.setPathfindingMalus(PathType.DANGER_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_FIRE, 0.0F);
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
 
         if (!level.isClientSide) {
@@ -369,11 +369,11 @@ public class Cindervane extends RideableFlyingDragon implements ShakesScreen, Pa
     }
 
     @Override
-    public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor level, @NotNull DifficultyInstance difficulty, @NotNull MobSpawnType spawnType,
+    public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor level, @NotNull DifficultyInstance difficulty, @NotNull EntitySpawnReason spawnType,
                                                  @Nullable SpawnGroupData spawnData, @Nullable CompoundTag dataTag) {
         SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, spawnData, dataTag);
 
-        if (spawnType == MobSpawnType.CHUNK_GENERATION || spawnType == MobSpawnType.NATURAL) {
+        if (spawnType == EntitySpawnReason.CHUNK_GENERATION || spawnType == EntitySpawnReason.NATURAL) {
             if (!(data instanceof CindervaneFamilyData)) {
                 if (this.random.nextFloat() < 0.05F) {
                     data = new CindervaneFamilyData(false);
@@ -418,7 +418,7 @@ public class Cindervane extends RideableFlyingDragon implements ShakesScreen, Pa
 
     public static boolean canSpawnHere(EntityType<? extends Cindervane> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         return !level.getBiome(pos).is(Biomes.SNOWY_SLOPES)

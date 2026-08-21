@@ -5,7 +5,7 @@ import com.leon.saintsdragons.client.model.draconianswarm.LatcherModel;
 import com.leon.saintsdragons.server.entity.draconianswarm.Latcher;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;

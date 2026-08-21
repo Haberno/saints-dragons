@@ -10,7 +10,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.server.level.ServerLevel;
@@ -74,7 +74,7 @@ public final class VolitansUnderwaterSpawner {
             return;
         }
 
-        if (!DragonSpawnRules.passesNearbyDragonDensityCheck(level, MobSpawnType.NATURAL, spawnPos, Volitans.class)) {
+        if (!DragonSpawnRules.passesNearbyDragonDensityCheck(level, EntitySpawnReason.NATURAL, spawnPos, Volitans.class)) {
             return;
         }
 
@@ -136,7 +136,7 @@ public final class VolitansUnderwaterSpawner {
         int targetCount = Mth.nextInt(random, minGroupSize, maxGroupSize);
         int spawned = 0;
 
-        if (spawnOne(level, origin, MobSpawnType.NATURAL)) {
+        if (spawnOne(level, origin, EntitySpawnReason.NATURAL)) {
             spawned++;
         } else {
             return false;
@@ -144,7 +144,7 @@ public final class VolitansUnderwaterSpawner {
 
         for (int i = 1; i < targetCount; i++) {
             BlockPos nearby = findNearbyPackPos(level, origin, random);
-            if (nearby != null && spawnOne(level, nearby, MobSpawnType.EVENT)) {
+            if (nearby != null && spawnOne(level, nearby, EntitySpawnReason.EVENT)) {
                 spawned++;
             }
         }
@@ -152,7 +152,7 @@ public final class VolitansUnderwaterSpawner {
         return spawned > 0;
     }
 
-    private static boolean spawnOne(ServerLevel level, BlockPos pos, MobSpawnType spawnType) {
+    private static boolean spawnOne(ServerLevel level, BlockPos pos, EntitySpawnReason spawnType) {
         Volitans volitans = ModEntities.VOLITANS.get().create(level);
         if (volitans == null) {
             return false;

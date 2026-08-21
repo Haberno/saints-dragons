@@ -3,7 +3,7 @@ package com.leon.saintsdragons.common.item;
 import com.leon.saintsdragons.common.item.util.BinderComponentUtil;
 import com.leon.saintsdragons.server.entity.base.RideableFlyingDragon;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -19,14 +19,14 @@ public abstract class AbstractFlyingDragonBinderItem<T extends RideableFlyingDra
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
-                                                           @NotNull InteractionHand hand) {
+    public @NotNull InteractionResult use(@NotNull Level level, @NotNull Player player,
+                                          @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         if (!BinderComponentUtil.isBound(stack)) {
             return super.use(level, player, hand);
         }
         if (level.isClientSide) {
-            return InteractionResultHolder.success(stack);
+            return InteractionResult.SUCCESS;
         }
 
         Vec3 releasePosition = player.position().add(
@@ -36,7 +36,7 @@ public abstract class AbstractFlyingDragonBinderItem<T extends RideableFlyingDra
         if (released) {
             syncPlayerInventory(player);
         }
-        return released ? InteractionResultHolder.success(stack) : InteractionResultHolder.fail(stack);
+        return released ? InteractionResult.SUCCESS_SERVER : InteractionResult.FAIL;
     }
 
     @Override

@@ -7,8 +7,8 @@ import com.leon.saintsdragons.client.ui.DraconicCodexScreen;
 import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.model.data.EntityModelData;
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 
 public class StegonautModel extends DragonGeoModel<Stegonaut> {
     private static final WeightedBoneChain NECK_FOLLOW = WeightedBoneChain.of(
@@ -29,24 +29,24 @@ public class StegonautModel extends DragonGeoModel<Stegonaut> {
     }
 
     @Override
-    public void setCustomAnimations(Stegonaut entity, long instanceId, AnimationState<Stegonaut> animationState) {
+    public void setCustomAnimations(Stegonaut entity, long instanceId, LegacyAnimationState<Stegonaut> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
 
         if (DraconicCodexScreen.RENDERING_IN_GUI.get()) {
             return;
         }
 
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
+        LegacyEntityModelData modelData = animationState.entityModelData();
         if (modelData == null) return;
 
-        float partialTick = animationState.getPartialTick();
+        float partialTick = animationState.renderState().getPartialTick();
 
         if(entity.isAlive()) {
             if (entity.isDeadOrDying()){
                 return;
             }
             if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
-                applyNeckFollow(entity, modelData, animationState.getPartialTick());
+                applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
             applyTailDrag(entity, partialTick);
@@ -67,7 +67,7 @@ public class StegonautModel extends DragonGeoModel<Stegonaut> {
         DragonModelPoseHelper.applyTailDrag(this, entity, partialTick, TAIL, 30.0);
     }
 
-    private void applyNeckFollow(Stegonaut entity, EntityModelData modelData, float partialTick) {
+    private void applyNeckFollow(Stegonaut entity, LegacyEntityModelData modelData, float partialTick) {
         float lookPitchRad = modelData.headPitch() * Mth.DEG_TO_RAD;
         float totalYawRad = DragonModelPoseHelper.lookYawWithBodyDeviation(entity, modelData, partialTick, 2.0);
         DragonModelPoseHelper.applyWeightedNeckFollow(this, entity, NECK_FOLLOW, lookPitchRad, totalYawRad);

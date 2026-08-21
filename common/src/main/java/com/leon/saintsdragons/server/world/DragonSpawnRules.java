@@ -3,7 +3,7 @@ package com.leon.saintsdragons.server.world;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.phys.AABB;
@@ -37,7 +37,7 @@ public final class DragonSpawnRules {
     }
 
     public static boolean passesNearbyDragonDensityCheck(LevelAccessor level,
-                                                         MobSpawnType spawnType,
+                                                         EntitySpawnReason spawnType,
                                                          BlockPos pos,
                                                          Class<? extends DragonEntity> dragonClass) {
         if (!(level instanceof ServerLevelAccessor serverLevelAccessor)) {
@@ -70,8 +70,8 @@ public final class DragonSpawnRules {
         return nearbyDragons <= MAX_NEARBY_TOTAL_DRAGONS;
     }
 
-    public static boolean isNaturalWildSpawn(MobSpawnType spawnType) {
-        return spawnType == MobSpawnType.NATURAL || spawnType == MobSpawnType.CHUNK_GENERATION;
+    public static boolean isNaturalWildSpawn(EntitySpawnReason spawnType) {
+        return spawnType == EntitySpawnReason.NATURAL || spawnType == EntitySpawnReason.CHUNK_GENERATION;
     }
 
     public static boolean isThundering(LevelAccessor level) {

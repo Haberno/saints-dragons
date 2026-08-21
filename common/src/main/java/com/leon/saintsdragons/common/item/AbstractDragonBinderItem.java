@@ -13,7 +13,6 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
@@ -73,10 +72,10 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
     }
 
     @Override
-    public @NotNull InteractionResultHolder<ItemStack> use(@NotNull Level level, @NotNull Player player,
-                                                           @NotNull InteractionHand hand) {
+    public @NotNull InteractionResult use(@NotNull Level level, @NotNull Player player,
+                                          @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        return BinderComponentUtil.isBound(stack) ? InteractionResultHolder.pass(stack) : super.use(level, player, hand);
+        return BinderComponentUtil.isBound(stack) ? InteractionResult.PASS : super.use(level, player, hand);
     }
 
     @Override

@@ -3,10 +3,10 @@ package com.leon.saintsdragons.server.entity.dragons.ignivorus.handlers;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
 import com.leon.saintsdragons.server.flight.DragonFlightStateEvaluator;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.object.PlayState;
 
 
 public record IgnivorusAnimationHandler(Ignivorus dragon) {
@@ -186,8 +186,8 @@ public record IgnivorusAnimationHandler(Ignivorus dragon) {
                 RawAnimation.begin().thenPlay("animation.ignivorus.fireball_level3_shoots"));
     }
 
-    public PlayState movementPredicate(AnimationState<Ignivorus> state) {
-        var controller = state.getController();
+    public PlayState movementPredicate(AnimationTest<Ignivorus> state) {
+        var controller = state.controller();
         boolean aerialState = dragon.isFlying() || dragon.isTakeoff() || dragon.isLanding() || dragon.isHovering();
 
         if (dragon.isDying()) {
@@ -333,7 +333,7 @@ public record IgnivorusAnimationHandler(Ignivorus dragon) {
         }
         return PlayState.CONTINUE;
     }
-    public PlayState flightPredicate(AnimationState<Ignivorus> state) {
+    public PlayState flightPredicate(AnimationTest<Ignivorus> state) {
         if (dragon.isDying() || dragon.isTamingStunned()) {
             return PlayState.STOP;
         }
@@ -347,7 +347,7 @@ public record IgnivorusAnimationHandler(Ignivorus dragon) {
             }
             return AnimationHelper.handleTakeoff(state, false, FLIGHT_ANIMATIONS, FLIGHT_TRANSITIONS);
         }
-        var visualState = dragon.getVisualFlightState(state.getPartialTick());
+        var visualState = dragon.getVisualFlightState(state.renderState().getPartialTick());
         if (dragon.isHoldingRiderDiveMomentum()
                 || visualState == DragonFlightStateEvaluator.VisualState.GLIDE_DOWN) {
             visualState = DragonFlightStateEvaluator.VisualState.GLIDE;
@@ -355,13 +355,13 @@ public record IgnivorusAnimationHandler(Ignivorus dragon) {
         return AnimationHelper.handleFlightState(state, visualState, FLIGHT_ANIMATIONS, FLIGHT_TRANSITIONS);
     }
 
-    public PlayState actionPredicate(AnimationState<Ignivorus> state) {
-        state.getController().transitionLength(ACTION_TRANSITION_TICKS);
+    public PlayState actionPredicate(AnimationTest<Ignivorus> state) {
+        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 
-    public PlayState fastActionPredicate(AnimationState<Ignivorus> state) {
-        state.getController().transitionLength(FAST_ACTION_TRANSITION_TICKS);
+    public PlayState fastActionPredicate(AnimationTest<Ignivorus> state) {
+        state.controller().transitionLength(FAST_ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 }

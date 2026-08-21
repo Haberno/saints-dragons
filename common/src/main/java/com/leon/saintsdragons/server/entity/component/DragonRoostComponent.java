@@ -7,7 +7,7 @@ import net.minecraft.core.GlobalPos;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Marker;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.level.ServerLevelAccessor;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.level.levelgen.structure.Structure;
@@ -50,8 +50,8 @@ public final class DragonRoostComponent {
         this.requiredSleepSettleTicks = requiredSleepSettleTicks;
     }
 
-    public void initializeHomeFromSpawn(ServerLevelAccessor level, MobSpawnType spawnType) {
-        if (spawnType == MobSpawnType.STRUCTURE) {
+    public void initializeHomeFromSpawn(ServerLevelAccessor level, EntitySpawnReason spawnType) {
+        if (spawnType == EntitySpawnReason.STRUCTURE) {
             setHome(GlobalPos.of(level.getLevel().dimension(), dragon.blockPosition()));
         }
     }

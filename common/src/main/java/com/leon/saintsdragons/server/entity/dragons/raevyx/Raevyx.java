@@ -77,16 +77,16 @@ import net.minecraft.world.entity.LightningBolt;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.particles.ParticleTypes;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.RawAnimation;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.RawAnimation;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.object.PlayState;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.util.GeckoLibUtil;
@@ -455,25 +455,25 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         super(type, level);
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, 0.34F);
         this.setMaxUpStep(1.25F);
-        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.WATER_BORDER, -1.0F);
-        this.setPathfindingMalus(BlockPathTypes.FENCE, -1.0F);
+        this.setPathfindingMalus(PathType.DANGER_FIRE, -1.0F);
+        this.setPathfindingMalus(PathType.WATER, -1.0F);
+        this.setPathfindingMalus(PathType.WATER_BORDER, -1.0F);
+        this.setPathfindingMalus(PathType.FENCE, -1.0F);
         this.lightningInteractionHandler = new RaevyxInteractionHandler(this);
         this.animationHandler = new RaevyxAnimationHandler(this);
         this.riderController = new RaevyxRiderController(this);
         this.diveImpactAbility = new RaevyxDiveImpactAbility(this);
-        this.movementController = new AnimationController<>(this, "movement", 2, animationHandler::movementPredicate);
-        this.actionController = new AnimationController<>(this, RaevyxAnimationHandler.ACTION_CONTROLLER, 3, state -> {
+        this.movementController = new AnimationController<>("movement", 2, animationHandler::movementPredicate);
+        this.actionController = new AnimationController<>(RaevyxAnimationHandler.ACTION_CONTROLLER, 3, state -> {
             if (isTamingStunned()) {
                 return PlayState.STOP;
             }
             return animationHandler.raevyxActionPredicate(state);
         });
-        this.fastActionController = new AnimationController<>(this, RaevyxAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::raevyxFastActionPredicate);
+        this.fastActionController = new AnimationController<>(RaevyxAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::raevyxFastActionPredicate);
         this.flightController = AnimationHelper.createFlightController(this, getFlightAnimationTransitionTicks(), animationHandler::flightPredicate);
-        this.vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
-        this.interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
+        this.vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
+        this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         setupAnimationControllers();
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
 
@@ -2065,7 +2065,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
                 if (isDashing() && getControllingPassenger() instanceof Player) {
                     dashDodgeNudge.steerHorizontal(DragonMotionMath.horizontalForward(this.getYRot()));
                 } else if (isDodging() && getControllingPassenger() instanceof Player) {
-                    dashDodgeNudge.steerHorizontal(DragonMotionMath.horizontalRelativeMovement(
+                    dashDodgeNudge.steerHorizontal(DragonMotionMath.horizontalRelative(
                             this.getYRot(),
                             getRaevyxNudgeSteerOffset()
                     ));
@@ -2115,7 +2115,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     @SuppressWarnings("unused")
     public static boolean canSpawnHere(EntityType<Raevyx> type,
                                        LevelAccessor level,
-                                       MobSpawnType reason,
+                                       EntitySpawnReason reason,
                                        BlockPos pos,
                                        RandomSource random) {
         if (SaintsDragonsConfig.isRaevyxCustomSpawningEnabled()
@@ -2130,12 +2130,12 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     public @NotNull SpawnGroupData finalizeSpawn(
             @Nonnull ServerLevelAccessor level,
             @Nonnull DifficultyInstance difficulty,
-            @Nonnull MobSpawnType spawnReason,
+            @Nonnull EntitySpawnReason spawnReason,
             @Nullable SpawnGroupData spawnData,
             @Nullable CompoundTag dataTag
     ) {
         spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData, dataTag);
-        if (spawnReason == MobSpawnType.CHUNK_GENERATION) {
+        if (spawnReason == EntitySpawnReason.CHUNK_GENERATION) {
             if (!(spawnData instanceof RaevyxFamilyData)) {
                 if (this.random.nextFloat() < 0.05F) {
                     spawnData = new RaevyxFamilyData(false);

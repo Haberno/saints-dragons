@@ -68,7 +68,7 @@ import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.MoverType;
 import javax.annotation.Nonnull;
 import net.minecraft.world.entity.player.Player;
@@ -95,11 +95,11 @@ import net.minecraft.world.entity.animal.Animal;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.object.PlayState;
+import net.minecraft.world.level.pathfinder.PathType;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
+import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -411,21 +411,21 @@ public class Ignivorus extends RideableFlyingDragon implements ShakesScreen, Dra
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, SHAKE_DECAY_PER_TICK);
         this.setMaxUpStep(DEFAULT_MAX_UP_STEP);
 
-        this.setPathfindingMalus(BlockPathTypes.DANGER_FIRE, 0.0F);
-        this.setPathfindingMalus(BlockPathTypes.DAMAGE_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.DANGER_FIRE, 0.0F);
+        this.setPathfindingMalus(PathType.DAMAGE_FIRE, 0.0F);
 
         this.riderController = new IgnivorusRiderController(this);
-        this.movementController = new AnimationController<>(this, "movement", 2, animationHandler::movementPredicate);
-        this.actionController = new AnimationController<>(this, IgnivorusAnimationHandler.ACTION_CONTROLLER, 4, state -> {
+        this.movementController = new AnimationController<>("movement", 2, animationHandler::movementPredicate);
+        this.actionController = new AnimationController<>(IgnivorusAnimationHandler.ACTION_CONTROLLER, 4, state -> {
             if (isTamingStunned()) {
                 return PlayState.STOP;
             }
             return animationHandler.actionPredicate(state);
         });
-        this.fastActionController = new AnimationController<>(this, IgnivorusAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
+        this.fastActionController = new AnimationController<>(IgnivorusAnimationHandler.FAST_ACTION_CONTROLLER, 1, animationHandler::fastActionPredicate);
         this.flightController = AnimationHelper.createFlightController(this, getFlightAnimationTransitionTicks(), animationHandler::flightPredicate);
-        this.vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
-        this.interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
+        this.vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
+        this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         setupAnimationControllers();
         resetAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY);
         if (!level.isClientSide) {
@@ -511,7 +511,7 @@ public class Ignivorus extends RideableFlyingDragon implements ShakesScreen, Dra
     @Override
     public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor level,
                                                  @NotNull DifficultyInstance difficulty,
-                                                 @NotNull MobSpawnType spawnType,
+                                                 @NotNull EntitySpawnReason spawnType,
                                                  @Nullable SpawnGroupData spawnData,
                                                  @Nullable CompoundTag dataTag) {
         SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, spawnData, dataTag);
@@ -3112,7 +3112,7 @@ public class Ignivorus extends RideableFlyingDragon implements ShakesScreen, Dra
 
     public static boolean canSpawnHere(EntityType<Ignivorus> type,
                                        LevelAccessor level,
-                                       MobSpawnType reason,
+                                       EntitySpawnReason reason,
                                        BlockPos pos,
                                        RandomSource random) {
         if (!Animal.checkAnimalSpawnRules(type, level, reason, pos, random)) {

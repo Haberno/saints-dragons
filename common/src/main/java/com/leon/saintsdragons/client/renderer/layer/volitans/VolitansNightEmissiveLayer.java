@@ -4,7 +4,7 @@ import com.leon.saintsdragons.client.renderer.layer.NightEmissiveLayer;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.resources.Identifier;
-import software.bernie.geckolib.renderer.GeoRenderer;
+import software.bernie.geckolib.renderer.base.GeoRenderer;
 
 public class VolitansNightEmissiveLayer extends NightEmissiveLayer<Volitans> {
     private static final Identifier EMISSIVE_TEXTURE =

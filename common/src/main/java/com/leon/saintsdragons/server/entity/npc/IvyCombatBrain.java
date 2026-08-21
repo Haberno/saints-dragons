@@ -8,17 +8,17 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
-import net.minecraft.world.entity.monster.Evoker;
-import net.minecraft.world.entity.monster.Pillager;
+import net.minecraft.world.entity.monster.illager.Evoker;
+import net.minecraft.world.entity.monster.illager.Pillager;
 import net.minecraft.world.entity.monster.Vex;
 import net.minecraft.world.entity.monster.Witch;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.entity.projectile.AbstractArrow;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
-import software.bernie.geckolib.core.animation.AnimationState;
-import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.RawAnimation;
 
 import javax.annotation.Nullable;
 import java.util.EnumSet;
@@ -222,7 +222,7 @@ public class IvyCombatBrain {
         return new BoxingGoal();
     }
 
-    public <T extends GeoEntity> boolean applyMovementAnimation(AnimationState<T> state) {
+    public <T extends GeoEntity> boolean applyMovementAnimation(AnimationTest<T> state) {
         if (ivy.isDownedOrArising()) {
             return false;
         }
@@ -241,7 +241,7 @@ public class IvyCombatBrain {
             return true;
         }
         if (!lastAppliedCombatAnimation.isEmpty()) {
-            state.getController().forceAnimationReset();
+            state.controller().forceAnimationReset();
             lastAppliedCombatAnimation = "";
         }
         if (ivy.isBoxingBackingUp()) {
@@ -254,14 +254,14 @@ public class IvyCombatBrain {
         return true;
     }
 
-    private <T extends GeoEntity> boolean applyCombatActionAnimation(AnimationState<T> state) {
+    private <T extends GeoEntity> boolean applyCombatActionAnimation(AnimationTest<T> state) {
         String animation = ivy.getBoxingAnimation();
         RawAnimation rawAnimation = combatActionAnimation(animation);
         if (rawAnimation == null) {
             return false;
         }
         if (!animation.equals(lastAppliedCombatAnimation)) {
-            state.getController().forceAnimationReset();
+            state.controller().forceAnimationReset();
             lastAppliedCombatAnimation = animation;
         }
         AnimationHelper.setAndContinue(state, rawAnimation);

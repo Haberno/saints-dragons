@@ -3,9 +3,9 @@ package com.leon.saintsdragons.client.model.npc;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.cache.object.GeoBone;
+import software.bernie.geckolib.cache.model.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.core.animation.AnimationState;
+import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
@@ -15,7 +15,7 @@ public class IvyTheDragonMerchantModel extends DefaultedEntityGeoModel<IvyTheDra
     }
 
     @Override
-    public void setCustomAnimations(IvyTheDragonMerchant entity, long instanceId, AnimationState<IvyTheDragonMerchant> animationState) {
+    public void setCustomAnimations(IvyTheDragonMerchant entity, long instanceId, AnimationTest<IvyTheDragonMerchant> animationState) {
         super.setCustomAnimations(entity, instanceId, animationState);
 
         EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
@@ -25,7 +25,7 @@ public class IvyTheDragonMerchantModel extends DefaultedEntityGeoModel<IvyTheDra
 
         float headYawRad = Mth.clamp(modelData.netHeadYaw(), -45.0f, 45.0f) * Mth.DEG_TO_RAD;
         float headPitchRad = Mth.clamp(modelData.headPitch(), -25.0f, 25.0f) * Mth.DEG_TO_RAD;
-        float deviationRad = (float) (entity.bodyRotDeviation.get(animationState.getPartialTick()) * Mth.DEG_TO_RAD);
+        float deviationRad = (float) (entity.bodyRotDeviation.get(animationState.renderState().getPartialTick()) * Mth.DEG_TO_RAD);
 
         GeoBone head = getBoneOrNull("head");
         if (head != null && entity.shouldApplyHeadTracking()) {

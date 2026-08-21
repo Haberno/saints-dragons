@@ -52,7 +52,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.SpawnGroupData;
 import net.minecraft.world.entity.TamableAnimal;
@@ -80,9 +80,9 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.ArrayList;
@@ -165,12 +165,12 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     private UUID cloakedRiderUuid;
     public Nulljaw(EntityType<? extends Nulljaw> type, Level level) {
         super(type, level);
-        this.movementController = new AnimationController<>(this, "movement", 2, animationHandler::movementPredicate);
-        this.actionController = new AnimationController<>(this, "actions", 2, animationHandler::actionPredicate);
-        this.mountedController = new AnimationController<>(this, "mounted", 2, animationHandler::mountedPredicate);
-        this.instantController = new AnimationController<>(this, "instant", 1, animationHandler::instantPredicate);
-        this.vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
-        this.interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
+        this.movementController = new AnimationController<>("movement", 2, animationHandler::movementPredicate);
+        this.actionController = new AnimationController<>("actions", 2, animationHandler::actionPredicate);
+        this.mountedController = new AnimationController<>("mounted", 2, animationHandler::mountedPredicate);
+        this.instantController = new AnimationController<>("instant", 1, animationHandler::instantPredicate);
+        this.vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
+        this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         setupAnimationControllers();
         this.setFlying(true);
         this.setHovering(false);
@@ -211,7 +211,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     @Override
     public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor level,
                                                  @NotNull DifficultyInstance difficulty,
-                                                 @NotNull MobSpawnType spawnReason,
+                                                 @NotNull EntitySpawnReason spawnReason,
                                                  @Nullable SpawnGroupData spawnData,
                                                  @Nullable CompoundTag dataTag) {
         spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData, dataTag);
@@ -222,7 +222,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
 
     public static boolean canSpawnHere(EntityType<? extends Nulljaw> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         if (DragonSpawnRules.isNaturalWildSpawn(spawnType)
@@ -255,7 +255,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
         return passesNulljawLocalSpawnCap(level, spawnType, pos);
     }
 
-    private static boolean passesNulljawLocalSpawnCap(LevelAccessor level, MobSpawnType spawnType, BlockPos pos) {
+    private static boolean passesNulljawLocalSpawnCap(LevelAccessor level, EntitySpawnReason spawnType, BlockPos pos) {
         if (!(level instanceof ServerLevelAccessor serverLevelAccessor)) {
             return true;
         }
@@ -278,7 +278,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     @Override
-    public boolean checkSpawnRules(LevelAccessor level, MobSpawnType spawnType) {
+    public boolean checkSpawnRules(LevelAccessor level, EntitySpawnReason spawnType) {
         @SuppressWarnings("unchecked")
         EntityType<? extends Nulljaw> nulljawType = (EntityType<? extends Nulljaw>) this.getType();
         return canSpawnHere(nulljawType, level, spawnType, this.blockPosition(), this.getRandom());

@@ -70,9 +70,9 @@ import net.minecraft.world.Container;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
-import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.AnimatableManager;
-import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
+import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 public class Stegonaut extends RideableGroundDragon implements PackMember<Stegonaut>, ShakesScreen, DragonSaddleCarrier {
@@ -135,10 +135,10 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     public Stegonaut(EntityType<? extends Stegonaut> entityType, Level level) {
         super(entityType, level);
         this.setMaxUpStep(MAX_UP_STEP);
-        this.movementController = new AnimationController<>(this, "movement", 2, animationController::handleMovementAnimation);
-        this.actionController = new AnimationController<>(this, StegonautAnimationHandler.ACTION_CONTROLLER, 5, animationController::actionPredicate);
-        this.vocalController = new AnimationController<>(this, AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
-        this.interactionController = new AnimationController<>(this, AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
+        this.movementController = new AnimationController<>("movement", 2, animationController::handleMovementAnimation);
+        this.actionController = new AnimationController<>(StegonautAnimationHandler.ACTION_CONTROLLER, 5, animationController::actionPredicate);
+        this.vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2, AnimationHelper::vocalIdle);
+        this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, 0.18F);
         setupAnimationControllers();
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
@@ -499,7 +499,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
 
     public static boolean canSpawnHere(EntityType<? extends Stegonaut> type,
                                        LevelAccessor level,
-                                       MobSpawnType spawnType,
+                                       EntitySpawnReason spawnType,
                                        BlockPos pos,
                                        RandomSource random) {
         boolean hasSpawnSpace = SaintsDragonsConfig.isStegonautCustomSpawningEnabled()

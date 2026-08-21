@@ -9,7 +9,7 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.control.MoveControl;
 import net.minecraft.world.entity.ai.navigation.GroundPathNavigation;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.level.pathfinder.BlockPathTypes;
+import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.Path;
 import net.minecraft.world.level.pathfinder.PathFinder;
 import net.minecraft.world.phys.Vec3;
@@ -295,16 +295,16 @@ public class PathNavigateGround extends GroundPathNavigation {
     }
 
     @Override
-    protected boolean hasValidBlockPathTypes(@Nonnull BlockPathTypes pathType) {
-        if (pathType == BlockPathTypes.LAVA) {
+    protected boolean hasValidPathType(@Nonnull PathType pathType) {
+        if (pathType == PathType.LAVA) {
             return false; // Dragons avoid lava paths entirely
         }
 
-        if (pathType == BlockPathTypes.WATER) {
+        if (pathType == PathType.WATER) {
             return waterEntryAllowed || this.mob.isInWaterOrBubble();
         }
 
-        return pathType != BlockPathTypes.OPEN;
+        return pathType != PathType.OPEN;
     }
 
     public record DebugSnapshot(boolean pathActive,
