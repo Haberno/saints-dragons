@@ -89,9 +89,9 @@ public final class RealCameraCompatibility {
         try {
             float partialTick = partialTickValue == null ? 0.0F : partialTickValue;
             Camera camera = minecraft.gameRenderer.getMainCamera();
-            Vector3f forward = camera.getLookVector();
-            Vector3f upward = camera.getUpVector();
-            Vector3f left = camera.getLeftVector();
+            Vector3f forward = new Vector3f(camera.forwardVector());
+            Vector3f upward = new Vector3f(camera.upVector());
+            Vector3f left = new Vector3f(camera.leftVector());
             Vec3 cameraPivot = DragonSeatAnchoredCamera.computePivot(
                     dragon,
                     rider,

@@ -90,35 +90,35 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
 
     public void triggerDodgeLeftAnimation() {
         wyvern.triggerAnim(MOVEMENT_CONTROLLER, "dodge_left");
-        if (!wyvern.level().isClientSide) {
+        if (!wyvern.level().isClientSide()) {
             wyvern.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_DODGE.get(), 1.6f, 1.0f, 35);
         }
     }
 
     public void triggerDodgeRightAnimation() {
         wyvern.triggerAnim(MOVEMENT_CONTROLLER, "dodge_right");
-        if (!wyvern.level().isClientSide) {
+        if (!wyvern.level().isClientSide()) {
             wyvern.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_DODGE.get(), 1.6f, 1.0f, 35);
         }
     }
 
     public void triggerDodgeBackwardAnimation() {
         wyvern.triggerAnim(MOVEMENT_CONTROLLER, "dash_backward");
-        if (!wyvern.level().isClientSide) {
+        if (!wyvern.level().isClientSide()) {
             wyvern.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_DODGE.get(), 1.6f, 1.0f, 35);
         }
     }
 
     public void triggerDodgeAirLeftAnimation() {
         wyvern.triggerAnim(AnimationHelper.FLIGHT_CONTROLLER, DODGE_AIR_LEFT);
-        if (!wyvern.level().isClientSide) {
+        if (!wyvern.level().isClientSide()) {
             wyvern.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_DODGE.get(), 1.6f, 1.0f, 35);
         }
     }
 
     public void triggerDodgeAirRightAnimation() {
         wyvern.triggerAnim(AnimationHelper.FLIGHT_CONTROLLER, DODGE_AIR_RIGHT);
-        if (!wyvern.level().isClientSide) {
+        if (!wyvern.level().isClientSide()) {
             wyvern.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_DODGE.get(), 1.6f, 1.0f, 35);
         }
     }
@@ -181,7 +181,7 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
             return PlayState.STOP;
         }
         if (wyvern.isScentAssessing() && !wyvern.isTamingStunned()) {
-            state.controller().transitionLength(GROUND_TRANSITIONS.idle());
+            state.controller().setTransitionTicks(GROUND_TRANSITIONS.idle());
             state.setAndContinue(INVESTIGATING);
             return PlayState.CONTINUE;
         }
@@ -216,7 +216,7 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
                 return PlayState.STOP;
             }
             if (dragon.isDashing()) {
-                state.controller().transitionLength(transitions.moving());
+                state.controller().setTransitionTicks(transitions.moving());
                 state.setAndContinue(dragon.wasLastDashRight() ? DASH_FORWARD_LEFT : DASH_FORWARD_RIGHT);
                 return PlayState.CONTINUE;
             }
@@ -259,12 +259,12 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
     }
 
     public PlayState raevyxActionPredicate(AnimationTest<Raevyx> state) {
-        state.controller().transitionLength(ACTION_TRANSITION_TICKS);
+        state.controller().setTransitionTicks(ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 
     public PlayState raevyxFastActionPredicate(AnimationTest<Raevyx> state) {
-        state.controller().transitionLength(FAST_ACTION_TRANSITION_TICKS);
+        state.controller().setTransitionTicks(FAST_ACTION_TRANSITION_TICKS);
         return PlayState.STOP;
     }
 

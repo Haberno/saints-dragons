@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 public final class DragonChestLootRegistry {
-    public static final Identifier DEFAULTS_FILE = new Identifier("saintsdragons", "defaults");
+    public static final Identifier DEFAULTS_FILE = Identifier.fromNamespaceAndPath("saintsdragons", "defaults");
 
     private static volatile List<Entry> entries = List.of();
 
@@ -55,8 +55,8 @@ public final class DragonChestLootRegistry {
     }
 
     private static Entry parseEntry(Identifier fileId, JsonObject entry) {
-        Identifier lootTable = new Identifier(GsonHelper.getAsString(entry, "loot_table"));
-        Identifier itemId = new Identifier(GsonHelper.getAsString(entry, "item"));
+        Identifier lootTable = Identifier.parse(GsonHelper.getAsString(entry, "loot_table"));
+        Identifier itemId = Identifier.parse(GsonHelper.getAsString(entry, "item"));
         Optional<Item> item = BuiltInRegistries.ITEM.getOptional(itemId);
         if (item.isEmpty()) {
             throw new IllegalArgumentException("Unknown item " + itemId + " in " + fileId);
@@ -64,7 +64,7 @@ public final class DragonChestLootRegistry {
         int count = Math.max(1, GsonHelper.getAsInt(entry, "count", 1));
         double chance = Mth.clamp(GsonHelper.getAsDouble(entry, "chance", 1.0D), 0.0D, 1.0D);
         Identifier dragonId = entry.has("dragon_id")
-                ? new Identifier(GsonHelper.getAsString(entry, "dragon_id"))
+                ? Identifier.parse(GsonHelper.getAsString(entry, "dragon_id"))
                 : null;
         String configKey = GsonHelper.getAsString(entry, "config_key", null);
         return new Entry(lootTable, item.get(), count, chance, dragonId, configKey);

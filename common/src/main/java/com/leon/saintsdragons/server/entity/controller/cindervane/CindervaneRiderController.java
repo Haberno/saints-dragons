@@ -130,7 +130,7 @@ public record CindervaneRiderController(Cindervane dragon) {
                 double worldZ = localX * Math.sin(yawRad) + localZ * Math.cos(yawRad);
 
                 double x = dragon.getX() + worldX;
-                double y = dragon.getY() + getAutoGrabRidingOffset() + AUTO_GRAB_HEIGHT_ADJUST + passenger.getMyRidingOffset();
+                double y = dragon.getY() + getAutoGrabRidingOffset() + AUTO_GRAB_HEIGHT_ADJUST;
                 double z = dragon.getZ() + worldZ;
                 moveFunction.accept(passenger, x, y, z);
             }
@@ -143,7 +143,7 @@ public record CindervaneRiderController(Cindervane dragon) {
         if (seatIndex == -1) return; // Passenger not found
         final double seatHeightAdjust = seatIndex == 0 ? SEAT0_HEIGHT_ADJUST : SEAT1_HEIGHT_ADJUST;
         Vec3 passengerLoc = null;
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             passengerLoc = dragon.getClientLocatorPosition(seatIndex == 0 ? "passengerSeat0" : "passengerSeat1");
             if (passengerLoc == null && seatIndex == 0) {
                 passengerLoc = dragon.getClientLocatorPosition("passengerLocator");

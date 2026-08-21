@@ -65,7 +65,7 @@ public class RaevyxBeamAbility extends DragonAbility<Raevyx> {
             wyvern.setBeaming(false);
             releaseEnergizedRedstone(wyvern);
             wyvern.triggerAnim(RaevyxAnimationHandler.FAST_ACTION_CONTROLLER, "lightning_beam_start");
-            if (!wyvern.level().isClientSide) {
+            if (!wyvern.level().isClientSide()) {
                 float pitch = 0.9f + wyvern.getRandom().nextFloat() * 0.2f;
                 wyvern.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_LIGHTNING_BEAM_START.get(), 1.8f, pitch, 28);
             }
@@ -116,7 +116,7 @@ public class RaevyxBeamAbility extends DragonAbility<Raevyx> {
         if (section == null || section.sectionType != AbilitySectionType.ACTIVE) return;
 
         Raevyx wyvern = getUser();
-        if (wyvern.level().isClientSide) return;
+        if (wyvern.level().isClientSide()) return;
         float energyDrain = (float) DragonAttributeConfigLoader.getInstance()
                 .getConfig(DragonAttributeConfigLoader.RAEVYX_ID)
                 .extraDouble("beam_drain_per_tick", ENERGY_COST_PER_TICK);
@@ -151,7 +151,7 @@ public class RaevyxBeamAbility extends DragonAbility<Raevyx> {
     private void triggerBeamStop(Raevyx wyvern) {
         if (beamLoopActive || beamStartPlayed) {
             wyvern.triggerAnim(RaevyxAnimationHandler.FAST_ACTION_CONTROLLER, "lightning_beam_stop");
-            if (!wyvern.level().isClientSide) {
+            if (!wyvern.level().isClientSide()) {
                 float pitch = 0.95f + wyvern.getRandom().nextFloat() * 0.15f;
                 wyvern.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_LIGHTNING_BEAM_STOP.get(), 1.6f, pitch, 34);
             }
@@ -221,7 +221,7 @@ public class RaevyxBeamAbility extends DragonAbility<Raevyx> {
 
             if (hit.isPresent() || pointBlankOverlap) {
                 var hitPos = hit.orElse(start);
-                if (!target.hurt(resolveBeamDamageSource(wyvern, target), DAMAGE)) {
+                if (!target.hurtServer(server, resolveBeamDamageSource(wyvern, target), DAMAGE)) {
                     continue;
                 }
                 var away = target.position().subtract(hitPos).normalize();
@@ -253,7 +253,8 @@ public class RaevyxBeamAbility extends DragonAbility<Raevyx> {
             interrupt();
             return;
         }
-        if (!target.hurt(resolveBeamDamageSource(wyvern, target), Math.min(damage, allowedDamage))) {
+        if (!target.hurtServer((ServerLevel) wyvern.level(), resolveBeamDamageSource(wyvern, target),
+                Math.min(damage, allowedDamage))) {
             return;
         }
         if (isAtAiBeamMercyThreshold(target)) {

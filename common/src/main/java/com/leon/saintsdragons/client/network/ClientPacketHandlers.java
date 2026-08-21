@@ -181,7 +181,9 @@ public final class ClientPacketHandlers {
             );
         }
 
-        vehicle.moveTo(message.x(), message.y(), message.z(), message.yRot(), message.xRot());
+        vehicle.setPos(message.x(), message.y(), message.z());
+        vehicle.setYRot(message.yRot());
+        vehicle.setXRot(message.xRot());
     }
 
     public static void handleSwarmBattleMusic(MessageSwarmBattleMusic message) {

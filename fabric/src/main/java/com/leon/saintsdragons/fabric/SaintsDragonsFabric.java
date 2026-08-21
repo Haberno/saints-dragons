@@ -22,6 +22,8 @@ import net.fabricmc.fabric.api.itemgroup.v1.ItemGroupEvents;
 import net.fabricmc.fabric.api.object.builder.v1.entity.FabricDefaultAttributeRegistry;
 import net.fabricmc.fabric.api.resource.ResourceManagerHelper;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.packs.PackType;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.item.CreativeModeTab;
@@ -35,7 +37,7 @@ import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
 
 import java.util.List;
 
@@ -79,7 +81,8 @@ public final class SaintsDragonsFabric implements ModInitializer {
         raiseAttributeCap(Attributes.MAX_HEALTH, "MAX_HEALTH");
         raiseAttributeCap(Attributes.ARMOR, "ARMOR");
     }
-    private static void raiseAttributeCap(Attribute attribute, String name) {
+    private static void raiseAttributeCap(Holder<Attribute> attributeHolder, String name) {
+        Attribute attribute = attributeHolder.value();
         if (!(attribute instanceof RangedAttribute ranged)) {
             return;
         }
@@ -110,7 +113,8 @@ public final class SaintsDragonsFabric implements ModInitializer {
             return false;
         }
 
-        Potion potion = PotionUtils.getPotion(stack);
-        return potion == ModPotions.TIDEGUARD.get() || potion == ModPotions.SEARING.get();
+        PotionContents contents = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        return contents.potion().map(holder -> holder.value() == ModPotions.TIDEGUARD.get()
+                || holder.value() == ModPotions.SEARING.get()).orElse(false);
     }
 }

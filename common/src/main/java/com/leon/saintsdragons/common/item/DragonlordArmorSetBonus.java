@@ -15,6 +15,8 @@ import com.leon.saintsdragons.server.entity.effect.ImpactRingEntity;
 import com.leon.saintsdragons.server.entity.effect.VisualFallingBlockEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.DamageTypeTags;
@@ -55,12 +57,12 @@ public final class DragonlordArmorSetBonus {
     private static final int DOUBLE_JUMP_DUST_COUNT = 14;
     private static final float FALL_DAMAGE_BLOCK_THRESHOLD = 16.0F;
     private static final float VANILLA_PLAYER_MAX_HEALTH = 20.0F;
-    private static final UUID DOUBLE_JUMP_MODIFIER_UUID = UUID.fromString("8e8d7d4f-14b7-4df2-aeaf-4b47e6c4f617");
+    private static final Identifier DOUBLE_JUMP_MODIFIER_ID =
+            Identifier.fromNamespaceAndPath("saintsdragons", "dragonlord_double_jump");
     private static final AttributeModifier DOUBLE_JUMP_MODIFIER = new AttributeModifier(
-            DOUBLE_JUMP_MODIFIER_UUID,
-            "Dragonlord double jump",
+            DOUBLE_JUMP_MODIFIER_ID,
             1.0D,
-            AttributeModifier.Operation.ADDITION
+            AttributeModifier.Operation.ADD_VALUE
     );
     private static final Set<UUID> USED_MIDAIR_JUMP = new HashSet<>();
     private static final Set<UUID> ACTIVE_FLIGHT = new HashSet<>();
@@ -78,14 +80,15 @@ public final class DragonlordArmorSetBonus {
         }
 
         boolean fullSet = isWearingFullSet(player);
-        AttributeInstance doubleJump = player.getAttribute(ModAttributes.DOUBLE_JUMP.get());
+        AttributeInstance doubleJump = player.getAttribute(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(ModAttributes.DOUBLE_JUMP.get()));
         if (doubleJump != null) {
             if (fullSet) {
-                if (doubleJump.getModifier(DOUBLE_JUMP_MODIFIER_UUID) == null) {
+                if (doubleJump.getModifier(DOUBLE_JUMP_MODIFIER_ID) == null) {
                     doubleJump.addTransientModifier(DOUBLE_JUMP_MODIFIER);
                 }
             } else {
-                doubleJump.removeModifier(DOUBLE_JUMP_MODIFIER_UUID);
+                doubleJump.removeModifier(DOUBLE_JUMP_MODIFIER_ID);
             }
         }
 
@@ -95,7 +98,7 @@ public final class DragonlordArmorSetBonus {
         }
 
         if (!fullSet || player.isPassenger() || player.getAbilities().flying
-                || player.onClimbable() || player.isInWaterOrBubble()) {
+                || player.onClimbable() || player.isInWater()) {
             stopFlight(player);
             USED_MIDAIR_JUMP.remove(player.getUUID());
             PENDING_LANDING_SHOCKWAVE.remove(player.getUUID());
@@ -159,7 +162,8 @@ public final class DragonlordArmorSetBonus {
         if (USED_MIDAIR_JUMP.contains(player.getUUID())) {
             return false;
         }
-        AttributeInstance doubleJump = player.getAttribute(ModAttributes.DOUBLE_JUMP.get());
+        AttributeInstance doubleJump = player.getAttribute(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(ModAttributes.DOUBLE_JUMP.get()));
         if (doubleJump == null || doubleJump.getValue() < 1.0D) {
             return false;
         }
@@ -189,8 +193,10 @@ public final class DragonlordArmorSetBonus {
             return true;
         }
 
-        boolean blocked = (source.is(DamageTypeTags.IS_FIRE) && player.getAttributeValue(ModAttributes.FIRE_RESISTANCE.get()) >= 100.0D)
-                || (source.is(DamageTypeTags.IS_EXPLOSION) && player.getAttributeValue(ModAttributes.BLAST_RESISTANCE.get()) >= 100.0D);
+        boolean blocked = (source.is(DamageTypeTags.IS_FIRE) && player.getAttributeValue(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(ModAttributes.FIRE_RESISTANCE.get())) >= 100.0D)
+                || (source.is(DamageTypeTags.IS_EXPLOSION) && player.getAttributeValue(
+                BuiltInRegistries.ATTRIBUTE.wrapAsHolder(ModAttributes.BLAST_RESISTANCE.get())) >= 100.0D);
         if (blocked && source.is(DamageTypeTags.IS_FIRE)) {
             player.clearFire();
         }
@@ -207,7 +213,7 @@ public final class DragonlordArmorSetBonus {
         if (player == null) {
             return;
         }
-        DragonlordPlayerSavedData data = DragonlordPlayerSavedData.get(player.serverLevel());
+        DragonlordPlayerSavedData data = DragonlordPlayerSavedData.get(player.level());
         if (isWearingFullSet(player)) {
             data.saveHealth(player.getUUID(), player.getHealth());
         } else {
@@ -294,7 +300,7 @@ public final class DragonlordArmorSetBonus {
         }) {
             ItemStack stack = player.getItemBySlot(slot);
             if (stack.getItem() instanceof DragonlordArmorItem armor) {
-                long instanceId = GeoItem.getOrAssignId(stack, player.serverLevel());
+                long instanceId = GeoItem.getOrAssignId(stack, player.level());
                 armor.triggerArmorAnim(player, instanceId,
                         DragonlordArmorItem.FLIGHT_CONTROLLER, DragonlordArmorItem.FLAP_TRIGGER);
             }
@@ -314,7 +320,7 @@ public final class DragonlordArmorSetBonus {
                 && !player.isPassenger()
                 && !player.onGround()
                 && !player.onClimbable()
-                && !player.isInWaterOrBubble()
+                && !player.isInWater()
                 && !player.getAbilities().flying;
     }
 
@@ -426,7 +432,6 @@ public final class DragonlordArmorSetBonus {
                     0.45D + random.nextDouble() * 0.5D,
                     Math.sin(angle) * outwardSpeed
             );
-            debris.hasImpulse = true;
             server.addFreshEntity(debris);
         }
     }
@@ -485,7 +490,7 @@ public final class DragonlordArmorSetBonus {
             return;
         }
 
-        DragonlordPlayerSavedData data = DragonlordPlayerSavedData.get(player.serverLevel());
+        DragonlordPlayerSavedData data = DragonlordPlayerSavedData.get(player.level());
         var savedHealth = data.getHealth(playerId);
         if (savedHealth.isEmpty()) {
             PENDING_HEALTH_RESTORE.remove(playerId);

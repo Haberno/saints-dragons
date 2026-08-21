@@ -3,43 +3,48 @@ package com.leon.saintsdragons.client.renderer.armor;
 import com.leon.saintsdragons.client.model.armor.BloodTempestArmorModel;
 import com.leon.saintsdragons.common.item.BloodTempestArmorItem;
 import com.leon.saintsdragons.client.renderer.vfx.BloodTempestAfterimageRenderContext;
-import net.minecraft.client.renderer.MultiBufferSource;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsHumanoidRenderState;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
-import org.jetbrains.annotations.Nullable;
-import software.bernie.geckolib.cache.model.GeoBone;
-import software.bernie.geckolib.core.object.Color;
+import net.minecraft.util.ARGB;
+import net.minecraft.world.entity.EquipmentSlot;
 import software.bernie.geckolib.renderer.GeoArmorRenderer;
 
-public class BloodTempestArmorRenderer extends GeoArmorRenderer<BloodTempestArmorItem> {
+
+public class BloodTempestArmorRenderer extends GeoArmorRenderer<BloodTempestArmorItem, SaintsDragonsHumanoidRenderState> {
     public BloodTempestArmorRenderer() {
         super(new BloodTempestArmorModel());
     }
 
     @Override
-    public @Nullable GeoBone getHeadBone() {
-        return getGeoModel().getBone("armorhead").orElse(null);
+    public String getBoneNameForSegment(SaintsDragonsHumanoidRenderState renderState, ArmorSegment segment) {
+        return segment == ArmorSegment.HEAD ? "armorhead" : super.getBoneNameForSegment(renderState, segment);
     }
 
     @Override
-    public RenderType getRenderType(BloodTempestArmorItem animatable, Identifier texture,
-                                    @Nullable MultiBufferSource bufferSource, float partialTick) {
+    public RenderType getRenderType(SaintsDragonsHumanoidRenderState renderState, Identifier texture) {
         if (BloodTempestAfterimageRenderContext.isActive()) {
-            return RenderType.entityTranslucent(texture);
+            return RenderTypes.entityTranslucent(texture);
         }
-        return super.getRenderType(animatable, texture, bufferSource, partialTick);
+        return super.getRenderType(renderState, texture);
     }
 
     @Override
-    public Color getRenderColor(BloodTempestArmorItem animatable, float partialTick, int packedLight) {
+    public int getRenderColor(BloodTempestArmorItem animatable, RenderData renderData, float partialTick) {
         if (BloodTempestAfterimageRenderContext.isActive()) {
-            return Color.ofRGBA(
+            return ARGB.colorFromFloat(
+                    BloodTempestAfterimageRenderContext.alpha(),
                     BloodTempestAfterimageRenderContext.red(),
                     BloodTempestAfterimageRenderContext.green(),
-                    BloodTempestAfterimageRenderContext.blue(),
-                    BloodTempestAfterimageRenderContext.alpha()
+                    BloodTempestAfterimageRenderContext.blue()
             );
         }
-        return super.getRenderColor(animatable, partialTick, packedLight);
+        return super.getRenderColor(animatable, renderData, partialTick);
+    }
+
+    @Override
+    public SaintsDragonsHumanoidRenderState createRenderState(BloodTempestArmorItem animatable, RenderData renderData) {
+        return new SaintsDragonsHumanoidRenderState();
     }
 }

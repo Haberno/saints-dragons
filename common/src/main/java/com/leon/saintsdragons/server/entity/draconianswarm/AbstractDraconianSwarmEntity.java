@@ -14,7 +14,9 @@ import com.leon.saintsdragons.server.ai.navigation.async.AsyncSwarmFlyingPathNav
 import com.leon.saintsdragons.server.entity.controller.DragonBodyControl;
 import com.leon.saintsdragons.server.entity.controller.GenericLookControl;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.util.Mth;
@@ -178,7 +180,8 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
         this.targetSelector.addGoal(1, new HurtByTargetGoal(this));
         this.targetSelector.addGoal(2, new NearestAttackableTargetGoal<>(this, Player.class, true));
         this.targetSelector.addGoal(3, new NearestAttackableTargetGoal<>(
-                this, LivingEntity.class, 10, true, false, this::canTargetFromSwarm));
+                this, LivingEntity.class, 10, true, false,
+                (target, ignoredLevel) -> this.canTargetFromSwarm(target)));
     }
 
     protected Goal createCombatMovementGoal() {
@@ -189,16 +192,15 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor level,
                                                  @NotNull DifficultyInstance difficulty,
                                                  @NotNull EntitySpawnReason spawnType,
-                                                 @Nullable SpawnGroupData spawnGroupData,
-                                                 @Nullable CompoundTag tag) {
-        SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData, tag);
+                                                 @Nullable SpawnGroupData spawnGroupData) {
+        SpawnGroupData data = super.finalizeSpawn(level, difficulty, spawnType, spawnGroupData);
         applyInitialConfiguredAttributes();
         return data;
     }
 
     @Override
     public void tick() {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             applyInitialConfiguredAttributes();
             clearPacifiedPlayerTarget();
         }
@@ -206,7 +208,7 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
         tickVisualFlightPitch();
         tickTailDragYaw();
         this.setNoGravity(true);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             clearPacifiedPlayerTarget();
             tickNucleusLeash();
             this.swarmFlightController.serverTick();
@@ -234,7 +236,6 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     protected @NotNull PathNavigation createNavigation(@NotNull Level level) {
         FlyingPathNavigation navigation = new FlyingPathNavigation(this, level);
         navigation.setCanOpenDoors(false);
-        navigation.setCanPassDoors(false);
         navigation.setCanFloat(false);
         return navigation;
     }
@@ -242,18 +243,16 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     protected PathNavigation createSwarmNavigation(Level level) {
         AsyncSwarmFlyingPathNavigation navigation = new AsyncSwarmFlyingPathNavigation(this, level, this.swarmFlightController);
         navigation.setCanOpenDoors(false);
-        navigation.setCanPassDoors(false);
         navigation.setCanFloat(false);
         return navigation;
     }
 
-    @Override
     public float getWalkTargetValue(@NotNull BlockPos pos, @NotNull LevelReader level) {
         return level.getBlockState(pos).isAir() ? 10.0F : 0.0F;
     }
 
     @Override
-    public boolean causeFallDamage(float distance, float damageMultiplier, @NotNull DamageSource source) {
+    public boolean causeFallDamage(double distance, float damageMultiplier, @NotNull DamageSource source) {
         return false;
     }
 
@@ -290,8 +289,8 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
-        boolean hurt = super.hurt(source, amount);
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        boolean hurt = super.hurtServer(level, source, amount);
         if (hurt && isAlive() && retreatsAfterTakingDamage()) {
             requestCombatRetreat();
         }
@@ -396,10 +395,10 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     }
 
     @Override
-    public boolean doHurtTarget(@NotNull Entity target) {
+    public boolean doHurtTarget(@NotNull ServerLevel level, @NotNull Entity target) {
         return target instanceof LivingEntity livingEntity
                 && canHitWithSwarmAttack(livingEntity)
-                && super.doHurtTarget(target);
+                && super.doHurtTarget(level, target);
     }
 
     private boolean isNeutralToward(@Nullable LivingEntity target) {
@@ -414,18 +413,18 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     }
 
     @Override
-    protected void dropFromLootTable(@NotNull DamageSource source, boolean recentlyHit) {
+    protected void dropFromLootTable(@NotNull ServerLevel level, @NotNull DamageSource source, boolean recentlyHit) {
         if (!this.controllerSummoned) {
-            super.dropFromLootTable(source, recentlyHit);
+            super.dropFromLootTable(level, source, recentlyHit);
         }
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         if (this.nucleusPos != null && this.encounterId != null) {
             tag.putLong("NucleusPos", this.nucleusPos.asLong());
-            tag.putUUID("NucleusEncounter", this.encounterId);
+            tag.store("NucleusEncounter", UUIDUtil.CODEC, this.encounterId);
             tag.putInt("NucleusWave", this.encounterWave);
             tag.putBoolean("NucleusDeathReported", this.nucleusDeathReported);
             tag.putBoolean("ControllerSummoned", this.controllerSummoned);
@@ -433,16 +432,17 @@ public abstract class AbstractDraconianSwarmEntity extends Monster implements Ge
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
         this.initialConfiguredAttributesApplied = true;
         applyConfiguredAttributes();
-        if (tag.contains("NucleusPos") && tag.hasUUID("NucleusEncounter")) {
-            this.nucleusPos = BlockPos.of(tag.getLong("NucleusPos"));
-            this.encounterId = tag.getUUID("NucleusEncounter");
-            this.encounterWave = tag.getInt("NucleusWave");
-            this.nucleusDeathReported = tag.getBoolean("NucleusDeathReported");
-            this.controllerSummoned = tag.getBoolean("ControllerSummoned");
+        UUID savedEncounterId = tag.read("NucleusEncounter", UUIDUtil.CODEC).orElse(null);
+        if (tag.getLong("NucleusPos").isPresent() && savedEncounterId != null) {
+            this.nucleusPos = BlockPos.of(tag.getLongOr("NucleusPos", 0L));
+            this.encounterId = savedEncounterId;
+            this.encounterWave = tag.getIntOr("NucleusWave", 0);
+            this.nucleusDeathReported = tag.getBooleanOr("NucleusDeathReported", false);
+            this.controllerSummoned = tag.getBooleanOr("ControllerSummoned", false);
             this.setPersistenceRequired();
         }
     }

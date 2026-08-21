@@ -75,7 +75,7 @@ public class CindervaneSlashGrabAbility extends DragonAbility<Cindervane> {
         if (section.sectionType == STARTUP) {
             Cindervane dragon = getUser();
             dragon.triggerAnim(CindervaneAnimationHandler.MOVEMENT_CONTROLLER, "slash_left");
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.CINDERVANE_SLASH.get(), 1.0f, 1.0f, 40);
             }
             grabbedTargetId = -1;
@@ -90,7 +90,7 @@ public class CindervaneSlashGrabAbility extends DragonAbility<Cindervane> {
     @Override
     public void tickUsing() {
         Cindervane dragon = getUser();
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         DragonAttributeConfig config = DragonAttributeConfigLoader.getInstance()
@@ -273,7 +273,6 @@ public class CindervaneSlashGrabAbility extends DragonAbility<Cindervane> {
         // Simple release: drop straight downward only.
         target.setDeltaMovement(0.0D, RELEASE_DROP_Y, 0.0D);
         target.hurtMarked = true;
-        target.hasImpulse = true;
         clearGrabState();
     }
 
@@ -300,7 +299,6 @@ public class CindervaneSlashGrabAbility extends DragonAbility<Cindervane> {
         Vec3 minus = holdPos.subtract(target.position());
         target.setDeltaMovement(minus);
         target.hurtMarked = true;
-        target.hasImpulse = true;
         target.fallDistance = 0.0F;
     }
 }

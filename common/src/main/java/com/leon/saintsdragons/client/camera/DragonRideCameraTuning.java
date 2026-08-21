@@ -94,19 +94,19 @@ public final class DragonRideCameraTuning {
 
     public static boolean isAirOrWaterMode(Entity vehicle) {
         if (vehicle instanceof Varasuchus varasuchus) {
-            return varasuchus.isInWaterOrBubble();
+            return varasuchus.isInWater();
         }
         if (vehicle instanceof Raevyx raevyx) {
-            return raevyx.isFlying() || raevyx.isInWaterOrBubble();
+            return raevyx.isFlying() || raevyx.isInWater();
         }
         if (vehicle instanceof Cindervane cindervane) {
-            return cindervane.isFlying() || cindervane.isInWaterOrBubble();
+            return cindervane.isFlying() || cindervane.isInWater();
         }
         if (vehicle instanceof Ignivorus ignivorus) {
-            return ignivorus.isFlying() || ignivorus.isInWaterOrBubble();
+            return ignivorus.isFlying() || ignivorus.isInWater();
         }
         if (vehicle instanceof Volitans volitans) {
-            return volitans.isFlying() || volitans.isInWaterOrBubble();
+            return volitans.isFlying() || volitans.isInWater();
         }
         if (vehicle instanceof Nulljaw) {
             return true;

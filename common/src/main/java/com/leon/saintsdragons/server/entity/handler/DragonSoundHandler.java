@@ -118,7 +118,7 @@ public class DragonSoundHandler {
         double y = position != null ? position.y : dragon.getY();
         double z = position != null ? position.z : dragon.getZ();
         Level level = dragon.level();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             level.playLocalSound(x, y, z, sound, SoundSource.NEUTRAL, volume, pitch, false);
         } else {
             level.playSound(null, x, y, z, sound, SoundSource.NEUTRAL, volume, pitch);

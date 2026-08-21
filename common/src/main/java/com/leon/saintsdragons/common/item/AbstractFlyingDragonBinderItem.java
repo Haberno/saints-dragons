@@ -25,7 +25,7 @@ public abstract class AbstractFlyingDragonBinderItem<T extends RideableFlyingDra
         if (!BinderComponentUtil.isBound(stack)) {
             return super.use(level, player, hand);
         }
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 

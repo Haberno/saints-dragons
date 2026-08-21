@@ -4,7 +4,7 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraftforge.event.entity.living.LivingHurtEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = SaintsDragonsCommon.MOD_ID, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -15,7 +15,7 @@ public final class BabyDragonHitAdvancementHandler {
         if (event == null || event.getEntity() == null) {
             return;
         }
-        if (event.getEntity().level().isClientSide) {
+        if (event.getEntity().level().isClientSide()) {
             return;
         }
         if (!(event.getEntity() instanceof DragonEntity dragon) || !dragon.isBaby()) {
@@ -25,8 +25,8 @@ public final class BabyDragonHitAdvancementHandler {
             return;
         }
 
-        var advancement = player.server.getAdvancements()
-            .getAdvancement(SaintsDragonsCommon.rl("why"));
+        var advancement = player.level().getServer().getAdvancements()
+            .get(SaintsDragonsCommon.rl("why"));
         if (advancement != null) {
             player.getAdvancements().award(advancement, "hit_baby");
         }

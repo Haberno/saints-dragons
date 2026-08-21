@@ -33,7 +33,7 @@ final class IvyMovementVisualState {
                RawAnimation swimFast,
                RawAnimation waterWadeIdle,
                RawAnimation waterWading) {
-        state.controller().transitionLength(4);
+        state.controller().setTransitionTicks(4);
         State resolved = resolve(state, ivy);
         switch (resolved) {
             case SWIM_FAST -> AnimationHelper.setAndContinue(state, swimFast);
@@ -53,7 +53,7 @@ final class IvyMovementVisualState {
 
     private State resolve(AnimationTest<?> state, IvyTheDragonMerchant ivy) {
         boolean grounded = ivy.onGround();
-        boolean inFluid = ivy.isInWaterOrBubble() || ivy.isInLava();
+        boolean inFluid = ivy.isInWater() || ivy.isInLava();
         double yVelocity = ivy.getDeltaMovement().y;
 
         if (ivy.isClimbingLadder()) {
@@ -62,11 +62,11 @@ final class IvyMovementVisualState {
 
         if (ivy.getCompanionCommand() == IvyTheDragonMerchant.CompanionCommand.STAY
                 && grounded
-                && !ivy.isInWaterOrBubble()) {
+                && !ivy.isInWater()) {
             return State.SIT;
         }
 
-        if (ivy.isInWaterOrBubble()) {
+        if (ivy.isInWater()) {
             resetAirborne(ivy);
             return waterState(state, ivy);
         }

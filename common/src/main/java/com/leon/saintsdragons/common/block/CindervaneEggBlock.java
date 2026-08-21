@@ -31,6 +31,7 @@ import java.util.function.Supplier;
 
 
 public class CindervaneEggBlock extends AbstractTimedDragonEggBlock<CindervaneEggBlockEntity> {
+    public static final com.mojang.serialization.MapCodec<CindervaneEggBlock> CODEC = simpleCodec(CindervaneEggBlock::new);
     public static final int MAX_EGGS = 3;
     public static final IntegerProperty EGGS = IntegerProperty.create("eggs", 1, MAX_EGGS);
     private static final int DEFAULT_HATCH_TICKS = 12000; // 10 minutes
@@ -44,6 +45,11 @@ public class CindervaneEggBlock extends AbstractTimedDragonEggBlock<CindervaneEg
     public CindervaneEggBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(HATCH, 0).setValue(EGGS, 1));
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<CindervaneEggBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -84,7 +90,7 @@ public class CindervaneEggBlock extends AbstractTimedDragonEggBlock<CindervaneEg
 
     @Override
     public void stepOn(Level level, @NotNull BlockPos pos, @NotNull BlockState state, @NotNull Entity entity) {
-        if (!level.isClientSide && entity instanceof Player player && !player.isShiftKeyDown()) {
+        if (!level.isClientSide() && entity instanceof Player player && !player.isShiftKeyDown()) {
             if (level.random.nextInt(10) == 0) {
                 this.destroyEgg(level, state, pos);
             }
@@ -130,7 +136,7 @@ public class CindervaneEggBlock extends AbstractTimedDragonEggBlock<CindervaneEg
 
     @Override
     protected DragonEntity createBaby(ServerLevel level) {
-        return ModEntities.CINDERVANE.get().create(level);
+        return ModEntities.CINDERVANE.get().create(level, net.minecraft.world.entity.EntitySpawnReason.BREEDING);
     }
 
     @Override

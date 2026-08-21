@@ -1,6 +1,7 @@
 package com.leon.saintsdragons.client.renderer.layer.volitans;
 
 import com.leon.saintsdragons.client.renderer.layer.NightEmissiveLayer;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.resources.Identifier;
@@ -12,7 +13,7 @@ public class VolitansNightEmissiveLayer extends NightEmissiveLayer<Volitans> {
     private static final Identifier BLOODSHOT_EMISSIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/volitans/volitans_bloodshot_emissive.png");
 
-    public VolitansNightEmissiveLayer(GeoRenderer<Volitans> renderer) {
+    public VolitansNightEmissiveLayer(GeoRenderer<Volitans, Void, SaintsDragonsLivingEntityRenderState> renderer) {
         super(renderer);
     }
 

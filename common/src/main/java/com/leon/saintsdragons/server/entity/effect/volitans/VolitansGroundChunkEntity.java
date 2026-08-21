@@ -2,9 +2,7 @@ package com.leon.saintsdragons.server.entity.effect.volitans;
 
 import com.leon.saintsdragons.common.registry.ModEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -19,6 +17,8 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -64,11 +64,11 @@ public class VolitansGroundChunkEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_BLOCK_STATE, Blocks.DIRT.defaultBlockState());
-        this.entityData.define(DATA_DESPAWNING, false);
-        this.entityData.define(DATA_VISUAL_YAW, 0.0F);
-        this.entityData.define(DATA_READY, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_BLOCK_STATE, Blocks.DIRT.defaultBlockState());
+        builder.define(DATA_DESPAWNING, false);
+        builder.define(DATA_VISUAL_YAW, 0.0F);
+        builder.define(DATA_READY, false);
     }
 
     public BlockState getBlockState() {
@@ -100,7 +100,7 @@ public class VolitansGroundChunkEntity extends Entity implements GeoEntity {
         super.tick();
         setDeltaMovement(Vec3.ZERO);
 
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         if (tickCount >= HOLD_TICKS && !isDespawning()) {
@@ -112,7 +112,7 @@ public class VolitansGroundChunkEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         return false;
     }
 
@@ -132,38 +132,25 @@ public class VolitansGroundChunkEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        if (tag.contains("BlockState", CompoundTag.TAG_COMPOUND)) {
-            setBlockState(NbtUtils.readBlockState(level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState")));
-        }
-        if (tag.contains("Yaw")) {
-            initializeRotation(tag.getFloat("Yaw"));
-        }
-        if (tag.contains("VisualYaw")) {
-            this.entityData.set(DATA_VISUAL_YAW, tag.getFloat("VisualYaw"));
-        }
-        if (tag.contains("Ready")) {
-            setReady(tag.getBoolean("Ready"));
-        }
-        if (tag.getBoolean("Despawning")) {
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        tag.read("BlockState", BlockState.CODEC).ifPresent(this::setBlockState);
+        initializeRotation(tag.getFloatOr("Yaw", 0.0F));
+        this.entityData.set(DATA_VISUAL_YAW, tag.getFloatOr("VisualYaw", getYRot()));
+        setReady(tag.getBooleanOr("Ready", false));
+        if (tag.getBooleanOr("Despawning", false)) {
             this.entityData.set(DATA_DESPAWNING, true);
         }
-        despawnTicks = tag.getInt("DespawnTicks");
+        despawnTicks = tag.getIntOr("DespawnTicks", 0);
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
-        tag.put("BlockState", NbtUtils.writeBlockState(getBlockState()));
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
+        tag.store("BlockState", BlockState.CODEC, getBlockState());
         tag.putFloat("Yaw", getYRot());
         tag.putFloat("VisualYaw", getVisualYaw());
         tag.putBoolean("Ready", isReady());
         tag.putBoolean("Despawning", isDespawning());
         tag.putInt("DespawnTicks", despawnTicks);
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
@@ -183,16 +170,11 @@ public class VolitansGroundChunkEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    public float getEyeHeight(@NotNull Pose pose) {
-        return 1.0F;
-    }
-
-    @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<VolitansGroundChunkEntity>("controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
+    private PlayState animationPredicate(AnimationTest<VolitansGroundChunkEntity> state) {
         state.controller().setAnimation(isDespawning() ? DESPAWN : SPAWN);
         return PlayState.CONTINUE;
     }

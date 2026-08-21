@@ -3,6 +3,7 @@ package com.leon.saintsdragons.forge.loot;
 import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfig;
 import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfigLoader;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import net.minecraft.resources.Identifier;
@@ -10,6 +11,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
+import net.minecraft.world.level.storage.loot.LootTable;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
 import net.minecraftforge.common.loot.IGlobalLootModifier;
 import net.minecraftforge.common.loot.LootModifier;
@@ -19,7 +21,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Optional;
 
 public class AddItemLootModifier extends LootModifier {
-    public static final Codec<AddItemLootModifier> CODEC = RecordCodecBuilder.create(inst -> codecStart(inst)
+    public static final MapCodec<AddItemLootModifier> CODEC = RecordCodecBuilder.mapCodec(inst -> codecStart(inst)
             .and(ForgeRegistries.ITEMS.getCodec().fieldOf("item").forGetter(m -> m.item))
             .and(Codec.INT.fieldOf("count").forGetter(m -> m.count))
             .and(Codec.DOUBLE.optionalFieldOf("chance", 1.0D).forGetter(m -> m.chance))
@@ -48,7 +50,11 @@ public class AddItemLootModifier extends LootModifier {
     }
 
     @Override
-    protected @NotNull ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
+    protected @NotNull ObjectArrayList<ItemStack> doApply(
+            LootTable table,
+            ObjectArrayList<ItemStack> generatedLoot,
+            LootContext context
+    ) {
         double resolvedChance = resolveChance();
         if (resolvedChance <= 0.0D || context.getRandom().nextDouble() >= resolvedChance) {
             return generatedLoot;
@@ -67,7 +73,7 @@ public class AddItemLootModifier extends LootModifier {
     }
 
     @Override
-    public Codec<? extends IGlobalLootModifier> codec() {
+    public MapCodec<? extends IGlobalLootModifier> codec() {
         return CODEC;
     }
 }

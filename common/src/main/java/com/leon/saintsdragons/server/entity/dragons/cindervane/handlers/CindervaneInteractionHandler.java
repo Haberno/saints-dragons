@@ -40,7 +40,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
         }
 
         if (!dragon.canFeed()) {
-            if (!dragon.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+            if (!dragon.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.displayClientMessage(
                     Component.translatable("entity.saintsdragons.cindervane.still_eating", dragon.getName()),
                     true
@@ -49,7 +49,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!player.getAbilities().instabuild) {
                 heldItem.shrink(1);
             }
@@ -75,7 +75,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
             } else {
                 dragon.level().broadcastEntityEvent(dragon, (byte) 6);
             }
-            return InteractionResult.sidedSuccess(false);
+            return InteractionResult.SUCCESS_SERVER;
         }
 
         return InteractionResult.SUCCESS;
@@ -134,28 +134,28 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
 
         if (isOwner) {
             if (passengers.isEmpty() && dragon.canOwnerMount(player)) {
-                if (!dragon.level().isClientSide) {
+                if (!dragon.level().isClientSide()) {
                     dragon.prepareForMounting();
                     if (!player.startRiding(dragon)) {
                         return InteractionResult.FAIL;
                     }
                 }
-                return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+                return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             } else if (!passengers.isEmpty() && passengers.get(0) != player) {
                 Entity firstPassenger = passengers.get(0);
                 boolean seat0IsOwner = firstPassenger instanceof Player firstPlayer && dragon.isOwnedBy(firstPlayer);
                 if (!seat0IsOwner && dragon.canOwnerMount(player)) {
-                    if (!dragon.level().isClientSide) {
+                    if (!dragon.level().isClientSide()) {
                         firstPassenger.stopRiding();
                         dragon.prepareForMounting();
                         if (!player.startRiding(dragon)) {
                             return InteractionResult.FAIL;
                         }
                     }
-                    return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+                    return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
                 }
 
-                if (!dragon.level().isClientSide) {
+                if (!dragon.level().isClientSide()) {
                     player.displayClientMessage(
                         Component.translatable("entity.saintsdragons.cindervane.mount_occupied"),
                         true
@@ -165,7 +165,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
             }
         } else {
             if (passengers.isEmpty()) {
-                if (!dragon.level().isClientSide) {
+                if (!dragon.level().isClientSide()) {
                     player.displayClientMessage(
                         Component.translatable("entity.saintsdragons.cindervane.passenger_needs_owner"),
                         true
@@ -175,7 +175,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
             }
 
             if (passengers.size() >= 2) {
-                if (!dragon.level().isClientSide) {
+                if (!dragon.level().isClientSide()) {
                     player.displayClientMessage(
                         Component.translatable("entity.saintsdragons.cindervane.seats_full"),
                         true
@@ -185,14 +185,14 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
             }
 
             if (passengers.get(0) instanceof Player firstPlayer && dragon.isOwnedBy(firstPlayer)) {
-                if (!dragon.level().isClientSide) {
+                if (!dragon.level().isClientSide()) {
                     if (!player.startRiding(dragon)) {
                         return InteractionResult.FAIL;
                     }
                 }
-                return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+                return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             } else {
-                if (!dragon.level().isClientSide) {
+                if (!dragon.level().isClientSide()) {
                     player.displayClientMessage(
                         Component.translatable("entity.saintsdragons.cindervane.passenger_needs_owner"),
                         true
@@ -233,7 +233,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!player.getAbilities().instabuild) {
                 food.shrink(1);
             }
@@ -272,7 +272,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
             return InteractionResult.CONSUME;
         }
 
-        return InteractionResult.sidedSuccess(true);
+        return InteractionResult.SUCCESS;
     }
 
     private InteractionResult handleBabyTaming(Player player, ItemStack itemstack, DragonAttributeConfig config) {
@@ -280,7 +280,7 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
         boolean hearty = itemstack.is(ModItems.HEARTY_DRAGON_MEAL.get());
         boolean validFood = dragon.isFood(itemstack);
         if (baby == null) {
-            return validFood ? InteractionResult.sidedSuccess(dragon.level().isClientSide) : InteractionResult.PASS;
+            return validFood ? dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER : InteractionResult.PASS;
         }
 
         double tameChance = resolveTamingChance(itemstack, config);
@@ -331,8 +331,8 @@ public class CindervaneInteractionHandler extends AbstractDragonInteractionHandl
     }
     private void triggerTamingAdvancement(Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            var advancement = serverPlayer.server.getAdvancements()
-                    .getAdvancement(SaintsDragonsCommon.rl("tame_cindervane"));
+            var advancement = serverPlayer.level().getServer().getAdvancements()
+                    .get(SaintsDragonsCommon.rl("tame_cindervane"));
             if (advancement != null) {
                 serverPlayer.getAdvancements().award(advancement, "tame_cindervane");
             }

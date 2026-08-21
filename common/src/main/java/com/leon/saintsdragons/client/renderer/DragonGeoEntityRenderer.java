@@ -11,6 +11,7 @@ import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -87,7 +88,7 @@ public abstract class DragonGeoEntityRenderer<T extends RideableDragonBase>
 
     @Override
     public RenderType getRenderType(SaintsDragonsLivingEntityRenderState renderState, Identifier texture) {
-        return RenderType.entityCutoutNoCull(texture);
+        return RenderTypes.entityCutoutNoCull(texture);
     }
 
     @Override

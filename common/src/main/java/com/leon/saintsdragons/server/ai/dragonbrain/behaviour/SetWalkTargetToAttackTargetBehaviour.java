@@ -50,7 +50,7 @@ public class SetWalkTargetToAttackTargetBehaviour<T extends RideableDragonBase> 
         return target != null
                 && DragonTargetLifecycle.isValidTarget(dragon, target)
                 && !dragon.isAerial()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && dragon.getLocomotionMode() == DragonLocomotionMode.GROUND
                 && !context.memories().get(DragonMemories.TARGET_AIRBORNE).orElse(false)
                 && !context.memories().get(DragonMemories.GROUND_ROUTE_ABANDONED).orElse(false);
@@ -66,8 +66,8 @@ public class SetWalkTargetToAttackTargetBehaviour<T extends RideableDragonBase> 
 
         double closeEnough = Math.max(0.0D, closeEnoughDistance.apply(dragon, target));
         boolean requiresWaterEntry = dragon.canSwim()
-                && target.isInWaterOrBubble()
-                && !dragon.isInWaterOrBubble();
+                && target.isInWater()
+                && !dragon.isInWater();
         if (movementLocked.test(dragon, target)
                 || !requiresWaterEntry
                 && dragon.getSensing().hasLineOfSight(target)

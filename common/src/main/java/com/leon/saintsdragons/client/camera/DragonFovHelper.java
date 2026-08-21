@@ -30,14 +30,14 @@ public final class DragonFovHelper {
         if (!rideable.isAccelerating()) {
             return diveMultiplier;
         }
-        if (dragon.isFlying() || dragon.isInWaterOrBubble()) {
+        if (dragon.isFlying() || dragon.isInWater()) {
             return Math.max(FLY_SWIM_SPRINT_MULTIPLIER, diveMultiplier);
         }
         return GROUND_SPRINT_MULTIPLIER;
     }
 
     private static double getDiveMultiplier(DragonEntity dragon) {
-        if (!dragon.isFlying() || dragon.isInWaterOrBubble()) {
+        if (!dragon.isFlying() || dragon.isInWater()) {
             return 1.0D;
         }
 

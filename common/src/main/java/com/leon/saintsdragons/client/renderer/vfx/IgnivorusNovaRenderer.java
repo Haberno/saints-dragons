@@ -1,20 +1,21 @@
 package com.leon.saintsdragons.client.renderer.vfx;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.leon.saintsdragons.client.renderer.SaintsDragonsDeferredEntityRenderer;
 import com.leon.saintsdragons.server.entity.effect.ignivorus.IgnivorusNovaEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
-public class IgnivorusNovaRenderer extends EntityRenderer<IgnivorusNovaEntity> {
+public class IgnivorusNovaRenderer extends SaintsDragonsDeferredEntityRenderer<IgnivorusNovaEntity> {
 
     private static final int TOTAL_FRAMES = 8;
     private static final Identifier[] TEXTURES = new Identifier[TOTAL_FRAMES];
@@ -31,9 +32,10 @@ public class IgnivorusNovaRenderer extends EntityRenderer<IgnivorusNovaEntity> {
     }
 
     @Override
-    public void render(@NotNull IgnivorusNovaEntity entity, float entityYaw, float partialTicks,
-                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
-
+    protected void submitEntity(IgnivorusNovaEntity entity, RenderState<IgnivorusNovaEntity> renderState,
+                                PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                                CameraRenderState cameraState) {
+        float partialTicks = renderState.partialTick;
         float scale = entity.getScale(partialTicks);
         float opacity = entity.getOpacity(partialTicks);
 
@@ -47,24 +49,19 @@ public class IgnivorusNovaRenderer extends EntityRenderer<IgnivorusNovaEntity> {
         frame = Math.min(frame, TOTAL_FRAMES - 1);
         Identifier texture = TEXTURES[frame];
 
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(texture));
-
-        PoseStack.Pose pose = poseStack.last();
-        Matrix4f matrix = pose.pose();
-        Matrix3f normal = pose.normal();
-
         float s = scale * 16.0F;
-
-        addFace(consumer, matrix, normal, -s, s, s, s, s, s, s, -s, s, -s, -s, s, 0, 0, 1, opacity);
-        addFace(consumer, matrix, normal, s, s, -s, -s, s, -s, -s, -s, -s, s, -s, -s, 0, 0, -1, opacity);
-        addFace(consumer, matrix, normal, s, s, s, s, s, -s, s, -s, -s, s, -s, s, 1, 0, 0, opacity);
-        addFace(consumer, matrix, normal, -s, s, -s, -s, s, s, -s, -s, s, -s, -s, -s, -1, 0, 0, opacity);
-        addFace(consumer, matrix, normal, -s, s, -s, s, s, -s, s, s, s, -s, s, s, 0, 1, 0, opacity);
-        addFace(consumer, matrix, normal, s, -s, -s, -s, -s, -s, -s, -s, s, s, -s, s, 0, -1, 0, opacity);
+        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(texture), (pose, consumer) -> {
+            Matrix4f matrix = pose.pose();
+            Matrix3f normal = pose.normal();
+            addFace(consumer, matrix, normal, -s, s, s, s, s, s, s, -s, s, -s, -s, s, 0, 0, 1, opacity);
+            addFace(consumer, matrix, normal, s, s, -s, -s, s, -s, -s, -s, -s, s, -s, -s, 0, 0, -1, opacity);
+            addFace(consumer, matrix, normal, s, s, s, s, s, -s, s, -s, -s, s, -s, s, 1, 0, 0, opacity);
+            addFace(consumer, matrix, normal, -s, s, -s, -s, s, s, -s, -s, s, -s, -s, -s, -1, 0, 0, opacity);
+            addFace(consumer, matrix, normal, -s, s, -s, s, s, -s, s, s, s, -s, s, s, 0, 1, 0, opacity);
+            addFace(consumer, matrix, normal, s, -s, -s, -s, -s, -s, -s, -s, s, s, -s, s, 0, -1, 0, opacity);
+        });
 
         poseStack.popPose();
-
-        super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 
     private void addFace(VertexConsumer consumer, Matrix4f matrix, Matrix3f normalMatrix,
@@ -74,41 +71,33 @@ public class IgnivorusNovaRenderer extends EntityRenderer<IgnivorusNovaEntity> {
                          float x4, float y4, float z4,
                          float nx, float ny, float nz, float opacity) {
 
-        consumer.vertex(matrix, x1, y1, z1)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(0, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normalMatrix, nx, ny, nz)
-                .endVertex();
+        consumer.addVertex(matrix, x1, y1, z1)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(0, 0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(nx, ny, nz);
 
-        consumer.vertex(matrix, x2, y2, z2)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(1, 0)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normalMatrix, nx, ny, nz)
-                .endVertex();
+        consumer.addVertex(matrix, x2, y2, z2)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(1, 0)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(nx, ny, nz);
 
-        consumer.vertex(matrix, x3, y3, z3)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(1, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normalMatrix, nx, ny, nz)
-                .endVertex();
+        consumer.addVertex(matrix, x3, y3, z3)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(1, 1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(nx, ny, nz);
 
-        consumer.vertex(matrix, x4, y4, z4)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(0, 1)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normalMatrix, nx, ny, nz)
-                .endVertex();
+        consumer.addVertex(matrix, x4, y4, z4)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(0, 1)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(nx, ny, nz);
     }
 
-    @Override
-    public @NotNull Identifier getTextureLocation(@NotNull IgnivorusNovaEntity entity) {
-        return TEXTURES[0];
-    }
 }

@@ -19,10 +19,16 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class DraconianNucleusBlock extends BaseEntityBlock {
+    public static final com.mojang.serialization.MapCodec<DraconianNucleusBlock> CODEC = simpleCodec(DraconianNucleusBlock::new);
     private static final VoxelShape SHAPE = box(2.0D, 2.0D, 2.0D, 14.0D, 14.0D, 14.0D);
 
     public DraconianNucleusBlock(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<DraconianNucleusBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -57,7 +63,7 @@ public class DraconianNucleusBlock extends BaseEntityBlock {
     public void setPlacedBy(@NotNull Level level, @NotNull BlockPos pos, @NotNull BlockState state,
                             @Nullable LivingEntity placer, @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide && placer instanceof Player player
+        if (!level.isClientSide() && placer instanceof Player player
                 && level.getBlockEntity(pos) instanceof DraconianNucleusBlockEntity nucleus) {
             nucleus.setControllerActivationOnly(player);
         }

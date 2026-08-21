@@ -31,7 +31,7 @@ public final class VolitansInteractionHandler extends AbstractDragonInteractionH
 
     @Override
     protected InteractionResult handleUntamedInteraction(Player player, InteractionHand hand, ItemStack itemstack) {
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
         DragonAttributeConfig config = DragonAttributeConfigLoader.getInstance()
                 .getConfig(DragonAttributeConfigLoader.VOLITANS_ID);
         boolean legacyTaming = config.extraBoolean("legacy_taming", false);
@@ -113,7 +113,7 @@ public final class VolitansInteractionHandler extends AbstractDragonInteractionH
             }
         }
 
-        return InteractionResult.sidedSuccess(client);
+        return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
@@ -156,7 +156,7 @@ public final class VolitansInteractionHandler extends AbstractDragonInteractionH
         boolean hearty = itemstack.is(ModItems.HEARTY_DRAGON_MEAL.get());
         boolean validFood = dragon.isFood(itemstack);
         if (baby == null) {
-            return validFood ? InteractionResult.sidedSuccess(dragon.level().isClientSide) : InteractionResult.PASS;
+            return validFood ? dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER : InteractionResult.PASS;
         }
 
         double tameChance = hearty
@@ -204,7 +204,7 @@ public final class VolitansInteractionHandler extends AbstractDragonInteractionH
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             consumeItem(player, food);
             dragon.setFeedingCooldown(24);
             playEatFeedback(food);
@@ -229,19 +229,19 @@ public final class VolitansInteractionHandler extends AbstractDragonInteractionH
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private InteractionResult handleMounting(Player player) {
         if (dragon.isVehicle()) {
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             dragon.prepareForMounting();
             player.startRiding(dragon);
         }
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private void playEatFeedback(ItemStack food) {
@@ -276,8 +276,8 @@ public final class VolitansInteractionHandler extends AbstractDragonInteractionH
 
     private void triggerTamingAdvancement(Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            var advancement = serverPlayer.server.getAdvancements()
-                    .getAdvancement(SaintsDragonsCommon.rl("tame_volitans"));
+            var advancement = serverPlayer.level().getServer().getAdvancements()
+                    .get(SaintsDragonsCommon.rl("tame_volitans"));
             if (advancement != null) {
                 serverPlayer.getAdvancements().award(advancement, "tame_volitans");
             }

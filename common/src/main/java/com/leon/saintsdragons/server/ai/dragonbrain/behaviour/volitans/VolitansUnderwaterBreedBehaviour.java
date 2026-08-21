@@ -25,7 +25,7 @@ public final class VolitansUnderwaterBreedBehaviour extends DragonBreedBehaviour
     protected void stop(DragonBrainContext<Volitans> context) {
         super.stop(context);
         Volitans dragon = context.dragon();
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             Vec3 velocity = dragon.getDeltaMovement();
             dragon.setDeltaMovement(velocity.x * 0.8D, velocity.y * 0.8D, velocity.z * 0.8D);
         }
@@ -42,7 +42,7 @@ public final class VolitansUnderwaterBreedBehaviour extends DragonBreedBehaviour
         boolean close = closeEnough(dragon);
         if (close) {
             stopMovement(dragon);
-        } else if (dragon.isInWaterOrBubble() && partner.isInWaterOrBubble()) {
+        } else if (dragon.isInWater() && partner.isInWater()) {
             dragon.getAIMovement().setWaypoint(
                     partner,
                     speedModifier * dragon.getSwimSpeed() * COURTSHIP_SWIM_SPEED_SCALE,
@@ -62,7 +62,7 @@ public final class VolitansUnderwaterBreedBehaviour extends DragonBreedBehaviour
     @Override
     protected boolean breedingAllowed(Volitans dragon) {
         return super.breedingAllowed(dragon)
-                && dragon.isInWaterOrBubble()
+                && dragon.isInWater()
                 && !dragon.isBurrowing()
                 && !dragon.isSleepLocked()
                 && !dragon.isVehicle();
@@ -77,13 +77,13 @@ public final class VolitansUnderwaterBreedBehaviour extends DragonBreedBehaviour
     @Override
     protected Volitans findMate(ServerLevel level, Volitans dragon) {
         Volitans mate = super.findMate(level, dragon);
-        return mate != null && mate.isInWaterOrBubble() ? mate : null;
+        return mate != null && mate.isInWater() ? mate : null;
     }
 
     @Nullable
     @Override
     protected BlockPos findEggLayingPosition(ServerLevel level, Volitans female) {
-        if (!female.isInWaterOrBubble() || partner == null) {
+        if (!female.isInWater() || partner == null) {
             return null;
         }
         BlockPos midpoint = BlockPos.containing(
@@ -127,7 +127,7 @@ public final class VolitansUnderwaterBreedBehaviour extends DragonBreedBehaviour
             BlockPos egg = floor.above();
             BlockState floorState = level.getBlockState(floor);
             if (!floorState.isAir()
-                    && floorState.isSolidRender(level, floor)
+                    && floorState.isSolidRender()
                     && level.getBlockState(egg).getFluidState().is(FluidTags.WATER)) {
                 return egg;
             }

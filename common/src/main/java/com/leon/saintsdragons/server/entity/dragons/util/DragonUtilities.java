@@ -25,6 +25,7 @@ import net.minecraft.world.level.block.entity.AbstractFurnaceBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.redstone.ExperimentalRedstoneUtils;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -199,7 +200,13 @@ public final class DragonUtilities {
             if (!(state.getBlock() instanceof RedStoneWireBlock wire)) {
                 continue;
             }
-            wire.neighborChanged(state, level, pos, wire, pos, false);
+            state.handleNeighborChanged(
+                    level,
+                    pos,
+                    wire,
+                    ExperimentalRedstoneUtils.initialOrientation(level, null, null),
+                    false
+            );
             level.updateNeighborsAt(pos, wire);
         }
     }
@@ -233,9 +240,9 @@ public final class DragonUtilities {
         }
 
         if (state.getBlock() instanceof ButtonBlock button) {
-            button.press(state, level, pos);
+            button.press(state, level, pos, null);
         } else if (state.getBlock() instanceof LeverBlock lever) {
-            lever.pull(state, level, pos);
+            lever.pull(state, level, pos, null);
         } else if (state.getBlock() instanceof LightningRodBlock lightningRod) {
             lightningRod.onLightningStrike(state, level, pos);
         }
@@ -243,7 +250,7 @@ public final class DragonUtilities {
     }
 
     public static void awardAdvancement(ServerPlayer player, String advancementId, String criterion) {
-        var advancement = player.server.getAdvancements().getAdvancement(SaintsDragonsCommon.rl(advancementId));
+        var advancement = player.level().getServer().getAdvancements().get(SaintsDragonsCommon.rl(advancementId));
         if (advancement != null) {
             player.getAdvancements().award(advancement, criterion);
         }
@@ -270,7 +277,7 @@ public final class DragonUtilities {
     }
 
     private static void awardFireCookingAdvancement(@Nullable DragonEntity dragon) {
-        if (dragon == null || dragon.level().isClientSide) {
+        if (dragon == null || dragon.level().isClientSide()) {
             return;
         }
         if (!(dragon instanceof Cindervane) && !(dragon instanceof Ignivorus)) {

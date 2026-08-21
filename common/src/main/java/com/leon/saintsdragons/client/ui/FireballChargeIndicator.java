@@ -6,11 +6,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 
 public class FireballChargeIndicator {
-    private static final Identifier CHARGE_BAR = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar.png");
-    private static final Identifier CHARGE_BAR_FLASH = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar_flashes.png");
-    private static final Identifier CHARGE_LEVEL_1 = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_first_charge.png");
-    private static final Identifier CHARGE_LEVEL_2 = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_second_charge.png");
-    private static final Identifier CHARGE_LEVEL_3 = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_third_charge.png");
+    private static final Identifier CHARGE_BAR = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar.png");
+    private static final Identifier CHARGE_BAR_FLASH = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar_flashes.png");
+    private static final Identifier CHARGE_LEVEL_1 = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_first_charge.png");
+    private static final Identifier CHARGE_LEVEL_2 = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_second_charge.png");
+    private static final Identifier CHARGE_LEVEL_3 = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_third_charge.png");
     private static final int BAR_WIDTH = 128;
     private static final int BAR_HEIGHT = 32;
     private static final int FLASH_WIDTH = 130;
@@ -102,11 +102,8 @@ public class FireballChargeIndicator {
         float clampedPartial = clamp(partialTicks, 0.0f, 1.0f);
         float smoothFill = lerp(previousAnimatedFill, animatedFill, clampedPartial);
         float smoothAlpha = lerp(previousFadeAlpha, fadeAlpha, clampedPartial);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         int x = (screenWidth - BAR_WIDTH) / 2;
         int y = screenHeight - 86;
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha);
         guiGraphics.blit(CHARGE_BAR, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         int fillWidth = Math.max(0, Math.min(BAR_WIDTH, Math.round(BAR_WIDTH * smoothFill)));
         if (fillWidth > 0) {
@@ -119,13 +116,10 @@ public class FireballChargeIndicator {
             float smoothFlashTimer = lerp(previousFlashTimer, flashTimer, clampedPartial);
             float flashAlpha = computeFlashAlpha(smoothFlashTimer, FLASH_DURATION_TICKS);
             if (flashAlpha > 0.01f) {
-                RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha * flashAlpha);
                 int flashX = x - (FLASH_WIDTH - BAR_WIDTH) / 2;
                 guiGraphics.blit(CHARGE_BAR_FLASH, flashX, y, 0, 0, FLASH_WIDTH, FLASH_HEIGHT, FLASH_WIDTH, FLASH_HEIGHT);
             }
         }
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.disableBlend();
     }
 
     private void renderChargeLevel(GuiGraphics guiGraphics, int baseX, int baseY, int level,
@@ -141,7 +135,6 @@ public class FireballChargeIndicator {
             alpha = clamp(alpha + (pulse * 0.08f), 0.0f, 1.0f);
         }
 
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, alpha);
         guiGraphics.blit(texture, baseX, baseY, 0, 0, fillWidth, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
     }
 

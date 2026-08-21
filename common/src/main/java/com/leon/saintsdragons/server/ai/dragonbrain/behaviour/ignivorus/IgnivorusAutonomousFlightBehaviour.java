@@ -19,7 +19,7 @@ public class IgnivorusAutonomousFlightBehaviour extends AutonomousFlightBehaviou
                 || dragon.isPhase2Active()
                 || dragon.shouldSuspendRoostWandering()
                 || dragon.isInWater()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava()) {
             return false;
         }
@@ -35,7 +35,7 @@ public class IgnivorusAutonomousFlightBehaviour extends AutonomousFlightBehaviou
                 || dragon.isPhase2Active()
                 || dragon.shouldSuspendRoostWandering()
                 || dragon.isInWater()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava()) {
             return false;
         }
@@ -49,7 +49,7 @@ public class IgnivorusAutonomousFlightBehaviour extends AutonomousFlightBehaviou
                 || dragon.isPhase2Active()
                 || dragon.shouldSuspendRoostWandering()
                 || dragon.isInWater()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava();
     }
 

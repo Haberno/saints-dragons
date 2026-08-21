@@ -3,9 +3,9 @@ package com.leon.saintsdragons.common.registry;
 import com.leon.saintsdragons.common.item.DragonlordArmorItem;
 import com.leon.saintsdragons.common.item.BloodTempestArmorItem;
 import com.leon.saintsdragons.common.item.DraconianArmorItem;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Rarity;
+import net.minecraft.world.item.equipment.ArmorType;
 
 import java.util.function.Supplier;
 
@@ -13,88 +13,88 @@ public final class ModArmors {
     private ModArmors() {}
 
     public static final Supplier<Item> DRACONIAN_HELMET =
-            ModItems.REGISTER.register("draconian_helmet",
-                    () -> new DraconianArmorItem(
+            ModItems.register("draconian_helmet",
+                    properties -> new DraconianArmorItem(
                             ModArmorMaterials.DRACONIAN_FLESH,
-                            ArmorItem.Type.HELMET,
-                            new Item.Properties()
+                            ArmorType.HELMET,
+                            properties
                     ));
 
     public static final Supplier<Item> DRACONIAN_CHESTPLATE =
-            ModItems.REGISTER.register("draconian_chestplate",
-                    () -> new DraconianArmorItem(
+            ModItems.register("draconian_chestplate",
+                    properties -> new DraconianArmorItem(
                             ModArmorMaterials.DRACONIAN_FLESH,
-                            ArmorItem.Type.CHESTPLATE,
-                            new Item.Properties()
+                            ArmorType.CHESTPLATE,
+                            properties
                     ));
 
     public static final Supplier<Item> DRACONIAN_LEGGINGS =
-            ModItems.REGISTER.register("draconian_leggings",
-                    () -> new DraconianArmorItem(
+            ModItems.register("draconian_leggings",
+                    properties -> new DraconianArmorItem(
                             ModArmorMaterials.DRACONIAN_FLESH,
-                            ArmorItem.Type.LEGGINGS,
-                            new Item.Properties()
+                            ArmorType.LEGGINGS,
+                            properties
                     ));
 
     public static final Supplier<Item> DRACONIAN_BOOTS =
-            ModItems.REGISTER.register("draconian_boots",
-                    () -> new DraconianArmorItem(
+            ModItems.register("draconian_boots",
+                    properties -> new DraconianArmorItem(
                             ModArmorMaterials.DRACONIAN_FLESH,
-                            ArmorItem.Type.BOOTS,
-                            new Item.Properties()
+                            ArmorType.BOOTS,
+                            properties
                     ));
 
     public static final Supplier<Item> BLOOD_TEMPEST_HELMET =
-            ModItems.REGISTER.register("blood_tempest_helmet",
-                    () -> new BloodTempestArmorItem(
+            ModItems.register("blood_tempest_helmet",
+                    properties -> new BloodTempestArmorItem(
                             ModArmorMaterials.DRAGONHEART_CHUNK,
-                            ArmorItem.Type.HELMET,
-                            new Item.Properties().rarity(Rarity.EPIC)
+                            ArmorType.HELMET,
+                            properties.rarity(Rarity.EPIC)
                     ));
 
     public static final Supplier<Item> BLOOD_TEMPEST_CHESTPLATE =
-            ModItems.REGISTER.register("blood_tempest_chestplate",
-                    () -> new BloodTempestArmorItem(
+            ModItems.register("blood_tempest_chestplate",
+                    properties -> new BloodTempestArmorItem(
                             ModArmorMaterials.DRAGONHEART_CHUNK,
-                            ArmorItem.Type.CHESTPLATE,
-                            new Item.Properties().rarity(Rarity.EPIC)
+                            ArmorType.CHESTPLATE,
+                            properties.rarity(Rarity.EPIC)
                     ));
 
     public static final Supplier<Item> BLOOD_TEMPEST_LEGGINGS =
-            ModItems.REGISTER.register("blood_tempest_leggings",
-                    () -> new BloodTempestArmorItem(
+            ModItems.register("blood_tempest_leggings",
+                    properties -> new BloodTempestArmorItem(
                             ModArmorMaterials.DRAGONHEART_CHUNK,
-                            ArmorItem.Type.LEGGINGS,
-                            new Item.Properties().rarity(Rarity.EPIC)
+                            ArmorType.LEGGINGS,
+                            properties.rarity(Rarity.EPIC)
                     ));
 
     public static final Supplier<Item> BLOOD_TEMPEST_BOOTS =
-            ModItems.REGISTER.register("blood_tempest_boots",
-                    () -> new BloodTempestArmorItem(
+            ModItems.register("blood_tempest_boots",
+                    properties -> new BloodTempestArmorItem(
                             ModArmorMaterials.DRAGONHEART_CHUNK,
-                            ArmorItem.Type.BOOTS,
-                            new Item.Properties().rarity(Rarity.EPIC)
+                            ArmorType.BOOTS,
+                            properties.rarity(Rarity.EPIC)
                     ));
 
     public static final Supplier<Item> DRAGONLORD_HELMET =
-            ModItems.REGISTER.register("dragonlord_helmet",
-                    () -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorItem.Type.HELMET,
-                            new Item.Properties().rarity(Rarity.EPIC)));
+            ModItems.register("dragonlord_helmet",
+                    properties -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorType.HELMET,
+                            properties.rarity(Rarity.EPIC)));
 
     public static final Supplier<Item> DRAGONLORD_CHESTPLATE =
-            ModItems.REGISTER.register("dragonlord_chestplate",
-                    () -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorItem.Type.CHESTPLATE,
-                            new Item.Properties().rarity(Rarity.EPIC)));
+            ModItems.register("dragonlord_chestplate",
+                    properties -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorType.CHESTPLATE,
+                            properties.rarity(Rarity.EPIC)));
 
     public static final Supplier<Item> DRAGONLORD_LEGGINGS =
-            ModItems.REGISTER.register("dragonlord_leggings",
-                    () -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorItem.Type.LEGGINGS,
-                            new Item.Properties().rarity(Rarity.EPIC)));
+            ModItems.register("dragonlord_leggings",
+                    properties -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorType.LEGGINGS,
+                            properties.rarity(Rarity.EPIC)));
 
     public static final Supplier<Item> DRAGONLORD_BOOTS =
-            ModItems.REGISTER.register("dragonlord_boots",
-                    () -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorItem.Type.BOOTS,
-                            new Item.Properties().rarity(Rarity.EPIC)));
+            ModItems.register("dragonlord_boots",
+                    properties -> new DragonlordArmorItem(ModArmorMaterials.DRAGONHEART_ALLOY, ArmorType.BOOTS,
+                            properties.rarity(Rarity.EPIC)));
 
     public static void init() {}
 }

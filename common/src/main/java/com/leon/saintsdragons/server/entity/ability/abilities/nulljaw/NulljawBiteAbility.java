@@ -41,7 +41,7 @@ public final class NulljawBiteAbility extends DragonAbility<Nulljaw> {
         if (section != null && section.sectionType == STARTUP) {
             Nulljaw dragon = getUser();
             dragon.triggerAnim(NulljawAnimationHandler.ACTION_CONTROLLER, NulljawAnimationHandler.BITE_TRIGGER);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.NULLJAW_BITE.get(), 1.0F, 1.0F, 40);
             }
             this.appliedHit = false;
@@ -89,7 +89,7 @@ public final class NulljawBiteAbility extends DragonAbility<Nulljaw> {
         DamageSource source = dragon.level().damageSources().mobAttack(dragon);
         float damage = dragon.getConfiguredAbilityDamage("bite", BASE_DAMAGE)
                 * dragon.getHungerMeleeDamageMultiplier();
-        if (target.hurt(source, damage)) {
+        if (target.hurtServer((net.minecraft.server.level.ServerLevel) dragon.level(), source, damage)) {
             Vec3 push = dragon.getLookAngle().scale(0.2D);
             target.push(push.x, 0.05D, push.z);
         }

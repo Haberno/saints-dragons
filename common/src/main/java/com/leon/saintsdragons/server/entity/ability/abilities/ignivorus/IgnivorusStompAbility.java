@@ -68,7 +68,7 @@ public class IgnivorusStompAbility extends DragonAbility<Ignivorus> {
             boolean useRight = dragon.shouldUseRightWingSwipe();
             String animationName = useRight ? "stomp_right" : "stomp_left";
             dragon.triggerAnim(IgnivorusAnimationHandler.MOVEMENT_CONTROLLER, animationName);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_STOMP.get(), 1.0f, 1.0f, 68);
             }
             dragon.toggleWingSwipeSide();
@@ -237,10 +237,10 @@ public class IgnivorusStompAbility extends DragonAbility<Ignivorus> {
     private BlockPos findGroundLevel(Ignivorus dragon, BlockPos startPos) {
         int dragonY = dragon.blockPosition().getY();
 
-        for (int y = dragonY; y > dragon.level().getMinBuildHeight(); y--) {
+        for (int y = dragonY; y > dragon.level().getMinY(); y--) {
             BlockPos checkPos = new BlockPos(startPos.getX(), y, startPos.getZ());
             BlockState state = dragon.level().getBlockState(checkPos);
-            if (!state.isAir() && !state.liquid() && state.isSolidRender(dragon.level(), checkPos)) {
+            if (!state.isAir() && !state.liquid() && state.isSolidRender()) {
                 return checkPos;
             }
         }

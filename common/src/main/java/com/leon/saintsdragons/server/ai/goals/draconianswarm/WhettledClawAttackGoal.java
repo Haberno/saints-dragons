@@ -59,7 +59,8 @@ public class WhettledClawAttackGoal extends Goal {
                         this.whettled::canHitWithSwarmAttack);
                 boolean hit = false;
                 for (LivingEntity victim : victims) {
-                    hit |= this.whettled.doHurtTarget(victim);
+                    hit |= this.whettled.doHurtTarget(
+                            (net.minecraft.server.level.ServerLevel) this.whettled.level(), victim);
                 }
                 if (hit) {
                     this.whettled.requestCombatRetreat();

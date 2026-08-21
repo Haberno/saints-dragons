@@ -8,6 +8,7 @@ import com.leon.saintsdragons.client.init.CommonClientLifecycleEvents;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.forge.client.camera.CameraLeanData;
 import com.leon.saintsdragons.forge.client.camera.DragonCameraState;
+import com.leon.saintsdragons.forge.client.accessor.CameraAccessor;
 import com.leon.saintsdragons.forge.platform.ForgeClientConfig;
 import com.leon.saintsdragons.server.entity.base.RideableDragonBase;
 import com.leon.saintsdragons.server.entity.dragons.atroxiia.Atroxiia;
@@ -26,8 +27,8 @@ import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.client.event.ViewportEvent;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
-import net.minecraftforge.eventbus.api.EventPriority;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.Priority;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = SaintsDragonsCommon.MOD_ID, value = Dist.CLIENT, bus = Mod.EventBusSubscriber.Bus.FORGE)
@@ -40,9 +41,9 @@ public class ClientEventHandler {
     private static float beamCameraForward = 0.0f;
     private static float beamCameraUp = 0.0f;
 
-    @SubscribeEvent(priority = EventPriority.LOWEST)
+    @SubscribeEvent(priority = Priority.LOWEST)
     public static void onComputeFov(ViewportEvent.ComputeFov event) {
-        event.setFOV(DragonFovEffects.apply(event.getFOV(), (float) event.getPartialTick()));
+        event.setFOV((float) DragonFovEffects.apply(event.getFOV(), (float) event.getPartialTick()));
     }
 
     @SubscribeEvent
@@ -87,9 +88,10 @@ public class ClientEventHandler {
         if (tremorAmount > 0) {
             // Generate random offsets for camera movement
             double intensity = tremorAmount * Minecraft.getInstance().options.screenEffectScale().get();
-            event.getCamera().move(randomTremorOffsets[0] * 0.2F * intensity,
-                    randomTremorOffsets[1] * 0.2F * intensity,
-                    randomTremorOffsets[2] * 0.5F * intensity);
+            ((CameraAccessor) event.getCamera()).saintsdragons$invokeMove(
+                    (float) (randomTremorOffsets[0] * 0.2F * intensity),
+                    (float) (randomTremorOffsets[1] * 0.2F * intensity),
+                    (float) (randomTremorOffsets[2] * 0.5F * intensity));
 
             // Update random offsets for next frame
             randomTremorOffsets[0] = (Math.random() - 0.5) * 2.0;
@@ -99,7 +101,8 @@ public class ClientEventHandler {
 
         ClientCameraImpulse.Offset impulse = ClientCameraImpulse.sample((float) event.getPartialTick());
         if (impulse.active()) {
-            event.getCamera().move(impulse.forward(), impulse.vertical(), impulse.lateral());
+            ((CameraAccessor) event.getCamera()).saintsdragons$invokeMove(
+                    (float) impulse.forward(), (float) impulse.vertical(), (float) impulse.lateral());
         }
     }
 
@@ -155,8 +158,9 @@ public class ClientEventHandler {
         float blendRate = 0.2f;
         beamCameraForward += (targetForward - beamCameraForward) * blendRate;
         beamCameraUp += (targetUp - beamCameraUp) * blendRate;
-        event.getCamera().move(beamCameraForward, 0, 0);
-        event.getCamera().move(0, -beamCameraUp, 0);
+        CameraAccessor camera = (CameraAccessor) event.getCamera();
+        camera.saintsdragons$invokeMove(beamCameraForward, 0, 0);
+        camera.saintsdragons$invokeMove(0, -beamCameraUp, 0);
     }
 
     private static boolean applyDetachedDragonCamera(ViewportEvent.ComputeCameraAngles event, Entity vehicle) {
@@ -170,18 +174,16 @@ public class ClientEventHandler {
 
         DragonRideCameraController.CameraOutput output =
                 DragonRideCameraController.update(vehicle, (float) event.getPartialTick());
-        event.getCamera().move(-event.getCamera().getMaxZoom(output.zoom()), 0, 0);
+        CameraAccessor camera = (CameraAccessor) event.getCamera();
+        camera.saintsdragons$invokeMove(-camera.saintsdragons$invokeGetMaxZoom(output.zoom()), 0, 0);
         double lateralShift = isThirdPersonBankingCameraEnabled() ? output.lateralShift() : 0.0D;
-        event.getCamera().move(0, output.verticalShift(), lateralShift);
+        camera.saintsdragons$invokeMove(0, (float) output.verticalShift(), (float) lateralShift);
         event.setPitch(Mth.clamp(event.getPitch() + output.pitchOffset(), -90.0f, 90.0f));
         return true;
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase != TickEvent.Phase.END) {
-            return;
-        }
+    public static void onClientTick(TickEvent.ClientTickEvent.Post event) {
         CommonClientLifecycleEvents.bootstrap();
         CommonClientLifecycleEvents.onEndClientTick(Minecraft.getInstance());
     }

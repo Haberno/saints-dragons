@@ -17,7 +17,7 @@ import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
@@ -194,7 +194,7 @@ public class DragonBreedBehaviour<T extends DragonEntity> extends DragonBehaviou
         return DragonBreedingRules.isEnabled()
                 && dragon.isTame()
                 && dragon.isInLove()
-                && (!dragon.isInWaterOrBubble() || canBreedInWater(dragon));
+                && (!dragon.isInWater() || canBreedInWater(dragon));
     }
 
     protected boolean canBreedInWater(T dragon) {
@@ -306,7 +306,7 @@ public class DragonBreedBehaviour<T extends DragonEntity> extends DragonBehaviou
         if (!dragon.isInLove()) {
             return "not_in_love";
         }
-        if (dragon.isInWaterOrBubble() && !canBreedInWater(dragon)) {
+        if (dragon.isInWater() && !canBreedInWater(dragon)) {
             return "wrong_medium";
         }
         return "ineligible";
@@ -379,7 +379,7 @@ public class DragonBreedBehaviour<T extends DragonEntity> extends DragonBehaviou
         }
         level.playSound(null, eggPos, SoundEvents.TURTLE_LAY_EGG, SoundSource.BLOCKS, 0.8F, 1.0F);
         level.broadcastEntityEvent(female, (byte)18);
-        if (level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+        if (level.getGameRules().get(GameRules.MOB_DROPS)) {
             level.addFreshEntity(new ExperienceOrb(level, female.getX(), female.getY(), female.getZ(),
                     dragon.getRandom().nextInt(7) + 1));
         }
@@ -429,7 +429,7 @@ public class DragonBreedBehaviour<T extends DragonEntity> extends DragonBehaviou
         for (int depth = 0; depth <= EGG_SEARCH_DEPTH; depth++) {
             BlockPos check = position.below(depth);
             BlockState ground = level.getBlockState(check);
-            if (!ground.isAir() && ground.isSolidRender(level, check) && level.getBlockState(check.above()).isAir()) {
+            if (!ground.isAir() && ground.isSolidRender() && level.getBlockState(check.above()).isAir()) {
                 return check.above();
             }
         }

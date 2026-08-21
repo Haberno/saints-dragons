@@ -65,7 +65,7 @@ public class CindervaneMagmaVolleyAbility extends DragonAbility<Cindervane> {
             ticksSinceVolley = VOLLEY_INTERVAL_TICKS;
             volleysFired = 0;
             getUser().triggerAnim(CindervaneAnimationHandler.ACTION_CONTROLLER, "magma_volley");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 getUser().getSoundHandler().playMovingEntitySound(ModSounds.CINDERVANE_MAGMA_VOLLEY.get(), 2.0f, 1.0f, 66);
             }
         }

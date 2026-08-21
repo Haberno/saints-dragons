@@ -1,40 +1,42 @@
 package com.leon.saintsdragons.common.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
+import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.leon.saintsdragons.client.renderer.GeoRenderDataTickets;
 import com.leon.saintsdragons.common.config.ToolsArmorConfig;
 import com.leon.saintsdragons.common.registry.ModAttributes;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.core.Holder;
 import net.minecraft.world.level.Level;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import com.leon.saintsdragons.client.renderer.armor.DragonlordArmorRenderer;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.object.PlayState;
-import software.bernie.geckolib.constant.DataTickets;
 
 
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Proxy;
-import java.util.List;
-import java.util.UUID;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 
 public class DragonlordArmorItem extends Item implements GeoItem {
     public static final String FLIGHT_CONTROLLER = "dragonlord_flight";
@@ -43,165 +45,124 @@ public class DragonlordArmorItem extends Item implements GeoItem {
             RawAnimation.begin().thenLoop("animation.dragonlord_armor.glide");
     private static final RawAnimation FLAP =
             RawAnimation.begin().thenPlay("animation.dragonlord_armor.flap");
-    private static final UUID HELMET_MAX_HEALTH_UUID = UUID.fromString("205f4c06-8e5f-46b5-a0d1-bd0a4b9786d3");
-    private static final UUID CHESTPLATE_MAX_HEALTH_UUID = UUID.fromString("4784a314-73a3-4215-96b2-739f5ed31922");
-    private static final UUID LEGGINGS_MAX_HEALTH_UUID = UUID.fromString("3fda6176-d876-401c-a1bd-46f754cda64a");
-    private static final UUID BOOTS_MAX_HEALTH_UUID = UUID.fromString("c998f3c4-f092-4116-8664-e6e5809db047");
-    private static final UUID HELMET_FIRE_RESISTANCE_UUID = UUID.fromString("5e275157-050e-4217-bf91-59a107c3f0e5");
-    private static final UUID CHESTPLATE_FIRE_RESISTANCE_UUID = UUID.fromString("9159eb75-1bed-4885-bbce-45d76a935f52");
-    private static final UUID LEGGINGS_FIRE_RESISTANCE_UUID = UUID.fromString("49fd952f-d3cb-4aa8-aad4-8d4cbe75c529");
-    private static final UUID BOOTS_FIRE_RESISTANCE_UUID = UUID.fromString("44774007-8d4d-4e20-86af-c0c23cbe5300");
-    private static final UUID HELMET_BLAST_RESISTANCE_UUID = UUID.fromString("87429296-ff79-47e6-b547-c3b5ab20a6ee");
-    private static final UUID CHESTPLATE_BLAST_RESISTANCE_UUID = UUID.fromString("83d9d091-c0bb-4474-8241-401382c9746b");
-    private static final UUID LEGGINGS_BLAST_RESISTANCE_UUID = UUID.fromString("c697f967-163d-41dc-bd8a-dcb885cbf190");
-    private static final UUID BOOTS_BLAST_RESISTANCE_UUID = UUID.fromString("931b023b-f0a1-4aaa-bc85-6338ec3d44d8");
 
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Supplier<Object> renderProvider = this::createFabricRenderProvider;
+    private final ArmorType type;
 
     public DragonlordArmorItem(ArmorMaterial material, ArmorType type, Properties properties) {
-        super(material, type, properties);
+        super(configureProperties(properties, material, type));
+        this.type = type;
         GeoItem.registerSyncedAnimatable(this);
     }
 
-    @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        Multimap<Attribute, AttributeModifier> modifiers = super.getDefaultAttributeModifiers(slot);
-        if (slot != this.getType().getSlot()) {
-            return modifiers;
-        }
-
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        builder.putAll(ConfiguredItemAttributes.armor(
-                modifiers,
-                configuredDefense(),
-                ToolsArmorConfig.DRAGONLORD_TOUGHNESS.get(),
-                configuredKnockbackResistance()
-        ));
-        builder.put(
-                Attributes.MAX_HEALTH,
-                new AttributeModifier(
-                        maxHealthUuid(),
-                        "Dragonlord max health",
-                        maxHealthMultiplier(),
-                        AttributeModifier.Operation.MULTIPLY_BASE
-                )
-        );
-        builder.put(
-                ModAttributes.FIRE_RESISTANCE.get(),
-                new AttributeModifier(
-                        fireResistanceUuid(),
-                        "Dragonlord fire resistance",
-                        ToolsArmorConfig.DRAGONLORD_FIRE_RESISTANCE.get(),
-                        AttributeModifier.Operation.ADDITION
-                )
-        );
-        builder.put(
-                ModAttributes.BLAST_RESISTANCE.get(),
-                new AttributeModifier(
-                        blastResistanceUuid(),
-                        "Dragonlord blast resistance",
-                        ToolsArmorConfig.DRAGONLORD_BLAST_RESISTANCE.get(),
-                        AttributeModifier.Operation.ADDITION
-                )
-        );
-        return builder.build();
+    private static Properties configureProperties(Properties properties, ArmorMaterial material, ArmorType type) {
+        EquipmentSlotGroup slot = EquipmentSlotGroup.bySlot(type.getSlot());
+        ItemAttributeModifiers attributes = ConfiguredItemAttributes.armor(
+                        type,
+                        configuredDefense(type),
+                        ToolsArmorConfig.DRAGONLORD_TOUGHNESS.get(),
+                        configuredKnockbackResistance(type))
+                .withModifierAdded(Attributes.MAX_HEALTH,
+                        new AttributeModifier(SaintsDragonsCommon.rl("dragonlord_max_health_" + type.getName()),
+                                maxHealthMultiplier(type), AttributeModifier.Operation.ADD_MULTIPLIED_BASE),
+                        slot)
+                .withModifierAdded(Holder.direct(ModAttributes.FIRE_RESISTANCE.get()),
+                        new AttributeModifier(SaintsDragonsCommon.rl("dragonlord_fire_resistance_" + type.getName()),
+                                ToolsArmorConfig.DRAGONLORD_FIRE_RESISTANCE.get(),
+                                AttributeModifier.Operation.ADD_VALUE),
+                        slot)
+                .withModifierAdded(Holder.direct(ModAttributes.BLAST_RESISTANCE.get()),
+                        new AttributeModifier(SaintsDragonsCommon.rl("dragonlord_blast_resistance_" + type.getName()),
+                                ToolsArmorConfig.DRAGONLORD_BLAST_RESISTANCE.get(),
+                                AttributeModifier.Operation.ADD_VALUE),
+                        slot);
+        return properties.humanoidArmor(material, type).attributes(attributes);
     }
 
     private double configuredKnockbackResistance() {
-        return switch (this.getType()) {
+        return configuredKnockbackResistance(type);
+    }
+
+    private static double configuredKnockbackResistance(ArmorType type) {
+        return switch (type) {
             case HELMET -> ToolsArmorConfig.DRAGONLORD_HELMET_KNOCKBACK_RESISTANCE.get();
             case CHESTPLATE -> ToolsArmorConfig.DRAGONLORD_CHESTPLATE_KNOCKBACK_RESISTANCE.get();
             case LEGGINGS -> ToolsArmorConfig.DRAGONLORD_LEGGINGS_KNOCKBACK_RESISTANCE.get();
             case BOOTS -> ToolsArmorConfig.DRAGONLORD_BOOTS_KNOCKBACK_RESISTANCE.get();
-        };
-    }
-
-    private UUID maxHealthUuid() {
-        return switch (this.getType()) {
-            case HELMET -> HELMET_MAX_HEALTH_UUID;
-            case CHESTPLATE -> CHESTPLATE_MAX_HEALTH_UUID;
-            case LEGGINGS -> LEGGINGS_MAX_HEALTH_UUID;
-            case BOOTS -> BOOTS_MAX_HEALTH_UUID;
+            case BODY -> 0.0D;
         };
     }
 
     private double maxHealthMultiplier() {
-        return switch (this.getType()) {
+        return maxHealthMultiplier(type);
+    }
+
+    private static double maxHealthMultiplier(ArmorType type) {
+        return switch (type) {
             case HELMET -> ToolsArmorConfig.DRAGONLORD_HELMET_MAX_HEALTH_BONUS.get() / 100.0D;
             case CHESTPLATE -> ToolsArmorConfig.DRAGONLORD_CHESTPLATE_MAX_HEALTH_BONUS.get() / 100.0D;
             case LEGGINGS -> ToolsArmorConfig.DRAGONLORD_LEGGINGS_MAX_HEALTH_BONUS.get() / 100.0D;
             case BOOTS -> ToolsArmorConfig.DRAGONLORD_BOOTS_MAX_HEALTH_BONUS.get() / 100.0D;
+            case BODY -> 0.0D;
         };
     }
 
-    @Override
     public int getDefense() {
         return (int) Math.round(configuredDefense());
     }
 
-    @Override
     public float getToughness() {
         return (float) ToolsArmorConfig.DRAGONLORD_TOUGHNESS.get();
     }
 
     private double configuredDefense() {
-        return switch (this.getType()) {
+        return configuredDefense(type);
+    }
+
+    private static double configuredDefense(ArmorType type) {
+        return switch (type) {
             case HELMET -> ToolsArmorConfig.DRAGONLORD_HELMET_ARMOR.get();
             case CHESTPLATE -> ToolsArmorConfig.DRAGONLORD_CHESTPLATE_ARMOR.get();
             case LEGGINGS -> ToolsArmorConfig.DRAGONLORD_LEGGINGS_ARMOR.get();
             case BOOTS -> ToolsArmorConfig.DRAGONLORD_BOOTS_ARMOR.get();
+            case BODY -> 0.0D;
         };
+    }
+
+    public ArmorType getType() {
+        return type;
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.double_jump.title")
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        tooltip.accept(Component.empty());
+        tooltip.accept(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.double_jump.title")
                 .withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.double_jump.description")
+        tooltip.accept(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.double_jump.description")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.dragonfall.title")
+        tooltip.accept(Component.empty());
+        tooltip.accept(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.dragonfall.title")
                 .withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.dragonfall.description")
+        tooltip.accept(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.dragonfall.description")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.aerial_dominion.title")
+        tooltip.accept(Component.empty());
+        tooltip.accept(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.aerial_dominion.title")
                 .withStyle(ChatFormatting.GOLD));
-        tooltip.add(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.aerial_dominion.enter")
+        tooltip.accept(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.aerial_dominion.enter")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.aerial_dominion.boost")
+        tooltip.accept(Component.translatable("item.saintsdragons.dragonlord_armor.tooltip.aerial_dominion.boost")
                 .withStyle(ChatFormatting.GRAY));
-    }
-
-    private UUID fireResistanceUuid() {
-        return switch (this.getType()) {
-            case HELMET -> HELMET_FIRE_RESISTANCE_UUID;
-            case CHESTPLATE -> CHESTPLATE_FIRE_RESISTANCE_UUID;
-            case LEGGINGS -> LEGGINGS_FIRE_RESISTANCE_UUID;
-            case BOOTS -> BOOTS_FIRE_RESISTANCE_UUID;
-        };
-    }
-
-    private UUID blastResistanceUuid() {
-        return switch (this.getType()) {
-            case HELMET -> HELMET_BLAST_RESISTANCE_UUID;
-            case CHESTPLATE -> CHESTPLATE_BLAST_RESISTANCE_UUID;
-            case LEGGINGS -> LEGGINGS_BLAST_RESISTANCE_UUID;
-            case BOOTS -> BOOTS_BLAST_RESISTANCE_UUID;
-        };
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         AnimationController<DragonlordArmorItem> flightController = new AnimationController<>(
-                this,
                 FLIGHT_CONTROLLER,
                 3,
                 state -> {
-                    Entity wearer = state.getData(DataTickets.ENTITY);
+                    Entity wearer = state.getData(GeoRenderDataTickets.ARMOR_WEARER);
                     if (!(wearer instanceof LivingEntity living)
                             || !living.isFallFlying()
                             || !DragonlordArmorSetBonus.isWearingFullSet(living)) {
@@ -222,31 +183,18 @@ public class DragonlordArmorItem extends Item implements GeoItem {
     }
 
     @Override
-    public void createRenderer(Consumer<Object> consumer) {
-        Object provider = createFabricRenderProvider();
-        if (provider != null) {
-            consumer.accept(provider);
-        }
-    }
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private DragonlordArmorRenderer renderer;
 
-    @Override
-    public Supplier<Object> getRenderProvider() {
-        return renderProvider;
-    }
-
-    private Object createFabricRenderProvider() {
-        try {
-            Class<?> providerClass = Class.forName("software.bernie.geckolib.animatable.client.RenderProvider");
-            return Proxy.newProxyInstance(DragonlordArmorItem.class.getClassLoader(), new Class<?>[]{providerClass},
-                    (proxy, method, args) -> {
-                        if ("getHumanoidArmorModel".equals(method.getName()) || "getGenericArmorModel".equals(method.getName())) {
-                            return getHumanoidArmorModel(args);
-                        }
-                        return null;
-                    });
-        } catch (ClassNotFoundException ignored) {
-            return null;
-        }
+            @Override
+            public GeoArmorRenderer<?, ?> getGeoArmorRenderer(ItemStack stack, EquipmentSlot slot) {
+                if (this.renderer == null) {
+                    this.renderer = new DragonlordArmorRenderer();
+                }
+                return this.renderer;
+            }
+        });
     }
 
     public void initializeClient(Consumer<Object> consumer) {

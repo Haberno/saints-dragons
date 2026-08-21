@@ -69,7 +69,7 @@ public final class DragonTameCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("tame")
-            .requires(source -> source.hasPermission(2))
+            .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
             .then(Commands.argument("dragon", uuidArgument())
                 .suggests(DRAGON_UUID_SUGGESTIONS)
                 .executes(ctx -> tameDragon(ctx, ctx.getSource().getPlayerOrException()))
@@ -136,8 +136,8 @@ public final class DragonTameCommand {
 
         // Try gender-specific advancement first (currently only Raevyx has this)
         if (dragon.isFemale()) {
-            var femaleAdvancement = player.server.getAdvancements()
-                .getAdvancement(SaintsDragonsCommon.rl("tame_" + dragonType + "_female"));
+            var femaleAdvancement = player.level().getServer().getAdvancements()
+                .get(SaintsDragonsCommon.rl("tame_" + dragonType + "_female"));
             if (femaleAdvancement != null) {
                 player.getAdvancements().award(femaleAdvancement, "tame_" + dragonType + "_female");
                 return;
@@ -145,8 +145,8 @@ public final class DragonTameCommand {
         }
 
         // Fall back to standard advancement
-        var advancement = player.server.getAdvancements()
-            .getAdvancement(SaintsDragonsCommon.rl("tame_" + dragonType));
+        var advancement = player.level().getServer().getAdvancements()
+            .get(SaintsDragonsCommon.rl("tame_" + dragonType));
         if (advancement != null) {
             player.getAdvancements().award(advancement, "tame_" + dragonType);
         }
@@ -189,7 +189,8 @@ public final class DragonTameCommand {
             start,
             end,
             box,
-            target -> target instanceof DragonEntity && target.isPickable()
+            target -> target instanceof DragonEntity && target.isPickable(),
+            1.0F
         );
 
         if (result != null && result.getEntity() instanceof DragonEntity dragon) {

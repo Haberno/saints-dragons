@@ -4,6 +4,7 @@ import com.leon.saintsdragons.platform.Services;
 import com.leon.saintsdragons.server.entity.npc.dialogue.DialogueDefinition;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
@@ -29,11 +30,11 @@ public record MessageDialogueOpen(int entityId, Identifier dialogueId, String no
         buffer.writeIdentifier(message.dialogueId);
         buffer.writeUtf(message.nodeId, 128);
         buffer.writeUtf(message.nodeType, 32);
-        buffer.writeComponent(message.speaker);
-        buffer.writeComponent(message.text);
+        ComponentSerialization.TRUSTED_CONTEXT_FREE_STREAM_CODEC.encode(buffer, message.speaker);
+        ComponentSerialization.TRUSTED_CONTEXT_FREE_STREAM_CODEC.encode(buffer, message.text);
         buffer.writeInt(message.choices.size());
         for (Choice choice : message.choices) {
-            buffer.writeComponent(choice.text());
+            ComponentSerialization.TRUSTED_CONTEXT_FREE_STREAM_CODEC.encode(buffer, choice.text());
             buffer.writeUtf(choice.next(), 128);
         }
     }
@@ -43,12 +44,12 @@ public record MessageDialogueOpen(int entityId, Identifier dialogueId, String no
         Identifier dialogueId = buffer.readIdentifier();
         String nodeId = buffer.readUtf(128);
         String nodeType = buffer.readUtf(32);
-        Component speaker = buffer.readComponent();
-        Component text = buffer.readComponent();
+        Component speaker = ComponentSerialization.TRUSTED_CONTEXT_FREE_STREAM_CODEC.decode(buffer);
+        Component text = ComponentSerialization.TRUSTED_CONTEXT_FREE_STREAM_CODEC.decode(buffer);
         int size = buffer.readInt();
         List<Choice> choices = new ArrayList<>(size);
         for (int i = 0; i < size; i++) {
-            choices.add(new Choice(buffer.readComponent(), buffer.readUtf(128)));
+            choices.add(new Choice(ComponentSerialization.TRUSTED_CONTEXT_FREE_STREAM_CODEC.decode(buffer), buffer.readUtf(128)));
         }
         return new MessageDialogueOpen(entityId, dialogueId, nodeId, nodeType, speaker, text, choices);
     }

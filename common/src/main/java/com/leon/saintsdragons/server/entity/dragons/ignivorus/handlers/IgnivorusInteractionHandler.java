@@ -26,7 +26,7 @@ public class IgnivorusInteractionHandler extends AbstractDragonInteractionHandle
 
     @Override
     protected InteractionResult handleUntamedInteraction(Player player, InteractionHand hand, ItemStack itemstack) {
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
         DragonAttributeConfig config = DragonAttributeConfigLoader.getInstance()
                 .getConfig(DragonAttributeConfigLoader.IGNIVORUS_ID);
         boolean legacyTaming = config.extraBoolean("legacy_taming", false);
@@ -111,7 +111,7 @@ public class IgnivorusInteractionHandler extends AbstractDragonInteractionHandle
             }
         }
 
-        return InteractionResult.sidedSuccess(client);
+        return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
@@ -171,7 +171,7 @@ public class IgnivorusInteractionHandler extends AbstractDragonInteractionHandle
         boolean hearty = itemstack.is(com.leon.saintsdragons.common.registry.ModItems.HEARTY_DRAGON_MEAL.get());
         boolean validFood = dragon.isFood(itemstack);
         if (baby == null) {
-            return validFood ? InteractionResult.sidedSuccess(dragon.level().isClientSide) : InteractionResult.PASS;
+            return validFood ? dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER : InteractionResult.PASS;
         }
 
         double tameChance = getTamingChance(itemstack, config);
@@ -205,7 +205,7 @@ public class IgnivorusInteractionHandler extends AbstractDragonInteractionHandle
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             consumeHeldItem(player, itemstack);
             dragon.triggerAnim("interaction", "eat");
             playEatSound();
@@ -244,12 +244,12 @@ public class IgnivorusInteractionHandler extends AbstractDragonInteractionHandle
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
 
     private void playEatSound() {
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             float pitch = dragon.isBaby() ? 1.6f : 1.0f;
             dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_EAT.get(), 1.0f, pitch, 75);
         }
@@ -265,8 +265,8 @@ public class IgnivorusInteractionHandler extends AbstractDragonInteractionHandle
 
     private void triggerTamingAdvancement(Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            var advancement = serverPlayer.server.getAdvancements()
-                    .getAdvancement(SaintsDragonsCommon.rl("tame_ignivorus"));
+            var advancement = serverPlayer.level().getServer().getAdvancements()
+                    .get(SaintsDragonsCommon.rl("tame_ignivorus"));
             if (advancement != null) {
                 serverPlayer.getAdvancements().award(advancement, "tame_ignivorus");
             }

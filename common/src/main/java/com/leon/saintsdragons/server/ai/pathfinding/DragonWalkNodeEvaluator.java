@@ -7,6 +7,7 @@ import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.level.pathfinder.PathfindingContext;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Target;
 import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
@@ -71,13 +72,13 @@ public class DragonWalkNodeEvaluator extends WalkNodeEvaluator implements Dragon
     }
 
     @Override
-    public @NotNull Target getGoal(double x, double y, double z) {
+    public @NotNull Target getTarget(double x, double y, double z) {
         int footprintOffset = getFootprintOffset();
-        return getTargetFromNode(getNode(
+        return getTargetNodeAt(
                 Mth.floor(x) - footprintOffset,
                 Mth.floor(y),
                 Mth.floor(z) - footprintOffset
-        ));
+        );
     }
 
     private int getFootprintOffset() {
@@ -85,9 +86,9 @@ public class DragonWalkNodeEvaluator extends WalkNodeEvaluator implements Dragon
     }
 
     @Override
-    public @NotNull PathType getBlockPathType(BlockGetter level, int x, int y, int z) {
+    public @NotNull PathType getPathType(PathfindingContext context, int x, int y, int z) {
         BlockPos pos = new BlockPos(x, y, z);
-        BlockState state = level.getBlockState(pos);
+        BlockState state = context.getBlockState(pos);
         if (state.is(Blocks.LADDER)) {
             return PathType.WALKABLE;
         }
@@ -95,10 +96,18 @@ public class DragonWalkNodeEvaluator extends WalkNodeEvaluator implements Dragon
                 && DragonDestructionManager.isPassivelyBreakableTreeBlock(state)) {
             return PathType.OPEN;
         }
-        PathType pathType = super.getBlockPathType(level, x, y, z);
+        PathType pathType = super.getPathType(context, x, y, z);
         if (avoidWater && (pathType == PathType.WATER || pathType == PathType.WATER_BORDER)) {
             return PathType.BLOCKED;
         }
         return pathType;
+    }
+
+    public static PathType getPathTypeFromSnapshot(BlockGetter level, BlockPos pos) {
+        BlockState state = level.getBlockState(pos);
+        if (state.is(Blocks.LADDER)) {
+            return PathType.WALKABLE;
+        }
+        return getPathTypeFromState(level, pos);
     }
 }

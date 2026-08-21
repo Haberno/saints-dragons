@@ -53,6 +53,6 @@ public final class AbilityRegistry {
         if (name.indexOf(':') >= 0) {
             return Identifier.tryParse(name);
         }
-        return new Identifier(SaintsDragonsCommon.MOD_ID, name);
+        return Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, name);
     }
 }

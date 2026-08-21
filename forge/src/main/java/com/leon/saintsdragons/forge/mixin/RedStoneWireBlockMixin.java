@@ -11,7 +11,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(RedStoneWireBlock.class)
 public abstract class RedStoneWireBlockMixin {
-    @Inject(method = "calculateTargetStrength", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getBlockSignal", at = @At("HEAD"), cancellable = true)
     private void saintsdragons$applyRaevyxBeamPower(Level level,
                                                      BlockPos pos,
                                                      CallbackInfoReturnable<Integer> callback) {

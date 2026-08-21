@@ -24,7 +24,7 @@ public class DragonAllyBookItem extends Item {
     @Override
     public @NotNull InteractionResult interactLivingEntity(@NotNull ItemStack stack, @NotNull Player player, @NotNull LivingEntity target, @NotNull InteractionHand hand) {
         if (target instanceof DragonEntity dragon) {
-            if (player.level().isClientSide) {
+            if (player.level().isClientSide()) {
                 java.util.UUID selectionId = (dragon.isTame() && dragon.isOwnedBy(player)) ? dragon.getUUID() : null;
                 openCodexScreen(selectionId, CodexTab.PHYSIOLOGY);
             }
@@ -36,10 +36,10 @@ public class DragonAllyBookItem extends Item {
 
     @Override
     public @NotNull InteractionResult use(@NotNull Level level, @NotNull Player player, @NotNull InteractionHand hand) {
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             openCodexScreen(null, CodexTab.PHYSIOLOGY);
         }
-        return level.isClientSide ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Environment(EnvType.CLIENT)

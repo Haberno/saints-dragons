@@ -32,7 +32,7 @@ public final class DragonBabyComponent {
     }
 
     public void registerToOwnerCodex(@Nullable DragonEntity offspring, @Nullable ServerLevel level) {
-        if (offspring == null || level == null || level.isClientSide) {
+        if (offspring == null || level == null || level.isClientSide()) {
             return;
         }
         if (offspring.isTame() && offspring.getOwnerUUID() != null) {
@@ -44,7 +44,7 @@ public final class DragonBabyComponent {
         if (canFeed) {
             return true;
         }
-        if (!dragon.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+        if (!dragon.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
             serverPlayer.displayClientMessage(
                     Component.translatable(translationPrefix + ".still_eating", dragon.getName()),
                     true
@@ -64,7 +64,7 @@ public final class DragonBabyComponent {
                                                      IntConsumer feedingCooldownSetter,
                                                      double tameChance,
                                                      Runnable onSuccess) {
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
         if (!validFood) {
             return InteractionResult.PASS;
         }
@@ -86,7 +86,7 @@ public final class DragonBabyComponent {
             );
         }
 
-        return InteractionResult.sidedSuccess(client);
+        return InteractionResult.SUCCESS;
     }
 
     public void applyBabyGrowth(Player player, boolean heartyMeal, String translationPrefix, int normalGrowthTicks, int heartyGrowthTicks) {
@@ -139,12 +139,12 @@ public final class DragonBabyComponent {
             return InteractionResult.PASS;
         }
 
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
         if (dragon.isGrowthStunted()) {
             if (!client && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.displayClientMessage(Component.translatable("entity.saintsdragons.dragon.growth_stunted", dragon.getName()), true);
             }
-            return InteractionResult.sidedSuccess(client);
+            return InteractionResult.SUCCESS;
         }
 
         if (!ensureCanFeed(player, translationPrefix, canFeed)) {
@@ -165,7 +165,7 @@ public final class DragonBabyComponent {
             }
         }
 
-        return InteractionResult.sidedSuccess(client);
+        return InteractionResult.SUCCESS;
     }
 
     public void applyBabyTamingResult(Player player, boolean success, Runnable onSuccess) {

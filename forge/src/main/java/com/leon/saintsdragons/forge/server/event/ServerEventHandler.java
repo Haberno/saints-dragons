@@ -20,7 +20,7 @@ import net.minecraftforge.event.entity.living.LivingMakeBrainEvent;
 import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.event.entity.player.PlayerInteractEvent;
 import net.minecraftforge.event.server.ServerStoppingEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 
 @Mod.EventBusSubscriber(modid = SaintsDragonsCommon.MOD_ID)
@@ -46,10 +46,8 @@ public class ServerEventHandler {
     }
 
     @SubscribeEvent
-    public static void onServerTick(TickEvent.ServerTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            CommonServerLifecycleEvents.onEndServerTick(event.getServer());
-        }
+    public static void onServerTick(TickEvent.ServerTickEvent.Post event) {
+        CommonServerLifecycleEvents.onEndServerTick(event.server());
     }
 
     @SubscribeEvent
@@ -65,7 +63,7 @@ public class ServerEventHandler {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
             return;
         }
-        ServerLevel sourceLevel = player.server.getLevel(event.getFrom());
+        ServerLevel sourceLevel = player.level().getServer().getLevel(event.getFrom());
         if (sourceLevel != null) {
             IvyTheDragonMerchant.followOwnerAcrossDimension(player, sourceLevel);
         }
@@ -76,29 +74,27 @@ public class ServerEventHandler {
         if (!(event.getEntity() instanceof ServerPlayer player) || !event.isEndConquered()) {
             return;
         }
-        ServerLevel endLevel = player.server.getLevel(Level.END);
+        ServerLevel endLevel = player.level().getServer().getLevel(Level.END);
         if (endLevel != null) {
-            player.server.execute(() -> IvyTheDragonMerchant.followOwnerAcrossDimension(player, endLevel));
+            player.level().getServer().execute(() -> IvyTheDragonMerchant.followOwnerAcrossDimension(player, endLevel));
         }
     }
 
     @SubscribeEvent
-    public static void onLivingAttack(LivingAttackEvent event) {
+    public static boolean onLivingAttack(LivingAttackEvent event) {
         if (!(event.getEntity() instanceof ServerPlayer player)) {
-            return;
+            return false;
         }
-        if (BloodTempestArmorSetBonus.blocksDamage(player, event.getSource())
-                || DragonlordArmorSetBonus.blocksDamage(player, event.getSource())) {
-            event.setCanceled(true);
-        }
+        return BloodTempestArmorSetBonus.blocksDamage(player, event.getSource())
+                || DragonlordArmorSetBonus.blocksDamage(player, event.getSource());
     }
 
     @SubscribeEvent
-    public static void onEntityInteract(PlayerInteractEvent.EntityInteract event) {
+    public static boolean onEntityInteract(PlayerInteractEvent.EntityInteract event) {
         if (!(event.getEntity() instanceof ServerPlayer player)
                 || !event.getItemStack().is(Items.DEBUG_STICK)
                 || !player.canUseGameMasterBlocks()) {
-            return;
+            return false;
         }
 
         DragonEntity dragon = null;
@@ -109,12 +105,12 @@ public class ServerEventHandler {
             dragon = parentDragon;
         }
         if (dragon == null) {
-            return;
+            return false;
         }
 
         DragonPathDebugTracker.toggle(player, dragon);
         event.setCancellationResult(InteractionResult.SUCCESS);
-        event.setCanceled(true);
+        return true;
     }
 
     @SubscribeEvent

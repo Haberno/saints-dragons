@@ -23,7 +23,7 @@ public class DragonMovementStateSensor<T extends RideableDragonBase> extends Dra
         context.memories().set(DragonMemories.IS_AERIAL, mode == DragonLocomotionMode.AIR, ttl);
         context.memories().set(DragonMemories.IS_GROUNDED, mode == DragonLocomotionMode.GROUND && dragon.isGroundedForAi(), ttl);
         context.memories().set(DragonMemories.IS_RIDDEN, dragon.isVehicle(), ttl);
-        context.memories().set(DragonMemories.IN_WATER, mode == DragonLocomotionMode.WATER && dragon.isInWaterOrBubble(), ttl);
+        context.memories().set(DragonMemories.IN_WATER, mode == DragonLocomotionMode.WATER && dragon.isInWater(), ttl);
         context.memories().set(DragonMemories.IN_LAVA, mode == DragonLocomotionMode.WATER && dragon.isInLava(), ttl);
     }
 

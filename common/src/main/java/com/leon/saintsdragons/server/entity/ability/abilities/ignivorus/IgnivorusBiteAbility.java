@@ -51,7 +51,7 @@ public class IgnivorusBiteAbility extends DragonAbility<Ignivorus> {
         if (section.sectionType == STARTUP) {
             Ignivorus dragon = getUser();
             dragon.triggerAnim(IgnivorusAnimationHandler.ACTION_CONTROLLER, "bite");
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_BITE.get(), 1.0f, 1.0f, 60);
             }
             appliedHit = false;
@@ -92,7 +92,7 @@ public class IgnivorusBiteAbility extends DragonAbility<Ignivorus> {
         float armorPenDamage = (damage + ARMOR_PENETRATION) * hungerMult;
 
         target.hurt(physicalSource, armorPenDamage);
-        target.setSecondsOnFire(3);
+        target.igniteForSeconds(3);
 
         Vec3 push = dragon.getLookAngle().scale(dragon.isFlying() ? 0.4 : 0.25);
         target.push(push.x, dragon.isFlying() ? 0.2 : 0.08, push.z);
@@ -133,7 +133,7 @@ public class IgnivorusBiteAbility extends DragonAbility<Ignivorus> {
     }
 
     private void sendDebugBox(Ignivorus dragon, double range) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         DragonMeleeGeometry.ForwardAttack attack = DragonMeleeGeometry.bodyForwardAttack(dragon).offset(HITBOX_FORWARD_OFFSET);

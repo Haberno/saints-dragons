@@ -14,7 +14,7 @@ import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.client.Camera;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -41,7 +41,7 @@ public abstract class CameraPositionMixin {
     public abstract void setPosition(Vec3 pos);
 
     @Inject(method = "setup", at = @At("HEAD"), require = 0)
-    private void saintsdragons$preSetupSyncRoll(BlockGetter level, Entity entity, boolean detached, boolean thirdPersonReverse, float partialTick, CallbackInfo ci) {
+    private void saintsdragons$preSetupSyncRoll(Level level, Entity entity, boolean detached, boolean thirdPersonReverse, float partialTick, CallbackInfo ci) {
         if (entity == null || detached || !isFirstPersonBankingCameraEnabled()) {
             DragonCameraState.clearRoll();
             CameraLeanData.reset();
@@ -76,7 +76,7 @@ public abstract class CameraPositionMixin {
     }
 
     @Inject(method = "setup", at = @At("TAIL"), require = 0)
-    private void saintsdragons$postSetupSaddlePosition(BlockGetter level, Entity entity, boolean detached, boolean thirdPersonReverse, float partialTick, CallbackInfo ci) {
+    private void saintsdragons$postSetupSaddlePosition(Level level, Entity entity, boolean detached, boolean thirdPersonReverse, float partialTick, CallbackInfo ci) {
         if (entity == null || detached) {
             return;
         }

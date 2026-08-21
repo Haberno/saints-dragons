@@ -48,7 +48,7 @@ public class CindervaneModel extends DragonGeoModel<Cindervane> {
             if (entity.isDeadOrDying()){
                 return;
             }
-            if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
+            if (!entity.isVehicle() && !entity.isInWater()) {
                 applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
@@ -112,7 +112,7 @@ public class CindervaneModel extends DragonGeoModel<Cindervane> {
     }
 
     private void applyDiveWingPose(Cindervane entity, float partialTick) {
-        if (entity.isInWaterOrBubble()) {
+        if (entity.isInWater()) {
             return;
         }
 

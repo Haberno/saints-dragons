@@ -29,17 +29,17 @@ public abstract class AbstractDragonInteractionHandler<T extends RideableDragonB
         ItemStack heldItem = player.getItemInHand(hand);
         if (ModItems.isDragonBrush(heldItem)) {
             // Always acknowledge brush use on client so server interaction still runs.
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.tryBrush(player, heldItem);
             }
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (ModItems.isScalePlucker(heldItem)) {
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.tryPluckScale(player, heldItem);
             }
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (isInteractionItem(heldItem)) {
@@ -75,7 +75,7 @@ public abstract class AbstractDragonInteractionHandler<T extends RideableDragonB
     }
 
     protected InteractionResult handleCommandCycling(Player player) {
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
         if (!client) {
             int nextCommand = dragon.getNextCommand();
             dragon.setCommand(nextCommand);
@@ -84,7 +84,7 @@ public abstract class AbstractDragonInteractionHandler<T extends RideableDragonB
                     true
             );
         }
-        return InteractionResult.sidedSuccess(client);
+        return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     protected String getCommandStatusMessageKey(int command) {
@@ -93,15 +93,15 @@ public abstract class AbstractDragonInteractionHandler<T extends RideableDragonB
 
     protected InteractionResult handleStandardMounting(Player player) {
         if (!dragon.canOwnerMount(player) || dragon.isVehicle()) {
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             dragon.prepareForMounting();
             if (!player.startRiding(dragon)) {
                 return InteractionResult.FAIL;
             }
         }
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     protected InteractionResult tryHandleGrowthStuntingFood(Player player,

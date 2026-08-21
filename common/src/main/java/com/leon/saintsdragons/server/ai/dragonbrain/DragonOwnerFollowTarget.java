@@ -116,7 +116,7 @@ public final class DragonOwnerFollowTarget {
                                                     LivingEntity owner,
                                                     Vec3 groundTarget) {
         Entity anchor = anchor(owner);
-        if (anchor != owner && (anchor.onGround() || anchor.isInWaterOrBubble())) {
+        if (anchor != owner && (anchor.onGround() || anchor.isInWater())) {
             return dragon.distanceToSqr(anchor.position());
         }
         return dragon.distanceToSqr(groundTarget);
@@ -159,7 +159,7 @@ public final class DragonOwnerFollowTarget {
 
     public static Vec3 swimTarget(RideableDragonBase dragon, LivingEntity owner) {
         Entity anchor = anchor(owner);
-        if (anchor.isInWaterOrBubble()) {
+        if (anchor.isInWater()) {
             return anchor.position().add(0.0D, anchor.getBbHeight() * 0.35D, 0.0D);
         }
         return new Vec3(
@@ -255,10 +255,10 @@ public final class DragonOwnerFollowTarget {
         }
 
         int minimumFeetY = Math.max(
-                level.getMinBuildHeight() + 1,
+                level.getMinY() + 1,
                 Mth.floor(startY) - Math.max(1, maximumDrop)
         );
-        int maximumFeetY = level.getMaxBuildHeight() - Mth.ceil(dragon.getBbHeight()) - 1;
+        int maximumFeetY = level.getMaxY() - Mth.ceil(dragon.getBbHeight()) - 1;
         int firstFeetY = Mth.clamp(Mth.floor(startY) + 1, minimumFeetY, maximumFeetY);
         for (int feetY = firstFeetY; feetY >= minimumFeetY; feetY--) {
             BlockPos feet = new BlockPos(x, feetY, z);

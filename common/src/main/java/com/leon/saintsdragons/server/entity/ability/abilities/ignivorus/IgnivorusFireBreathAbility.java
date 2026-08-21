@@ -82,7 +82,7 @@ public class IgnivorusFireBreathAbility extends DragonAbility<Ignivorus> {
             dragon.setFireBreathProgress(0);
             dragon.clearFireBreathPath();
             dragon.triggerAnim(IgnivorusAnimationHandler.ACTION_CONTROLLER, "fire_breath_start");
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 float pitch = 0.92f + dragon.getRandom().nextFloat() * 0.15f;
                 dragon.playSound(ModSounds.IGNIVORUS_FIRE_BREATH_START.get(), 2.0f, pitch);
             }
@@ -121,7 +121,7 @@ public class IgnivorusFireBreathAbility extends DragonAbility<Ignivorus> {
     private void triggerBreathStop(Ignivorus dragon) {
         if (breathLoopActive || breathStartPlayed) {
             dragon.triggerAnim(IgnivorusAnimationHandler.ACTION_CONTROLLER, "fire_breath_stop");
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 float pitch = 0.92f + dragon.getRandom().nextFloat() * 0.15f;
                 dragon.playSound(ModSounds.IGNIVORUS_FIRE_BREATH_END.get(), 2.0f, pitch);
             }
@@ -136,7 +136,7 @@ public class IgnivorusFireBreathAbility extends DragonAbility<Ignivorus> {
         if (!dragon.isAlive() || dragon.isRemoved()) {
             return false;
         }
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             return false;
         }
         return true;
@@ -156,7 +156,7 @@ public class IgnivorusFireBreathAbility extends DragonAbility<Ignivorus> {
                 return;
             }
         }
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             float drain = (float) DragonAttributeConfigLoader.getInstance()
                     .getConfig(DragonAttributeConfigLoader.IGNIVORUS_ID)
                     .extraDouble("fire_breath_drain_per_tick", DEFAULT_FIRE_BREATH_DRAIN_PER_TICK);

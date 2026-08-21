@@ -125,7 +125,7 @@ public final class CindervaneGroundCombatBehaviour extends DragonBehaviour<Cinde
             chaseCommitTicks = Math.max(chaseCommitTicks, POST_ABILITY_CHASE_COMMIT_TICKS);
         }
 
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             deactivateFireBody(dragon);
             handleWaterMelee(context, dragon, target, gap, hasLineOfSight);
             return;
@@ -370,7 +370,7 @@ public final class CindervaneGroundCombatBehaviour extends DragonBehaviour<Cinde
             return;
         }
         fireBodyTicks++;
-        boolean unsafe = dragon.isInWaterOrBubble() || dragon.isFireBodySuppressed();
+        boolean unsafe = dragon.isInWater() || dragon.isFireBodySuppressed();
         boolean spent = fireBodyTicks >= FIRE_BODY_MAX_TICKS;
         boolean disengaged = fireBodyTicks >= FIRE_BODY_MIN_TICKS
                 && (gap > FIRE_BODY_EXIT_RANGE || !hasLineOfSight);

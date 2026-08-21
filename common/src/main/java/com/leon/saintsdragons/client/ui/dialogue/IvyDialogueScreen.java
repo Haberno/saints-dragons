@@ -7,10 +7,11 @@ import com.leon.saintsdragons.common.network.MessageDialogueNameInput;
 import com.leon.saintsdragons.common.network.MessageDialogueOpen;
 import com.leon.saintsdragons.common.network.NetworkHandler;
 import com.leon.saintsdragons.common.registry.ModSounds;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.KeyEvent;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
@@ -149,10 +150,7 @@ public class IvyDialogueScreen extends Screen {
             ensureChoicesStarted();
         }
         if (isTextComplete() && !isNameInputNode() && (message.choices().isEmpty() || isContinuationOnly())) {
-            float alpha = getArrowAlpha();
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, alpha);
             guiGraphics.blit(TEXTURE, boxX + ARROW_X, boxY + ARROW_Y, ARROW_U, ARROW_V, ARROW_W, ARROW_H, TEXTURE_SIZE, TEXTURE_SIZE);
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         }
         super.render(guiGraphics, mouseX, mouseY, partialTick);
     }
@@ -198,9 +196,12 @@ public class IvyDialogueScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (button != 0) {
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, doubleClick);
         }
         if (!isTextComplete()) {
             skipText();
@@ -208,7 +209,7 @@ public class IvyDialogueScreen extends Screen {
         }
         int boxY = getBoxY();
         if (isNameInputNode()) {
-            return super.mouseClicked(mouseX, mouseY, button);
+            return super.mouseClicked(event, doubleClick);
         }
         if (isContinuationOnly()) {
             ensureChoicesStarted();
@@ -226,39 +227,40 @@ public class IvyDialogueScreen extends Screen {
             onClose();
             return true;
         }
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         if (message.choices().isEmpty() || !isTextComplete() || isNameInputNode() || isContinuationOnly()) {
-            return super.mouseScrolled(mouseX, mouseY, delta);
+            return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
         }
         int boxY = getBoxY();
         int viewportBottom = boxY - CHOICE_VIEW_BOTTOM_GAP;
         int maxScroll = Math.max(0, getChoicesTotalHeight(getChoiceWidth()) - Math.max(0, viewportBottom - CHOICE_VIEW_TOP_MARGIN));
         if (maxScroll == 0) {
-            return super.mouseScrolled(mouseX, mouseY, delta);
+            return super.mouseScrolled(mouseX, mouseY, horizontal, vertical);
         }
-        choiceScrollOffset = clamp(choiceScrollOffset - (int) Math.round(delta * 18.0D), maxScroll);
+        choiceScrollOffset = clamp(choiceScrollOffset - (int) Math.round(vertical * 18.0D), maxScroll);
         return true;
     }
 
     @Override
-    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+    public boolean keyPressed(KeyEvent event) {
+        int keyCode = event.key();
         if (!isTextComplete()) {
             if (isAdvanceKey(keyCode)) {
                 skipText();
                 return true;
             }
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
         if (isNameInputNode()) {
             if ((keyCode == GLFW.GLFW_KEY_ENTER || keyCode == GLFW.GLFW_KEY_KP_ENTER) && isTextComplete()) {
                 submitCustomName();
                 return true;
             }
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
         if (isContinuationOnly()) {
             if (isAdvanceKey(keyCode)) {
@@ -268,9 +270,9 @@ public class IvyDialogueScreen extends Screen {
                 }
                 return true;
             }
-            return super.keyPressed(keyCode, scanCode, modifiers);
+            return super.keyPressed(event);
         }
-        return super.keyPressed(keyCode, scanCode, modifiers);
+        return super.keyPressed(event);
     }
 
     private static boolean isAdvanceKey(int keyCode) {

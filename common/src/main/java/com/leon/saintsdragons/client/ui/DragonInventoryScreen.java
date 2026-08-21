@@ -2,7 +2,6 @@ package com.leon.saintsdragons.client.ui;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.menu.DragonInventoryMenu;
-import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
@@ -48,7 +47,6 @@ public class DragonInventoryScreen extends AbstractContainerScreen<DragonInvento
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int x = this.leftPos;
         int y = this.topPos;
         guiGraphics.blit(TEXTURE, x, y, 0, 0, this.imageWidth, this.imageHeight, TEXTURE_WIDTH, TEXTURE_HEIGHT);
@@ -71,9 +69,12 @@ public class DragonInventoryScreen extends AbstractContainerScreen<DragonInvento
             );
             InventoryScreen.renderEntityInInventoryFollowsMouse(
                     guiGraphics,
-                    renderX,
-                    renderY,
+                    x + PREVIEW_FRAME_X,
+                    y + PREVIEW_FRAME_Y,
+                    x + PREVIEW_FRAME_X + PREVIEW_FRAME_SIZE,
+                    y + PREVIEW_FRAME_Y + PREVIEW_FRAME_SIZE,
                     PREVIEW_SCALE,
+                    0.0F,
                     (float) renderX - mouseX,
                     (float) (renderY - PREVIEW_MOUSE_Y_OFFSET) - mouseY,
                     this.dragon
@@ -84,7 +85,7 @@ public class DragonInventoryScreen extends AbstractContainerScreen<DragonInvento
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }

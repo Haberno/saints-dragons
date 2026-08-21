@@ -10,10 +10,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.level.BlockGetter;
-import net.minecraft.world.level.Level;
-import net.minecraft.world.level.LevelAccessor;
+import net.minecraft.world.level.*;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.SimpleWaterloggedBlock;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -31,6 +30,7 @@ import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public class VolitansEggBlock extends AbstractTimedDragonEggBlock<VolitansEggBlockEntity> implements SimpleWaterloggedBlock {
+    public static final com.mojang.serialization.MapCodec<VolitansEggBlock> CODEC = simpleCodec(VolitansEggBlock::new);
     public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
     private static final int DEFAULT_HATCH_TICKS = 18000;
     private static final VoxelShape SHAPE = box(4.0D, 0.0D, 4.0D, 12.0D, 10.0D, 12.0D);
@@ -38,6 +38,11 @@ public class VolitansEggBlock extends AbstractTimedDragonEggBlock<VolitansEggBlo
     public VolitansEggBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(HATCH, 0).setValue(WATERLOGGED, false));
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<VolitansEggBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -67,16 +72,17 @@ public class VolitansEggBlock extends AbstractTimedDragonEggBlock<VolitansEggBlo
     }
 
     @Override
-    public @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull Direction direction,
-                                           @NotNull BlockState neighborState, @NotNull LevelAccessor level,
-                                           @NotNull BlockPos pos, @NotNull BlockPos neighborPos) {
+    protected @NotNull BlockState updateShape(@NotNull BlockState state, @NotNull LevelReader level,
+                                               @NotNull ScheduledTickAccess tickAccess, @NotNull BlockPos pos,
+                                               @NotNull Direction direction, @NotNull BlockPos neighborPos,
+                                               @NotNull BlockState neighborState, @NotNull RandomSource random) {
         if (!state.getValue(WATERLOGGED) && level.getFluidState(pos).getType() == Fluids.WATER) {
             state = state.setValue(WATERLOGGED, true);
         }
         if (state.getValue(WATERLOGGED)) {
-            level.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
+            tickAccess.scheduleTick(pos, Fluids.WATER, Fluids.WATER.getTickDelay(level));
         }
-        return super.updateShape(state, direction, neighborState, level, pos, neighborPos);
+        return super.updateShape(state, level, tickAccess, pos, direction, neighborPos, neighborState, random);
     }
 
     @Override
@@ -122,7 +128,7 @@ public class VolitansEggBlock extends AbstractTimedDragonEggBlock<VolitansEggBlo
 
     @Override
     protected DragonEntity createBaby(ServerLevel level) {
-        return ModEntities.VOLITANS.get().create(level);
+        return ModEntities.VOLITANS.get().create(level, net.minecraft.world.entity.EntitySpawnReason.BREEDING);
     }
 
     @Override

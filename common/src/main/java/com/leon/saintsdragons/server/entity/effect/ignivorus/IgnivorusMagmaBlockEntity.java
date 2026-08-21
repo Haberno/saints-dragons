@@ -6,9 +6,6 @@ import com.leon.saintsdragons.server.entity.dragons.util.DragonElementalImmunity
 import com.leon.saintsdragons.server.entity.dragons.util.DragonGriefingRules;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -25,6 +22,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -68,9 +67,9 @@ public class IgnivorusMagmaBlockEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_BLOCK_STATE, Blocks.MAGMA_BLOCK.defaultBlockState());
-        this.entityData.define(DATA_SCALE, 1.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_BLOCK_STATE, Blocks.MAGMA_BLOCK.defaultBlockState());
+        builder.define(DATA_SCALE, 1.0F);
     }
 
     public void setBlockState(BlockState state) {
@@ -137,7 +136,7 @@ public class IgnivorusMagmaBlockEntity extends Entity {
             this.setPos(nextPos);
         }
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             if (!this.isNoGravity()) {
                 this.setDeltaMovement(this.getDeltaMovement().scale(0.99D));
             }
@@ -163,7 +162,7 @@ public class IgnivorusMagmaBlockEntity extends Entity {
 
     @Nullable
     private EntityHitResult findEntityHit(Vec3 start, Vec3 end) {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return null;
         }
         AABB bounds = getBoundingBox().expandTowards(end.subtract(start)).inflate(1.0D);
@@ -180,7 +179,7 @@ public class IgnivorusMagmaBlockEntity extends Entity {
                 }
             }
             return true;
-        });
+        }, ProjectileUtil.DEFAULT_ENTITY_HIT_RESULT_MARGIN);
     }
 
     private void spawnTrailParticles() {
@@ -231,7 +230,7 @@ public class IgnivorusMagmaBlockEntity extends Entity {
 
         float volume = 1.0F + (scale * 0.2F);
         float pitch = Math.max(0.4F, 0.9F / scale);
-        server.playSound(null, blockPosition(), SoundEvents.GENERIC_EXPLODE, getSoundSource(), volume, pitch);
+        server.playSound(null, blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), getSoundSource(), volume, pitch);
 
         AABB area = new AABB(impact.x - impactRadius, impact.y - impactRadius, impact.z - impactRadius,
                 impact.x + impactRadius, impact.y + impactRadius, impact.z + impactRadius);
@@ -242,8 +241,8 @@ public class IgnivorusMagmaBlockEntity extends Entity {
                         && !DragonElementalImmunity.isFireImmune(target));
 
         for (LivingEntity target : hits) {
-            target.hurt(server.damageSources().explosion(this, owner != null ? owner : this), impactDamage);
-            target.setSecondsOnFire((int)(4 * scale));
+            target.hurtServer(server, server.damageSources().explosion(this, owner != null ? owner : this), impactDamage);
+            target.setRemainingFireTicks((int)(4 * scale * 20));
 
             // Knockback for larger explosions - stronger for max charge
             if (scale >= 6.0F) {
@@ -347,39 +346,30 @@ public class IgnivorusMagmaBlockEntity extends Entity {
 
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        this.livedTicks = tag.getInt("Lived");
-        this.lifetimeTicks = tag.getInt("Lifetime");
-        this.impactRadius = tag.getDouble("ImpactRadius");
-        this.impactDamage = tag.getFloat("ImpactDamage");
-        if (tag.contains("BlockState", CompoundTag.TAG_COMPOUND) && level() instanceof ServerLevel server) {
-            BlockState state = NbtUtils.readBlockState(server.holderLookup(Registries.BLOCK), tag.getCompound("BlockState"));
-            setBlockState(state.isAir() ? Blocks.MAGMA_BLOCK.defaultBlockState() : state);
-        }
-        if (tag.contains("Scale")) {
-            setVisualScale(tag.getFloat("Scale"));
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        this.livedTicks = tag.getIntOr("Lived", 0);
+        this.lifetimeTicks = tag.getIntOr("Lifetime", 0);
+        this.impactRadius = tag.getDoubleOr("ImpactRadius", 0.0D);
+        this.impactDamage = tag.getFloatOr("ImpactDamage", 0.0F);
+        tag.read("BlockState", BlockState.CODEC)
+                .ifPresent(state -> setBlockState(state.isAir() ? Blocks.MAGMA_BLOCK.defaultBlockState() : state));
+        setVisualScale(tag.getFloatOr("Scale", 1.0F));
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Lived", livedTicks);
         tag.putInt("Lifetime", lifetimeTicks);
         tag.putDouble("ImpactRadius", impactRadius);
         tag.putFloat("ImpactDamage", impactDamage);
-        tag.put("BlockState", NbtUtils.writeBlockState(getBlockState()));
+        tag.store("BlockState", BlockState.CODEC, getBlockState());
         tag.putFloat("Scale", getVisualScale());
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
     public void recreateFromPacket(@NotNull ClientboundAddEntityPacket packet) {
         super.recreateFromPacket(packet);
-        this.setDeltaMovement(packet.getXa(), packet.getYa(), packet.getZa());
+        this.setDeltaMovement(packet.getMovement());
     }
 
     @Override
@@ -403,26 +393,16 @@ public class IgnivorusMagmaBlockEntity extends Entity {
     }
 
     @Override
-    public boolean hurt(DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, DamageSource source, float amount) {
         if (source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            return super.hurt(source, amount);
+            discard();
+            return true;
         }
         return false;
     }
 
-    @Override
     public double getPassengersRidingOffset() {
         return -0.2D * getVisualScale();
-    }
-
-    @Override
-    public boolean isInvulnerableTo(DamageSource source) {
-        return !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY);
-    }
-
-    @Override
-    public float getEyeHeight(@NotNull Pose pose) {
-        return 0.5F * getVisualScale();
     }
 
     @Override

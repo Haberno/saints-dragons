@@ -6,15 +6,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
 
-public final class DraconicCrucibleThermalReloadListener extends SimpleJsonResourceReloadListener {
+public final class DraconicCrucibleThermalReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON = new GsonBuilder().create();
     private static final Identifier CONFIG_ID = SaintsDragonsCommon.rl("thermal");
     private static final DraconicCrucibleThermalReloadListener INSTANCE =
@@ -23,7 +25,7 @@ public final class DraconicCrucibleThermalReloadListener extends SimpleJsonResou
     private static volatile DraconicCrucibleThermalData current = DraconicCrucibleThermalData.DEFAULT;
 
     private DraconicCrucibleThermalReloadListener() {
-        super(GSON, "draconic_crucible");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("draconic_crucible"));
     }
 
     public static DraconicCrucibleThermalReloadListener getInstance() {

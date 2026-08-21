@@ -71,7 +71,7 @@ public class VolitansRoarAbility extends DragonAbility<Volitans> {
         }
         if (section.sectionType == STARTUP) {
             Volitans dragon = getUser();
-            airOrWaterRoar = dragon.isFlying() || dragon.isInWaterOrBubble();
+            airOrWaterRoar = dragon.isFlying() || dragon.isInWater();
             groundedRoar = !airOrWaterRoar;
             dragon.triggerAnim(
                     airOrWaterRoar ? VolitansAnimationHandler.FAST_ACTION_CONTROLLER : VolitansAnimationHandler.MOVEMENT_CONTROLLER,
@@ -86,7 +86,7 @@ public class VolitansRoarAbility extends DragonAbility<Volitans> {
             hitTargetIds.clear();
             shakeTriggered = false;
 
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 if (airOrWaterRoar) {
                     dragon.getSoundHandler().playMovingEntitySound(ModSounds.VOLITANS_ROAR_AIR_WATER.get(), 1.6f, 1.0f, AIR_WATER_ROAR_SOUND_TICKS);
                 } else {
@@ -99,7 +99,7 @@ public class VolitansRoarAbility extends DragonAbility<Volitans> {
     @Override
     public void tickUsing() {
         DragonAbilitySection section = getCurrentSection();
-        if (section == null || getUser().level().isClientSide) {
+        if (section == null || getUser().level().isClientSide()) {
             return;
         }
 
@@ -213,7 +213,7 @@ public class VolitansRoarAbility extends DragonAbility<Volitans> {
         mob.getNavigation().stop();
         target.setDeltaMovement(Vec3.ZERO);
         target.hurtMarked = true;
-        target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, durationTicks, 6, false, true));
+        target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, durationTicks, 6, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, durationTicks, 1, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, Math.min(durationTicks, 20), 0, false, true));
     }

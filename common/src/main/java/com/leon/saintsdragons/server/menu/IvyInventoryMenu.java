@@ -2,7 +2,6 @@ package com.leon.saintsdragons.server.menu;
 
 import com.leon.saintsdragons.common.registry.ModMenus;
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
-import com.mojang.datafixers.util.Pair;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
@@ -15,8 +14,11 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.Equippable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -32,7 +34,7 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
     public static final int STORAGE_ROWS = 3;
     public static final int STORAGE_COUNT = STORAGE_COLUMNS * STORAGE_ROWS;
     public static final int IVY_SLOT_COUNT = STORAGE_START + STORAGE_COUNT;
-    private static final Identifier EMPTY_SWORD_SLOT = new Identifier("item/empty_slot_sword");
+    private static final Identifier EMPTY_SWORD_SLOT = Identifier.parse("item/empty_slot_sword");
     private static final int PLAYER_INV_START = IVY_SLOT_COUNT;
     private static final int PLAYER_INV_END = PLAYER_INV_START + 27;
     private static final int HOTBAR_START = PLAYER_INV_END;
@@ -64,10 +66,10 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
         this.ivyInventory.startOpen(playerInventory.player);
         addDataSlots(data);
 
-        this.addSlot(new ArmorSlot(this.ivyInventory, HELMET_SLOT, 8, 7, ArmorItem.Type.HELMET));
-        this.addSlot(new ArmorSlot(this.ivyInventory, CHESTPLATE_SLOT, 8, 25, ArmorItem.Type.CHESTPLATE));
-        this.addSlot(new ArmorSlot(this.ivyInventory, LEGGINGS_SLOT, 8, 43, ArmorItem.Type.LEGGINGS));
-        this.addSlot(new ArmorSlot(this.ivyInventory, BOOTS_SLOT, 8, 61, ArmorItem.Type.BOOTS));
+        this.addSlot(new ArmorSlot(this.ivyInventory, HELMET_SLOT, 8, 7, ArmorType.HELMET));
+        this.addSlot(new ArmorSlot(this.ivyInventory, CHESTPLATE_SLOT, 8, 25, ArmorType.CHESTPLATE));
+        this.addSlot(new ArmorSlot(this.ivyInventory, LEGGINGS_SLOT, 8, 43, ArmorType.LEGGINGS));
+        this.addSlot(new ArmorSlot(this.ivyInventory, BOOTS_SLOT, 8, 61, ArmorType.BOOTS));
         this.addSlot(new SwordSlot(this.ivyInventory, SWORD_SLOT, 77, 61));
 
         for (int row = 0; row < STORAGE_ROWS; row++) {
@@ -150,12 +152,14 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
     }
 
     private static int matchingEquipmentSlot(ItemStack stack) {
-        if (stack.getItem() instanceof ArmorItem armor) {
-            return switch (armor.getType()) {
-                case HELMET -> HELMET_SLOT;
-                case CHESTPLATE -> CHESTPLATE_SLOT;
-                case LEGGINGS -> LEGGINGS_SLOT;
-                case BOOTS -> BOOTS_SLOT;
+        Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+        if (equippable != null) {
+            return switch (equippable.slot()) {
+                case HEAD -> HELMET_SLOT;
+                case CHEST -> CHESTPLATE_SLOT;
+                case LEGS -> LEGGINGS_SLOT;
+                case FEET -> BOOTS_SLOT;
+                default -> -1;
             };
         }
         if (isWeaponStack(stack)) {
@@ -165,15 +169,15 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
     }
 
     private static boolean isWeaponStack(ItemStack stack) {
-        return !stack.isEmpty()
-                && !stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE).isEmpty();
+        return !stack.isEmpty() && stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+                ItemAttributeModifiers.EMPTY).compute(Attributes.ATTACK_DAMAGE, 0.0D, EquipmentSlot.MAINHAND) > 0.0D;
     }
 
     private static final class ArmorSlot extends Slot {
-        private final ArmorItem.Type type;
+        private final ArmorType type;
         private final Identifier emptyIcon;
 
-        private ArmorSlot(Container container, int index, int x, int y, ArmorItem.Type type) {
+        private ArmorSlot(Container container, int index, int x, int y, ArmorType type) {
             super(container, index, x, y);
             this.type = type;
             this.emptyIcon = switch (type) {
@@ -186,7 +190,8 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
 
         @Override
         public boolean mayPlace(@NotNull ItemStack stack) {
-            return stack.getItem() instanceof ArmorItem armor && armor.getType() == this.type;
+            Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+            return equippable != null && equippable.slot() == this.type.getSlot();
         }
 
         @Override
@@ -195,8 +200,8 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
         }
 
         @Override
-        public @NotNull Pair<Identifier, Identifier> getNoItemIcon() {
-            return Pair.of(InventoryMenu.BLOCK_ATLAS, this.emptyIcon);
+        public @NotNull Identifier getNoItemIcon() {
+            return this.emptyIcon;
         }
     }
 
@@ -216,8 +221,8 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
         }
 
         @Override
-        public @NotNull Pair<Identifier, Identifier> getNoItemIcon() {
-            return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_SWORD_SLOT);
+        public @NotNull Identifier getNoItemIcon() {
+            return EMPTY_SWORD_SLOT;
         }
     }
 }

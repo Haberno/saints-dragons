@@ -87,7 +87,7 @@ public final class DragonGroundWanderBehaviour<T extends RideableDragonBase> ext
                 && !dragon.isVehicle()
                 && !dragon.isPassenger()
                 && !dragon.isInLove()
-                && (dragon.canSwim() || !dragon.isInWaterOrBubble())
+                && (dragon.canSwim() || !dragon.isInWater())
                 && (dragon.getTarget() == null || !dragon.getTarget().isAlive())
                 && (!dragon.isTame() || dragon.getCommand() == 2)
                 && eligibility.test(dragon);

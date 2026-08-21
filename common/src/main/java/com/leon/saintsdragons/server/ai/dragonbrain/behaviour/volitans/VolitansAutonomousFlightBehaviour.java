@@ -31,7 +31,7 @@ public class VolitansAutonomousFlightBehaviour extends AutonomousFlightBehaviour
         return dragon.isTame()
                 || dragon.isBurrowing()
                 || dragon.isInWater()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava();
     }
 
@@ -56,7 +56,7 @@ public class VolitansAutonomousFlightBehaviour extends AutonomousFlightBehaviour
     }
 
     private boolean canFlyOutsideCombat(Volitans dragon) {
-        if (dragon.isBurrowing() || dragon.isInWater() || dragon.isInWaterOrBubble() || dragon.isInLava()) {
+        if (dragon.isBurrowing() || dragon.isInWater() || dragon.isInWater() || dragon.isInLava()) {
             return false;
         }
         if (dragon.isAiSpecialCombatActive() || dragon.isAiSpecialCombatReserved()) {

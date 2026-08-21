@@ -189,7 +189,7 @@ public final class DragonFollowOwnerBehaviour<T extends RideableFlyingDragon> ex
                 && !dragon.isVehicle()
                 && !dragon.isPassenger()
                 && !dragon.isSittingDownAnimation()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && (dragon.getTarget() == null || !dragon.getTarget().isAlive())
                 && owner != null
                 && owner.isAlive()
@@ -390,7 +390,7 @@ public final class DragonFollowOwnerBehaviour<T extends RideableFlyingDragon> ex
     }
 
     private boolean isSubstantiallyAirborne(Entity entity) {
-        if (entity.onGround() || entity.isInWaterOrBubble()) {
+        if (entity.onGround() || entity.isInWater()) {
             return false;
         }
         BlockPos position = entity.blockPosition();

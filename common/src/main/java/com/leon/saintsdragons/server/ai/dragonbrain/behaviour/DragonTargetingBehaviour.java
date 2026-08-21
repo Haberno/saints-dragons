@@ -311,7 +311,7 @@ public abstract class DragonTargetingBehaviour<T extends RideableDragonBase> ext
                     DragonTargetingHelper.isTargetAirborne(
                             target,
                             provider.getAiTargetAirborneHeight(target)
-                    ) && !target.isInWaterOrBubble()
+                    ) && !target.isInWater()
             );
         } else {
             context.memories().erase(DragonMemories.TARGET_AIRBORNE);

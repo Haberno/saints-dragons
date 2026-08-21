@@ -110,7 +110,7 @@ public final class DragonSwimWanderBehaviour<T extends RideableDragonBase & Semi
 
     private boolean basicConditions(T dragon) {
         return dragon.canSwim()
-                && dragon.isInWaterOrBubble()
+                && dragon.isInWater()
                 && !dragon.isVehicle()
                 && !dragon.isAerial()
                 && !dragon.isInLove()
@@ -158,8 +158,8 @@ public final class DragonSwimWanderBehaviour<T extends RideableDragonBase & Semi
             return null;
         }
 
-        int minY = Math.max(dragon.level().getMinBuildHeight() + 1, startY - TARGET_VERTICAL_SEARCH);
-        int maxY = Math.min(dragon.level().getMaxBuildHeight() - 2, startY + TARGET_VERTICAL_SEARCH);
+        int minY = Math.max(dragon.level().getMinY() + 1, startY - TARGET_VERTICAL_SEARCH);
+        int maxY = Math.min(dragon.level().getMaxY() - 2, startY + TARGET_VERTICAL_SEARCH);
         int topWaterY = Integer.MIN_VALUE;
         int bottomWaterY = Integer.MIN_VALUE;
         for (int y = maxY; y >= minY; y--) {

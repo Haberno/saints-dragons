@@ -72,19 +72,19 @@ public final class BloodTempestKatanaAbility {
                 * ToolsArmorConfig.BLOOD_TEMPEST_KATANA_ABILITY_DAMAGE_MULTIPLIER.get());
         List<LivingEntity> targets = collectTargets(player, origin, destination);
 
-        Item sword = ModItems.BLOOD_TEMPEST_KATANA.get();
-        player.getCooldowns().addCooldown(sword, ToolsArmorConfig.BLOOD_TEMPEST_KATANA_ABILITY_COOLDOWN_TICKS.get());
+        ItemStack katanaStack = player.getMainHandItem();
+        player.getCooldowns().addCooldown(katanaStack,
+                ToolsArmorConfig.BLOOD_TEMPEST_KATANA_ABILITY_COOLDOWN_TICKS.get());
         player.resetAttackStrengthTicker();
         player.teleportTo(destination.x, destination.y, destination.z);
         player.setDeltaMovement(Vec3.ZERO);
-        player.hasImpulse = true;
         player.hurtMarked = true;
 
         strikeTargets(player, targets, direction, damage);
-        spawnLightningResidue(player.serverLevel(), origin, destination);
-        spawnConvergingDust(player.serverLevel(), origin, destination);
-        spawnConvergingStormTrails(player.serverLevel(), origin, destination);
-        spawnSlashLine(player.serverLevel(), origin, destination);
+        spawnLightningResidue(player.level(), origin, destination);
+        spawnConvergingDust(player.level(), origin, destination);
+        spawnConvergingStormTrails(player.level(), origin, destination);
+        spawnSlashLine(player.level(), origin, destination);
         player.level().playSound(
                 null,
                 player.blockPosition(),
@@ -247,12 +247,12 @@ public final class BloodTempestKatanaAbility {
                 || player.getAbilities().flying
                 || player.isFallFlying()
                 || player.onClimbable()
-                || player.isInWaterOrBubble()) {
+                || player.isInWater()) {
             return false;
         }
 
-        Item sword = ModItems.BLOOD_TEMPEST_KATANA.get();
-        return player.getMainHandItem().is(sword) && !player.getCooldowns().isOnCooldown(sword);
+        ItemStack sword = player.getMainHandItem();
+        return sword.is(ModItems.BLOOD_TEMPEST_KATANA.get()) && !player.getCooldowns().isOnCooldown(sword);
     }
 
     private static Vec3 findDestination(ServerPlayer player, Vec3 direction) {
@@ -291,15 +291,14 @@ public final class BloodTempestKatanaAbility {
                                       Vec3 direction, float damage) {
         boolean chained = false;
         for (LivingEntity target : targets) {
-            if (target.hurt(player.damageSources().playerAttack(player), damage)) {
+            if (target.hurtServer(player.level(), player.damageSources().playerAttack(player), damage)) {
                 if (!chained) {
                     onSuccessfulKatanaHit(player, target);
                     chained = true;
                 }
                 target.knockback(0.25D, -direction.x, -direction.z);
                 ItemStack katana = player.getMainHandItem();
-                katana.hurtAndBreak(1, player,
-                        wearer -> wearer.broadcastBreakEvent(EquipmentSlot.MAINHAND));
+                katana.hurtAndBreak(1, player, EquipmentSlot.MAINHAND);
             }
         }
     }

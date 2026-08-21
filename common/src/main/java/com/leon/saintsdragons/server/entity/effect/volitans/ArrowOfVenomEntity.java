@@ -41,7 +41,8 @@ public class ArrowOfVenomEntity extends AbstractArrow implements GeoEntity {
     }
 
     public ArrowOfVenomEntity(Level level, LivingEntity owner) {
-        super(ModEntities.ARROW_OF_VENOM.get(), owner, level);
+        super(ModEntities.ARROW_OF_VENOM.get(), owner, level,
+                new ItemStack(ModItems.ARROW_OF_VENOM.get()), ItemStack.EMPTY);
     }
 
     @Override
@@ -50,9 +51,9 @@ public class ArrowOfVenomEntity extends AbstractArrow implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        entityData.define(IMPACTED, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(IMPACTED, false);
     }
 
     @Override
@@ -88,16 +89,16 @@ public class ArrowOfVenomEntity extends AbstractArrow implements GeoEntity {
     }
 
     @Override
-    protected ItemStack getPickupItem() {
+    protected ItemStack getDefaultPickupItem() {
         return new ItemStack(ModItems.ARROW_OF_VENOM.get());
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<ArrowOfVenomEntity>("controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
+    private PlayState animationPredicate(AnimationTest<ArrowOfVenomEntity> state) {
         if (entityData.get(IMPACTED)) {
             state.controller().setAnimation(IMPACT);
             return PlayState.CONTINUE;

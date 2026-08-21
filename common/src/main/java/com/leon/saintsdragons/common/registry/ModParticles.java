@@ -20,37 +20,57 @@ public final class ModParticles {
 
     public static final Supplier<ParticleType<RaevyxLightningStormData>> LIGHTNING_STORM =
             REGISTER.register("lightning_storm",
-                    () -> new ParticleType<>(false, RaevyxLightningStormData.DESERIALIZER) {
+                    () -> new ParticleType<>(false) {
                         @Override
-                        public com.mojang.serialization.Codec<RaevyxLightningStormData> codec() {
-                            return RaevyxLightningStormData.CODEC(this);
+                        public com.mojang.serialization.MapCodec<RaevyxLightningStormData> codec() {
+                            return RaevyxLightningStormData.codec(false);
+                        }
+
+                        @Override
+                        public net.minecraft.network.codec.StreamCodec<? super net.minecraft.network.RegistryFriendlyByteBuf, RaevyxLightningStormData> streamCodec() {
+                            return RaevyxLightningStormData.streamCodec(false);
                         }
                     });
 
     public static final Supplier<ParticleType<RaevyxLightningStormData>> LIGHTNING_STORM_NIGHT_GOLD =
             REGISTER.register("lightning_storm_night_gold",
-                    () -> new ParticleType<>(false, RaevyxLightningStormData.DESERIALIZER) {
+                    () -> new ParticleType<>(false) {
                         @Override
-                        public com.mojang.serialization.Codec<RaevyxLightningStormData> codec() {
-                            return RaevyxLightningStormData.CODEC(this);
+                        public com.mojang.serialization.MapCodec<RaevyxLightningStormData> codec() {
+                            return RaevyxLightningStormData.codec(true);
+                        }
+
+                        @Override
+                        public net.minecraft.network.codec.StreamCodec<? super net.minecraft.network.RegistryFriendlyByteBuf, RaevyxLightningStormData> streamCodec() {
+                            return RaevyxLightningStormData.streamCodec(true);
                         }
                     });
 
     public static final Supplier<ParticleType<RaevyxLightningChainData>> LIGHTNING_CHAIN =
             REGISTER.register("lightning_chain",
-                    () -> new ParticleType<>(false, RaevyxLightningChainData.DESERIALIZER) {
+                    () -> new ParticleType<>(false) {
                         @Override
-                        public com.mojang.serialization.Codec<RaevyxLightningChainData> codec() {
-                            return RaevyxLightningChainData.CODEC(this);
+                        public com.mojang.serialization.MapCodec<RaevyxLightningChainData> codec() {
+                            return RaevyxLightningChainData.CODEC;
+                        }
+
+                        @Override
+                        public net.minecraft.network.codec.StreamCodec<? super net.minecraft.network.RegistryFriendlyByteBuf, RaevyxLightningChainData> streamCodec() {
+                            return RaevyxLightningChainData.STREAM_CODEC;
                         }
                     });
 
     public static final Supplier<ParticleType<SonicRingData>> RAEVYX_SONIC_RING =
             REGISTER.register("raevyx_sonic_ring",
-                    () -> new ParticleType<>(false, SonicRingData.DESERIALIZER) {
+                    () -> new ParticleType<>(false) {
                         @Override
-                        public com.mojang.serialization.Codec<SonicRingData> codec() {
-                            return SonicRingData.CODEC(this);
+                        public com.mojang.serialization.MapCodec<SonicRingData> codec() {
+                            return SonicRingData.CODEC;
+                        }
+
+                        @Override
+                        public net.minecraft.network.codec.StreamCodec<? super net.minecraft.network.RegistryFriendlyByteBuf, SonicRingData> streamCodec() {
+                            return SonicRingData.STREAM_CODEC;
                         }
                     });
 

@@ -3,7 +3,7 @@ package com.leon.saintsdragons.server.entity.effect.ignivorus;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonElementalImmunity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -16,6 +16,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -52,8 +54,8 @@ public class IgnivorusNovaEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_DAMAGE, 100.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_DAMAGE, 100.0F);
     }
 
     public void setDamage(float damage) {
@@ -87,7 +89,7 @@ public class IgnivorusNovaEntity extends Entity {
         super.tick();
         this.age++;
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (this.age >= DURATION) {
                 this.discard();
                 return;
@@ -98,6 +100,9 @@ public class IgnivorusNovaEntity extends Entity {
     }
 
     private void applyDamage() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
         float ageFrac = this.age / (float) DURATION;
         double currentRadius = ageFrac * MAX_RADIUS;
 
@@ -128,8 +133,8 @@ public class IgnivorusNovaEntity extends Entity {
             double radiusSqr = currentRadius * currentRadius;
 
             if (distanceSqr <= radiusSqr) {
-                target.hurt(damageSource, getDamage());
-                target.setSecondsOnFire(8);
+                target.hurtServer(serverLevel, damageSource, getDamage());
+                target.igniteForSeconds(8.0F);
 
                 Vec3 knockback = target.position().subtract(position()).normalize().scale(1.2);
                 target.push(knockback.x, 0.4, knockback.z);
@@ -150,28 +155,26 @@ public class IgnivorusNovaEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        this.age = tag.getInt("Age");
-        if (tag.hasUUID("Owner")) {
-            this.ownerUUID = tag.getUUID("Owner");
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        this.age = tag.getIntOr("Age", 0);
+        this.ownerUUID = tag.read("Owner", UUIDUtil.CODEC).orElse(null);
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Age", this.age);
         if (this.ownerUUID != null) {
-            tag.putUUID("Owner", this.ownerUUID);
+            tag.store("Owner", UUIDUtil.CODEC, this.ownerUUID);
         }
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
         return distance < 16384.0;
+    }
+
+    @Override
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 }

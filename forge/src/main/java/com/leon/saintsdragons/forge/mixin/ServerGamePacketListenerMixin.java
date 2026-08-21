@@ -31,7 +31,7 @@ public abstract class ServerGamePacketListenerMixin {
 
     @Inject(method = "handleInteract", at = @At("HEAD"), cancellable = true)
     private void saintsdragons$onHandleInteract(ServerboundInteractPacket packet, CallbackInfo ci) {
-        ServerLevel level = this.player.serverLevel();
+        ServerLevel level = this.player.level();
 
         // Get the entity ID from the packet using our accessor
         int entityId = ((ServerboundInteractPacketAccessor) packet).getEntityId();
@@ -53,7 +53,7 @@ public abstract class ServerGamePacketListenerMixin {
 
                 @Override
                 public void onAttack() {
-                    player.server.execute(() -> {
+                    level.getServer().execute(() -> {
                         if (!player.isRemoved() && directPart.isAlive() && directPart.level() == player.level()) {
                             player.attack(directPart);
                         }
@@ -84,7 +84,7 @@ public abstract class ServerGamePacketListenerMixin {
 
                     @Override
                     public void onAttack() {
-                        player.server.execute(() -> {
+                        level.getServer().execute(() -> {
                             if (!player.isRemoved() && hitPart.isAlive() && hitPart.level() == player.level()) {
                                 player.attack(hitPart);
                             }
@@ -106,7 +106,7 @@ public abstract class ServerGamePacketListenerMixin {
     private ForgeDragonPart saintsdragons$findHitPartEntity(ServerLevel level) {
         Vec3 eyePos = player.getEyePosition();
         Vec3 lookVec = player.getLookAngle();
-        Vec3 reachPos = eyePos.add(lookVec.scale(player.getEntityReach()));
+        Vec3 reachPos = eyePos.add(lookVec.scale(player.entityInteractionRange()));
 
         ForgeDragonPart closestPart = null;
         double closestDistance = Double.MAX_VALUE;

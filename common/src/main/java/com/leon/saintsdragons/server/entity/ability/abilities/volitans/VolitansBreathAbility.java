@@ -83,7 +83,7 @@ public class VolitansBreathAbility extends DragonAbility<Volitans> {
     public void tickUsing() {
         DragonAbilitySection section = getCurrentSection();
         Volitans dragon = getUser();
-        if (section == null || section.sectionType != ACTIVE || dragon.level().isClientSide) {
+        if (section == null || section.sectionType != ACTIVE || dragon.level().isClientSide()) {
             return;
         }
 
@@ -199,7 +199,7 @@ public class VolitansBreathAbility extends DragonAbility<Volitans> {
 
     private void playBreathStartSound() {
         Volitans dragon = getUser();
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         float pitch = 0.96f + dragon.getRandom().nextFloat() * 0.08f;
@@ -213,7 +213,7 @@ public class VolitansBreathAbility extends DragonAbility<Volitans> {
 
     private void playBreathEndSound() {
         Volitans dragon = getUser();
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         float pitch = 0.96f + dragon.getRandom().nextFloat() * 0.08f;

@@ -64,11 +64,11 @@ public class RaevyxRoarAbility extends DragonAbility<Raevyx> {
         var section = getCurrentSection();
         if (section == null) return;
 
-        if (!getUser().level().isClientSide) {
+        if (!getUser().level().isClientSide()) {
             getUser().triggerScreenShake(1.0F);
         }
 
-        if (section.sectionType == AbilitySectionType.ACTIVE && strikesLeft > 0 && !getUser().level().isClientSide) {
+        if (section.sectionType == AbilitySectionType.ACTIVE && strikesLeft > 0 && !getUser().level().isClientSide()) {
             if (strikeCooldown > 0) {
                 strikeCooldown--;
             } else {
@@ -122,9 +122,9 @@ public class RaevyxRoarAbility extends DragonAbility<Raevyx> {
         double x = target.getX() + ox;
         double z = target.getZ() + oz;
         double y = target.getY();
-        var bolt = EntityType.LIGHTNING_BOLT.create(server);
+        var bolt = EntityType.LIGHTNING_BOLT.create(server, net.minecraft.world.entity.EntitySpawnReason.EVENT);
         if (bolt != null) {
-            bolt.moveTo(x, y, z);
+            bolt.setPos(x, y, z);
             bolt.setVisualOnly(true);
             var owner = dragon.getOwner();
             if (owner instanceof ServerPlayer sp) {
@@ -191,7 +191,7 @@ public class RaevyxRoarAbility extends DragonAbility<Raevyx> {
 private static void applyStun(LivingEntity target) {
     final int durationTicks = 30;
 
-        target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, durationTicks, 5, false, true));
+        target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, durationTicks, 5, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, durationTicks, 0, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, Math.min(durationTicks, 20), 0, false, true));
     }

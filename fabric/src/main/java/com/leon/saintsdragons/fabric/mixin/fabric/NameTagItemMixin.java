@@ -7,6 +7,7 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.NameTagItem;
+import net.minecraft.core.component.DataComponents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -16,13 +17,15 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public abstract class NameTagItemMixin {
     @Inject(method = "interactLivingEntity", at = @At("HEAD"), cancellable = true)
     private void saintsdragons$refuseIvyRename(ItemStack itemStack, Player player, LivingEntity livingEntity, InteractionHand interactionHand, CallbackInfoReturnable<InteractionResult> cir) {
-        if (!(livingEntity instanceof IvyTheDragonMerchant ivy) || !itemStack.hasCustomHoverName()) {
+        if (!(livingEntity instanceof IvyTheDragonMerchant ivy) || !itemStack.has(DataComponents.CUSTOM_NAME)) {
             return;
         }
 
-        if (!player.level().isClientSide) {
+        if (!player.level().isClientSide()) {
             ivy.refuseRenameAttempt();
         }
-        cir.setReturnValue(InteractionResult.sidedSuccess(player.level().isClientSide));
+        cir.setReturnValue(player.level().isClientSide()
+                ? InteractionResult.SUCCESS
+                : InteractionResult.SUCCESS_SERVER);
     }
 }

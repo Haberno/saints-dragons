@@ -72,7 +72,7 @@ public final class AtroxiiaWaterCombatBehaviour extends DragonBehaviour<Atroxiia
     private boolean isWaterCombatContext(DragonBrainContext<Atroxiia> context) {
         Atroxiia dragon = context.dragon();
         LivingEntity target = context.memories().get(DragonMemories.ATTACK_TARGET).orElse(null);
-        return dragon.isInWaterOrBubble()
+        return dragon.isInWater()
                 && !dragon.isBaby()
                 && !dragon.isVehicle()
                 && !dragon.isPassenger()

@@ -84,14 +84,14 @@ public class IgnivorusRoarAbility extends DragonAbility<Ignivorus> {
         Ignivorus dragon = getUser();
 
         if (section.sectionType == STARTUP && soundQueued && getTicksInSection() >= SOUND_DELAY_TICKS) {
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 float pitch = 0.94f + dragon.getRandom().nextFloat() * 0.12f;
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_ROAR.get(), 1.8f, pitch, 89);
             }
             soundQueued = false;
         }
 
-        if (section.sectionType != ACTIVE || dragon.level().isClientSide) {
+        if (section.sectionType != ACTIVE || dragon.level().isClientSide()) {
             return;
         }
 

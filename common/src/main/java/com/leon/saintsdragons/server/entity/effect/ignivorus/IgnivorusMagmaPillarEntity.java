@@ -4,8 +4,8 @@ import com.leon.saintsdragons.common.item.tools.SwordAbilityTargeting;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.common.registry.ModSounds;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -23,6 +23,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -36,6 +38,7 @@ import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import java.util.List;
+import java.util.ArrayList;
 import java.util.UUID;
 
 
@@ -93,10 +96,10 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
         this.rotationLocked = true;
     }
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_STAGE, 0);
-        this.entityData.define(DATA_SCALE, 1.0f);
-        this.entityData.define(DATA_SUBSIDING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_STAGE, 0);
+        builder.define(DATA_SCALE, 1.0f);
+        builder.define(DATA_SUBSIDING, false);
     }
 
     public void setStage(int stage) {
@@ -135,19 +138,19 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
         livedTicks++;
         setDeltaMovement(Vec3.ZERO);
 
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             spawnClientEffects();
         }
 
         if (isSubsiding()) {
             subsideTicks++;
-            if (!level().isClientSide && subsideTicks >= SUBSIDE_DURATION_TICKS) {
+            if (!level().isClientSide() && subsideTicks >= SUBSIDE_DURATION_TICKS) {
                 discard();
             }
             return;
         }
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             resolveOwner();
             if (livedTicks >= warmupTicks) {
                 applyImpact();
@@ -209,8 +212,8 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
         for (LivingEntity target : hits) {
             hitEntities.add(target.getUUID());
 
-            target.hurt(source, impactDamage);
-            target.setSecondsOnFire(4);
+            target.hurtServer(server, source, impactDamage);
+            target.igniteForSeconds(4.0F);
 
             Vec3 knockDir = target.position().subtract(position());
             knockDir = new Vec3(knockDir.x, 0.0D, knockDir.z);
@@ -220,7 +223,6 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
             knockDir = knockDir.normalize().scale(knockbackStrength);
             double verticalBoost = 0.35D + (getStage() * 0.05D);
             target.push(knockDir.x, verticalBoost, knockDir.z);
-            target.hasImpulse = true;
             target.hurtMarked = true;
             if (target instanceof net.minecraft.server.level.ServerPlayer serverPlayer) {
                 serverPlayer.connection.send(new ClientboundSetEntityMotionPacket(target));
@@ -259,7 +261,7 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         return false;
     }
 
@@ -274,38 +276,27 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        livedTicks = tag.getInt("Lived");
-        lifetimeTicks = tag.getInt("Lifetime");
-        warmupTicks = tag.getInt("Warmup");
-        impactDamage = tag.getFloat("ImpactDamage");
-        knockbackStrength = tag.getDouble("Knockback");
-        setStage(tag.getInt("Stage"));
-        setVisualScale(tag.getFloat("Scale"));
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        livedTicks = tag.getIntOr("Lived", 0);
+        lifetimeTicks = tag.getIntOr("Lifetime", 36);
+        warmupTicks = tag.getIntOr("Warmup", 6);
+        impactDamage = tag.getFloatOr("ImpactDamage", 16.0F);
+        knockbackStrength = tag.getDoubleOr("Knockback", 1.0D);
+        setStage(tag.getIntOr("Stage", 0));
+        setVisualScale(tag.getFloatOr("Scale", 1.0F));
+        ownerUUID = tag.read("Owner", UUIDUtil.CODEC).orElse(null);
 
         hitEntities.clear();
-        if (tag.contains("HitEntities")) {
-            long[] uuidArray = tag.getLongArray("HitEntities");
-            for (int i = 0; i < uuidArray.length; i += 2) {
-                hitEntities.add(new UUID(uuidArray[i], uuidArray[i + 1]));
-            }
-        }
+        hitEntities.addAll(tag.read("HitEntities", UUIDUtil.CODEC.listOf()).orElse(List.of()));
 
-        if (tag.contains("LockedYaw")) {
-            initializeRotation(tag.getFloat("LockedYaw"));
-        }
-        this.rotationLocked = tag.getBoolean("RotationLocked");
-        this.subsideTicks = Math.max(0, tag.getInt("SubsideTicks"));
-        if (tag.contains("Subsiding")) {
-            this.entityData.set(DATA_SUBSIDING, tag.getBoolean("Subsiding"));
-        }
+        initializeRotation(tag.getFloatOr("LockedYaw", 0.0F));
+        this.rotationLocked = tag.getBooleanOr("RotationLocked", false);
+        this.subsideTicks = Math.max(0, tag.getIntOr("SubsideTicks", 0));
+        this.entityData.set(DATA_SUBSIDING, tag.getBooleanOr("Subsiding", false));
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Lived", livedTicks);
         tag.putInt("Lifetime", lifetimeTicks);
         tag.putInt("Warmup", warmupTicks);
@@ -314,24 +305,13 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
         tag.putInt("Stage", getStage());
         tag.putFloat("Scale", getVisualScale());
         if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
+            tag.store("Owner", UUIDUtil.CODEC, ownerUUID);
         }
         tag.putBoolean("RotationLocked", rotationLocked);
         tag.putFloat("LockedYaw", lockedHeadYaw);
         tag.putBoolean("Subsiding", isSubsiding());
         tag.putInt("SubsideTicks", subsideTicks);
-        long[] uuidArray = new long[hitEntities.size() * 2];
-        int i = 0;
-        for (UUID uuid : hitEntities) {
-            uuidArray[i++] = uuid.getMostSignificantBits();
-            uuidArray[i++] = uuid.getLeastSignificantBits();
-        }
-        tag.putLongArray("HitEntities", uuidArray);
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+        tag.store("HitEntities", UUIDUtil.CODEC.listOf(), new ArrayList<>(hitEntities));
     }
 
     @Override
@@ -349,10 +329,11 @@ public class IgnivorusMagmaPillarEntity extends Entity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<IgnivorusMagmaPillarEntity>(
+                "controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
+    private PlayState animationPredicate(AnimationTest<IgnivorusMagmaPillarEntity> state) {
         if (isSubsiding()) {
             state.controller().setAnimation(SUBSIDE_ANIMATION);
         } else {

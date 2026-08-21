@@ -11,7 +11,7 @@ public final class DragonSitTransitionController {
     }
 
     public void tick(int sitDownTicks, int sitUpTicks, Runnable sitDownAnimation, Runnable sitUpAnimation) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
 

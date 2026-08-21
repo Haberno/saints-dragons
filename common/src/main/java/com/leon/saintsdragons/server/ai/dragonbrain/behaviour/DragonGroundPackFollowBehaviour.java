@@ -122,7 +122,7 @@ public final class DragonGroundPackFollowBehaviour<T extends RideableDragonBase 
         }
         if (!member.isBaby() && member.hasNearbyAssignedBabies(memberClass)) return false;
         if (member.isOrderedToSit() || member.isVehicle() || member.isPassenger() || member.isInLove()) return false;
-        if (!member.canSwim() && member.isInWaterOrBubble()) return false;
+        if (!member.canSwim() && member.isInWater()) return false;
         LivingEntity target = member.getTarget();
         return target == null || !member.isTargetValid(target);
     }

@@ -33,39 +33,39 @@ public class CodexEcologyPanel {
     private static final int SCROLLBAR_GAP = 25;
     private final List<CodexPageLink> ecologyPageLinks = new ArrayList<>();
     private static final List<Identifier> IGNIVORUS_DROPS = List.of(
-            new Identifier("saintsdragons", "ignivorus_scale"),
-            new Identifier("saintsdragons", "ignivorus_tooth"),
-            new Identifier("saintsdragons", "ignivorus_heart"),
-            new Identifier("saintsdragons", "ignivorus_egg")
+            Identifier.fromNamespaceAndPath("saintsdragons", "ignivorus_scale"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "ignivorus_tooth"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "ignivorus_heart"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "ignivorus_egg")
     );
     private static final List<Identifier> ATROXIIA_DROPS = List.of(
-            new Identifier("saintsdragons", "atroxiia_scale"),
-            new Identifier("saintsdragons", "atroxiia_egg")
+            Identifier.fromNamespaceAndPath("saintsdragons", "atroxiia_scale"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "atroxiia_egg")
     );
     private static final List<Identifier> RAEVYX_DROPS = List.of(
-            new Identifier("saintsdragons", "raevyx_scale"),
-            new Identifier("saintsdragons", "raevyx_egg")
+            Identifier.fromNamespaceAndPath("saintsdragons", "raevyx_scale"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "raevyx_egg")
     );
     private static final List<Identifier> VARASUCHUS_DROPS = List.of(
-            new Identifier("saintsdragons", "varasuchus_scale"),
-            new Identifier("saintsdragons", "varasuchus_egg")
+            Identifier.fromNamespaceAndPath("saintsdragons", "varasuchus_scale"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "varasuchus_egg")
     );
     private static final List<Identifier> CINDERVANE_DROPS = List.of(
-            new Identifier("saintsdragons", "cindervane_scale"),
-            new Identifier("saintsdragons", "cindervane_egg")
+            Identifier.fromNamespaceAndPath("saintsdragons", "cindervane_scale"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "cindervane_egg")
     );
     private static final List<Identifier> STEGONAUT_DROPS = List.of(
-            new Identifier("saintsdragons", "stegonaut_scale"),
-            new Identifier("saintsdragons", "stegonaut_egg")
+            Identifier.fromNamespaceAndPath("saintsdragons", "stegonaut_scale"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "stegonaut_egg")
     );
     private static final List<Identifier> VOLITANS_DROPS = List.of(
-            new Identifier("saintsdragons", "volitans_scale"),
-            new Identifier("saintsdragons", "volitans_spine"),
-            new Identifier("saintsdragons", "volitans_egg"),
-            new Identifier("minecraft", "salmon"),
-            new Identifier("minecraft", "cod"),
-            new Identifier("minecraft", "tropical_fish"),
-            new Identifier("minecraft", "pufferfish")
+            Identifier.fromNamespaceAndPath("saintsdragons", "volitans_scale"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "volitans_spine"),
+            Identifier.fromNamespaceAndPath("saintsdragons", "volitans_egg"),
+            Identifier.fromNamespaceAndPath("minecraft", "salmon"),
+            Identifier.fromNamespaceAndPath("minecraft", "cod"),
+            Identifier.fromNamespaceAndPath("minecraft", "tropical_fish"),
+            Identifier.fromNamespaceAndPath("minecraft", "pufferfish")
     );
     private Button ecologyPrevPageButton;
     private Button ecologyNextPageButton;
@@ -264,7 +264,7 @@ public class CodexEcologyPanel {
     }
 
     private String readCodexText(String path, String lang) {
-        Identifier resource = new Identifier("saintsdragons", "codex/" + lang + "/" + path);
+        Identifier resource = Identifier.fromNamespaceAndPath("saintsdragons", "codex/" + lang + "/" + path);
         try (BufferedReader reader = Minecraft.getInstance().getResourceManager().openAsReader(resource)) {
             StringBuilder text = new StringBuilder();
             String line;
@@ -305,7 +305,7 @@ public class CodexEcologyPanel {
                 net.minecraft.core.registries.BuiltInRegistries.ITEM;
 
         for (Identifier id : drops) {
-            net.minecraft.world.item.Item item = registry.get(id);
+            net.minecraft.world.item.Item item = registry.getValue(id);
             if (item == net.minecraft.world.item.Items.AIR) {
                 itemY += rowGap;
                 continue;

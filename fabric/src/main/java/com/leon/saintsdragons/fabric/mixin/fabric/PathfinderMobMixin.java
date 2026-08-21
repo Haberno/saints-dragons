@@ -1,7 +1,6 @@
 package com.leon.saintsdragons.fabric.mixin.fabric;
 
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import net.minecraft.core.BlockPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.PathfinderMob;
 import net.minecraft.world.entity.TamableAnimal;
@@ -29,19 +28,18 @@ public abstract class PathfinderMobMixin {
 
         Entity leashHolder = mob.getLeashHolder();
         if (leashHolder != null && leashHolder.level() == mob.level()) {
-            mob.restrictTo(BlockPos.containing(leashHolder.position()), 5);
             float distance = mob.distanceTo(leashHolder);
 
             if (mob instanceof TamableAnimal tamable && tamable.isInSittingPose()) {
                 if (distance > dragon.getLeashBreakDistance()) {
-                    mob.dropLeash(true, true);
+                    mob.dropLeash();
                 }
                 ci.cancel();
                 return;
             }
 
             if (distance > dragon.getLeashBreakDistance()) {
-                mob.dropLeash(true, true);
+                mob.dropLeash();
             }
         }
 

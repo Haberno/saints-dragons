@@ -6,11 +6,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.mojang.serialization.JsonOps;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,12 +24,12 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public final class DialogueReloadListener extends SimpleJsonResourceReloadListener {
+public final class DialogueReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON = new GsonBuilder().create();
     private static final DialogueReloadListener INSTANCE = new DialogueReloadListener();
 
     private DialogueReloadListener() {
-        super(GSON, "dialogues");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("dialogues"));
     }
 
     public static DialogueReloadListener getInstance() {
@@ -135,8 +139,9 @@ public final class DialogueReloadListener extends SimpleJsonResourceReloadListen
         if (object.has("text") && object.get("text").isJsonPrimitive() && !object.has("translate")) {
             return parseStyledLiteral(object.get("text").getAsString());
         }
-        Component component = Component.Serializer.fromJson(element);
-        return component == null ? Component.empty() : component;
+        return ComponentSerialization.CODEC.parse(JsonOps.INSTANCE, element)
+                .result()
+                .orElseGet(Component::empty);
     }
 
     private static Component parseStyledLiteral(String text) {

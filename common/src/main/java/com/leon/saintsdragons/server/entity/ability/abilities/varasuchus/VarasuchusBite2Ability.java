@@ -59,7 +59,7 @@ public class VarasuchusBite2Ability extends DragonAbility<Varasuchus> {
         if (section.sectionType == STARTUP) {
             Varasuchus dragon = getUser();
             dragon.triggerAnim(VarasuchusAnimationHandler.ACTION_CONTROLLER, "bite2");
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.VARASUCHUS_BITE2.get(), 1.0f, 1.0f, SOUND_TICKS);
             }
             appliedHit = false;

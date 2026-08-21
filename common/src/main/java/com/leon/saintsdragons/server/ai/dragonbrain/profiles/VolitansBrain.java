@@ -81,7 +81,7 @@ public final class VolitansBrain implements DragonBrainOwner<Volitans> {
                                         GroundPursuitFlightSettings.standard(),
                                         dragon -> groundCombat.isGroundMovementLocked(),
                                         dragon -> dragon.getTarget() == null
-                                                || !dragon.getTarget().isInWaterOrBubble()
+                                                || !dragon.getTarget().isInWater()
                                 ),
                                 new VolitansAirCombatBehaviour(),
                                 new SetWalkTargetToAttackTargetBehaviour<>(
@@ -152,7 +152,7 @@ public final class VolitansBrain implements DragonBrainOwner<Volitans> {
                                                 0.9D,
                                                 70,
                                                 10,
-                                                dragon -> !dragon.isInWaterOrBubble(),
+                                                dragon -> !dragon.isInWater(),
                                                 (dragon, position) -> true
                                         ),
                                         new DragonSwimWanderBehaviour<>(
@@ -196,6 +196,6 @@ public final class VolitansBrain implements DragonBrainOwner<Volitans> {
                 || owner == null
                 || !owner.isAlive()
                 || owner.level() != dragon.level()
-                || !owner.isInWaterOrBubble();
+                || !owner.isInWater();
     }
 }

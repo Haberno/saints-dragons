@@ -40,6 +40,6 @@ public enum DragonEggBlockProvider implements IBlockComponentProvider, IServerDa
 
     @Override
     public Identifier getUid() {
-        return new Identifier("saintsdragons", "egg_timer");
+        return Identifier.fromNamespaceAndPath("saintsdragons", "egg_timer");
     }
 }

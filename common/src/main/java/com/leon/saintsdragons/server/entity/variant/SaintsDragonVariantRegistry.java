@@ -182,7 +182,7 @@ public final class SaintsDragonVariantRegistry {
         String dragonPath = dragonId.getPath();
         String variantPath = variantId.getPath();
         String suffix = female ? "_female" : "";
-        return new Identifier(variantId.getNamespace(), "textures/entity/" + dragonPath + "/" + variantPath + suffix + ".png");
+        return Identifier.fromNamespaceAndPath(variantId.getNamespace(), "textures/entity/" + dragonPath + "/" + variantPath + suffix + ".png");
     }
 
     private static Identifier roll(RandomSource random, List<DragonVariantDefinition> variants, Identifier fallback) {
@@ -229,7 +229,7 @@ public final class SaintsDragonVariantRegistry {
         Holder<Biome> biome = level.getBiome(pos);
         if (restrictions.hasBiomesByIdList()) {
             Identifier biomeId = biome.unwrapKey()
-                    .map(key -> key.location())
+                    .map(key -> key.identifier())
                     .orElse(null);
             if (biomeId != null && restrictions.biomesById().contains(biomeId)) {
                 return true;

@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.AbstractSliderButton;
 import net.minecraft.client.gui.components.CycleButton;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraftforge.api.distmarker.Dist;
@@ -105,18 +106,18 @@ public abstract class ForgePagedConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontalAmount, double verticalAmount) {
         if (mouseY >= panelTop && mouseY <= panelBottom) {
             int maxScroll = Math.max(0, contentHeight - (panelBottom - panelTop));
-            scrollOffset = (int) Math.max(0, Math.min(maxScroll, scrollOffset - delta * 12));
+            scrollOffset = (int) Math.max(0, Math.min(maxScroll, scrollOffset - verticalAmount * 12));
             return true;
         }
-        return super.mouseScrolled(mouseX, mouseY, delta);
+        return super.mouseScrolled(mouseX, mouseY, horizontalAmount, verticalAmount);
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics);
+        renderBackground(graphics, mouseX, mouseY, partialTick);
         graphics.drawCenteredString(font, title, width / 2, 12, 0xFFFFFF);
         setEntryWidgetsVisible(false);
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -125,13 +126,7 @@ public abstract class ForgePagedConfigScreen extends Screen {
 
     private void renderEntries(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         layoutEntries();
-        double scale = minecraft.getWindow().getGuiScale();
-        int scissorLeft = (int) (panelLeft * scale);
-        int scissorTop = (int) (minecraft.getWindow().getHeight() - panelBottom * scale);
-        int scissorWidth = (int) ((panelRight - panelLeft) * scale);
-        int scissorHeight = (int) ((panelBottom - panelTop) * scale);
-
-        RenderSystem.enableScissor(scissorLeft, scissorTop, scissorWidth, scissorHeight);
+        graphics.enableScissor(panelLeft, panelTop, panelRight, panelBottom);
 
         for (ConfigEntry entry : entries) {
             if (entry.isVisibleInPanel()) {
@@ -140,7 +135,7 @@ public abstract class ForgePagedConfigScreen extends Screen {
             }
         }
 
-        RenderSystem.disableScissor();
+        graphics.disableScissor();
     }
 
     private void setEntryWidgetsVisible(boolean visible) {
@@ -161,9 +156,9 @@ public abstract class ForgePagedConfigScreen extends Screen {
     }
 
     @Override
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
         layoutEntries();
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     protected abstract static class ConfigEntry {
@@ -682,8 +677,8 @@ public abstract class ForgePagedConfigScreen extends Screen {
             int gap = defaultGetter == null ? 0 : 4;
             button = CycleButton.booleanBuilder(
                             Component.translatable("saintsdragons.config_screen.boolean.true"),
-                            Component.translatable("saintsdragons.config_screen.boolean.false"))
-                    .withInitialValue(value)
+                            Component.translatable("saintsdragons.config_screen.boolean.false"),
+                            value)
                     .displayOnlyValue()
                     .create(inputX + resetWidth + gap, y,
                             Math.max(32, inputWidth - resetWidth - gap), 18, label);

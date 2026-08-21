@@ -143,7 +143,7 @@ public class RaevyxBrain implements DragonBrainOwner<Raevyx> {
                 || dragon.isOrderedToSit()) {
             return false;
         }
-        if (target.isInWaterOrBubble()) {
+        if (target.isInWater()) {
             return dragon.isAerial()
                     || dragon.distanceToSqr(target) <= DragonAirCombatHelper.maxAggroDistanceSqr(dragon, 32.0D);
         }

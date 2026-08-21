@@ -73,7 +73,7 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
                 && !wyvern.isTakeoff()
                 && !wyvern.isLanding()
                 && !wyvern.isHovering()
-                && !wyvern.isInWaterOrBubble()
+                && !wyvern.isInWater()
                 && wyvern.isGroundedForAction();
     }
 
@@ -84,7 +84,7 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
         }
         if (section.sectionType == AbilitySectionType.STARTUP) {
             getUser().triggerAnim(RaevyxAnimationHandler.MOVEMENT_CONTROLLER, "ground_rend");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 getUser().getSoundHandler().playMovingEntitySound(
                         ModSounds.RAEVYX_GROUND_REND.get(),
                         1.4f,
@@ -136,7 +136,7 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
             spawnGroundRendDustBurst(wyvern, 42, 1.15D, 0.34D);
         }
 
-        if (wyvern.isFlying() || wyvern.isInWaterOrBubble()) {
+        if (wyvern.isFlying() || wyvern.isInWater()) {
             interrupt();
             return;
         }
@@ -328,7 +328,7 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
     }
 
     private void applyGroundRendHits(Raevyx wyvern, Vec3 forwardDir) {
-        if (wyvern.level().isClientSide) {
+        if (wyvern.level().isClientSide()) {
             return;
         }
 
@@ -371,12 +371,12 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
             return;
         }
 
-        var bolt = EntityType.LIGHTNING_BOLT.create(server);
+        var bolt = EntityType.LIGHTNING_BOLT.create(server, net.minecraft.world.entity.EntitySpawnReason.EVENT);
         if (bolt == null) {
             return;
         }
 
-        bolt.moveTo(target.getX(), target.getY(), target.getZ());
+        bolt.setPos(target.getX(), target.getY(), target.getZ());
         bolt.setVisualOnly(true);
         var owner = wyvern.getOwner();
         if (owner instanceof ServerPlayer sp) {
@@ -386,7 +386,7 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
     }
 
     private void spawnGroundRendDustBurst(Raevyx wyvern, int count, double radiusScale, double speedScale) {
-        if (!(wyvern.level() instanceof ServerLevel server) || wyvern.isInWaterOrBubble() || wyvern.isInLava()) {
+        if (!(wyvern.level() instanceof ServerLevel server) || wyvern.isInWater() || wyvern.isInLava()) {
             return;
         }
 
@@ -465,11 +465,11 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
         int x = Mth.floor(sample.x);
         int z = Mth.floor(sample.z);
         int startY = Mth.floor(wyvern.getBoundingBox().minY + 0.5D);
-        int stopY = Math.max(server.getMinBuildHeight(), startY - 5);
+        int stopY = Math.max(server.getMinY(), startY - 5);
         for (int y = startY; y >= stopY; y--) {
             BlockPos pos = new BlockPos(x, y, z);
             BlockState state = server.getBlockState(pos);
-            if (!state.isAir() && !state.liquid() && state.isSolidRender(server, pos)) {
+            if (!state.isAir() && !state.liquid() && state.isSolidRender()) {
                 return pos;
             }
         }
@@ -481,7 +481,7 @@ public class RaevyxGroundRendAbility extends DragonAbility<Raevyx> {
         double maxDistanceSqr = DUST_VIEW_DISTANCE * DUST_VIEW_DISTANCE;
         for (ServerPlayer player : server.players()) {
             if (player.distanceToSqr(x, y, z) <= maxDistanceSqr || player.distanceToSqr(wyvern) <= maxDistanceSqr) {
-                server.sendParticles(player, ModParticles.DRAGON_DUST.get(), true,
+                server.sendParticles(player, ModParticles.DRAGON_DUST.get(), true, false,
                         x, y, z, 0, xSpeed, ySpeed, zSpeed, 1.0D);
             }
         }

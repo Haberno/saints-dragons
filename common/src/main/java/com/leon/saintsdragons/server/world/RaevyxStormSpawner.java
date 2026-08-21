@@ -36,7 +36,7 @@ public final class RaevyxStormSpawner {
     }
 
     public static void tick(ServerLevel level) {
-        Identifier dimensionId = level.dimension().location();
+        Identifier dimensionId = level.dimension().identifier();
         int counter = tickCounters.getOrDefault(dimensionId, 0) + 1;
         tickCounters.put(dimensionId, counter);
         if (counter < CHECK_INTERVAL) {
@@ -159,7 +159,7 @@ public final class RaevyxStormSpawner {
     }
 
     private static boolean spawnOne(ServerLevel level, BlockPos pos, EntitySpawnReason spawnType) {
-        Raevyx raevyx = ModEntities.RAEVYX.get().create(level);
+        Raevyx raevyx = ModEntities.RAEVYX.get().create(level, EntitySpawnReason.NATURAL);
         if (raevyx == null) {
             return false;
         }
@@ -168,7 +168,7 @@ public final class RaevyxStormSpawner {
         if (!level.noCollision(raevyx, raevyx.getBoundingBox())) {
             return false;
         }
-        raevyx.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), spawnType, null, null);
+        raevyx.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), spawnType, null);
         if (!level.noCollision(raevyx, raevyx.getBoundingBox())) {
             return false;
         }
@@ -193,7 +193,7 @@ public final class RaevyxStormSpawner {
     }
 
     private static boolean canFitRaevyxAt(ServerLevel level, BlockPos pos) {
-        Raevyx probe = ModEntities.RAEVYX.get().create(level);
+        Raevyx probe = ModEntities.RAEVYX.get().create(level, EntitySpawnReason.NATURAL);
         if (probe == null) {
             return false;
         }

@@ -67,7 +67,7 @@ public record IgnivorusRiderController(Ignivorus dragon) {
         if (level == null) return -1;
 
         final net.minecraft.world.phys.AABB box = dragon.getBoundingBox();
-        final int minBuildY = level.getMinBuildHeight();
+        final int minBuildY = level.getMinY();
         final double[] sampleX = {dragon.getX(), box.minX + 0.25D, box.maxX - 0.25D};
         final double[] sampleZ = {dragon.getZ(), box.minZ + 0.25D, box.maxZ - 0.25D};
 
@@ -191,7 +191,7 @@ public record IgnivorusRiderController(Ignivorus dragon) {
                 passenger,
                 moveFunction,
                 DragonRiderSeatOffsets.IGNIVORUS,
-                dragon.level().isClientSide ? dragon.getClientLocatorPosition("passengerLocator") : null
+                dragon.level().isClientSide() ? dragon.getClientLocatorPosition("passengerLocator") : null
         );
     }
 

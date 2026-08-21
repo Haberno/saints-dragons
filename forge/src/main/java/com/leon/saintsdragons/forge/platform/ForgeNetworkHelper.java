@@ -6,15 +6,16 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
-import net.minecraftforge.network.NetworkRegistry;
+import net.minecraftforge.network.ChannelBuilder;
 import net.minecraftforge.network.PacketDistributor;
-import net.minecraftforge.network.simple.SimpleChannel;
+import net.minecraftforge.network.SimpleChannel;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class ForgeNetworkHelper implements NetworkHelper {
-    private static final String PROTOCOL_VERSION = "1";
+    private static final int PROTOCOL_VERSION = 1;
     private SimpleChannel channel;
+    private boolean built;
     private final AtomicInteger nextId = new AtomicInteger();
 
     public ForgeNetworkHelper() {
@@ -24,12 +25,10 @@ public final class ForgeNetworkHelper implements NetworkHelper {
 
     private SimpleChannel getChannel() {
         if (channel == null) {
-            channel = NetworkRegistry.newSimpleChannel(
-                    new Identifier(SaintsDragonsCommon.MOD_ID, "main"),
-                    () -> PROTOCOL_VERSION,
-                    PROTOCOL_VERSION::equals,
-                    PROTOCOL_VERSION::equals
-            );
+            channel = ChannelBuilder
+                    .named(Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "main"))
+                    .networkProtocolVersion(PROTOCOL_VERSION)
+                    .simpleChannel();
         }
         return channel;
     }
@@ -43,8 +42,8 @@ public final class ForgeNetworkHelper implements NetworkHelper {
         getChannel().messageBuilder(type, nextId.getAndIncrement())
                 .encoder(encoder::encode)
                 .decoder(decoder::decode)
-                .consumerMainThread((message, contextSupplier) -> {
-                    ServerPlayer sender = contextSupplier.get().getSender();
+                .consumerMainThread((message, context) -> {
+                    ServerPlayer sender = context.getSender();
                     if (sender != null) {
                         handler.handle(message, sender);
                     }
@@ -61,27 +60,36 @@ public final class ForgeNetworkHelper implements NetworkHelper {
         getChannel().messageBuilder(type, nextId.getAndIncrement())
                 .encoder(encoder::encode)
                 .decoder(decoder::decode)
-                .consumerMainThread((message, contextSupplier) -> handler.handle(message))
+                .consumerMainThread((message, context) -> handler.handle(message))
                 .add();
     }
 
     @Override
     public void sendToServer(Object message) {
-        getChannel().sendToServer(message);
+        ensureBuilt().send(message, PacketDistributor.SERVER.noArg());
     }
 
     @Override
     public void sendToPlayer(ServerPlayer player, Object message) {
-        getChannel().send(PacketDistributor.PLAYER.with(() -> player), message);
+        ensureBuilt().send(message, PacketDistributor.PLAYER.with(player));
     }
 
     @Override
     public void sendToTracking(Entity entity, Object message) {
-        getChannel().send(PacketDistributor.TRACKING_ENTITY.with(() -> entity), message);
+        ensureBuilt().send(message, PacketDistributor.TRACKING_ENTITY.with(entity));
     }
 
     @Override
     public void sendToDimension(Level level, Object message) {
-        getChannel().send(PacketDistributor.DIMENSION.with(level::dimension), message);
+        ensureBuilt().send(message, PacketDistributor.DIMENSION.with(level.dimension()));
+    }
+
+    private SimpleChannel ensureBuilt() {
+        SimpleChannel current = getChannel();
+        if (!built) {
+            current.build();
+            built = true;
+        }
+        return current;
     }
 }

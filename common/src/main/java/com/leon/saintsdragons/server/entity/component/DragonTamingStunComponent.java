@@ -2,7 +2,8 @@ package com.leon.saintsdragons.server.entity.component;
 
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.base.RideableDragonBase;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.damagesource.DamageSource;
@@ -37,7 +38,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
     }
 
     public boolean tryEnterHoldStateFromDamage(DamageSource source, float amount) {
-        if (dragon.level().isClientSide || source == null || amount <= 0.0F || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
+        if (dragon.level().isClientSide() || source == null || amount <= 0.0F || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         }
         if (dragon.isTame() || dragon.isBaby() || isTamingStunned() || !canUseTamingStun()) {
@@ -77,7 +78,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
         forceWakeForStun();
         ensureStunState();
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             dragon.playSound(net.minecraft.sounds.SoundEvents.ARROW_HIT_PLAYER, 1.5F, 0.8F);
         }
     }
@@ -102,7 +103,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
         if (isTamingStunned()) {
             setTamingStunned(false);
         }
-        if (aiLocked && !dragon.level().isClientSide) {
+        if (aiLocked && !dragon.level().isClientSide()) {
             aiLocked = false;
             dragon.setNoAi(false);
         }
@@ -120,7 +121,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
         return failureCounter;
     }
 
-    public void save(CompoundTag tag) {
+    public void save(ValueOutput tag) {
         tag.putInt("TamingFailures", Math.max(0, failureCounter));
         tag.putFloat("TamingTargetHealth", recoveryTargetHealth);
         tag.putInt("TamingStunGraceTicks", Math.max(0, stunGraceTicks));
@@ -130,17 +131,17 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
         tag.putInt("TamingStunTimeout", Math.max(0, stunTimeoutTicks));
     }
 
-    public void load(CompoundTag tag) {
-        failureCounter = Math.max(0, tag.getInt("TamingFailures"));
-        recoveryTargetHealth = tag.contains("TamingTargetHealth") ? tag.getFloat("TamingTargetHealth") : -1.0F;
-        stunGraceTicks = Math.max(0, tag.getInt("TamingStunGraceTicks"));
-        aiLocked = tag.getBoolean("TamingAiLocked");
-        awaitingFeed = tag.getBoolean("TamingAwaitingFeed");
-        stunTimeoutTicks = Math.max(0, tag.getInt("TamingStunTimeout"));
+    public void load(ValueInput tag) {
+        failureCounter = Math.max(0, tag.getIntOr("TamingFailures", 0));
+        recoveryTargetHealth = tag.getFloatOr("TamingTargetHealth", -1.0F);
+        stunGraceTicks = Math.max(0, tag.getIntOr("TamingStunGraceTicks", 0));
+        aiLocked = tag.getBooleanOr("TamingAiLocked", false);
+        awaitingFeed = tag.getBooleanOr("TamingAwaitingFeed", false);
+        stunTimeoutTicks = Math.max(0, tag.getIntOr("TamingStunTimeout", 0));
 
-        if (tag.getBoolean("TamingStunned") && canUseTamingStun()) {
+        if (tag.getBooleanOr("TamingStunned", false) && canUseTamingStun()) {
             setTamingStunned(true);
-            if (aiLocked && !dragon.level().isClientSide) {
+            if (aiLocked && !dragon.level().isClientSide()) {
                 dragon.setNoAi(true);
             }
         } else {
@@ -149,7 +150,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
     }
 
     public void enforceGroundingTick() {
-        if (dragon.level().isClientSide || !isTamingStunned()) {
+        if (dragon.level().isClientSide() || !isTamingStunned()) {
             return;
         }
 
@@ -165,7 +166,6 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
             } else {
                 dragon.setDeltaMovement(requestedMovement);
             }
-            dragon.hasImpulse = true;
             dragon.hurtMarked = true;
         } else {
             dragon.setDeltaMovement(Vec3.ZERO);
@@ -175,7 +175,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
 
     private void tickRecovery() {
         Level level = dragon.level();
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return;
         }
 
@@ -253,7 +253,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
 
         boolean airborne = enforceGroundedStunPhysics();
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!aiLocked) {
                 dragon.setNoAi(true);
                 aiLocked = true;
@@ -273,7 +273,7 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
     }
 
     private void forceWakeForStun() {
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             dragon.wakeUpImmediately();
             dragon.suppressSleep(200);
         }
@@ -295,7 +295,6 @@ public abstract class DragonTamingStunComponent<T extends DragonEntity> {
         stopMovementControllersForStun();
 
         dragon.setDeltaMovement(0.0D, -FORCED_DESCENT_PER_TICK, 0.0D);
-        dragon.hasImpulse = true;
         return true;
     }
 

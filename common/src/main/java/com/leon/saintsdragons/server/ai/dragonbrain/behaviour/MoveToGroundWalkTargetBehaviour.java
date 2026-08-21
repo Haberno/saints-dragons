@@ -93,7 +93,7 @@ public class MoveToGroundWalkTargetBehaviour<T extends RideableDragonBase> exten
     @Override
     protected boolean canContinue(DragonBrainContext<T> context) {
         if (enteringWater) {
-            if (context.dragon().isInWaterOrBubble()) {
+            if (context.dragon().isInWater()) {
                 context.memories().erase(DragonMemories.CANT_REACH_WALK_TARGET_SINCE);
                 return false;
             }
@@ -141,7 +141,7 @@ public class MoveToGroundWalkTargetBehaviour<T extends RideableDragonBase> exten
             if (waterEntryTarget != null) {
                 DragonWaterEntryTargeting.moveIntoWater(dragon, waterEntryTarget);
             }
-            if (dragon.isInWaterOrBubble()) {
+            if (dragon.isInWater()) {
                 context.memories().erase(DragonMemories.CANT_REACH_WALK_TARGET_SINCE);
             }
             return;
@@ -231,9 +231,9 @@ public class MoveToGroundWalkTargetBehaviour<T extends RideableDragonBase> exten
         LivingEntity attackTarget = context.memories().get(DragonMemories.ATTACK_TARGET).orElse(null);
         if (!(dragon instanceof SemiAquaticDragon)
                 || !dragon.canSwim()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || attackTarget == null
-                || !attackTarget.isInWaterOrBubble()) {
+                || !attackTarget.isInWater()) {
             targetingWaterEntry = false;
             waterEntryTarget = null;
             return requested;
@@ -253,13 +253,13 @@ public class MoveToGroundWalkTargetBehaviour<T extends RideableDragonBase> exten
 
     private boolean hasSubmergedAttackTarget(DragonBrainContext<T> context) {
         LivingEntity target = context.memories().get(DragonMemories.ATTACK_TARGET).orElse(null);
-        return target != null && target.isAlive() && target.isInWaterOrBubble();
+        return target != null && target.isAlive() && target.isInWater();
     }
 
     private boolean requiresWaterEntry(DragonBrainContext<T> context) {
         return context.dragon() instanceof SemiAquaticDragon
                 && context.dragon().canSwim()
-                && !context.dragon().isInWaterOrBubble()
+                && !context.dragon().isInWater()
                 && hasSubmergedAttackTarget(context);
     }
 
@@ -315,7 +315,7 @@ public class MoveToGroundWalkTargetBehaviour<T extends RideableDragonBase> exten
 
     private boolean isGroundMovementContext(DragonBrainContext<T> context) {
         T dragon = context.dragon();
-        return !dragon.isInWaterOrBubble()
+        return !dragon.isInWater()
                 && dragon.getLocomotionMode() == DragonLocomotionMode.GROUND
                 && !(dragon instanceof RideableFlyingDragon flyingDragon && flyingDragon.isAerial())
                 && !context.memories().get(DragonMemories.GROUND_ROUTE_ABANDONED).orElse(false);

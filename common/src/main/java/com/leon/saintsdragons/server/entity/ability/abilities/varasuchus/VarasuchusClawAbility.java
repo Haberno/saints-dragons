@@ -71,7 +71,7 @@ public class VarasuchusClawAbility extends DragonAbility<Varasuchus> {
             Varasuchus dragon = getUser();
             String animName = getAnimationName(dragon);
             dragon.triggerAnim(VarasuchusAnimationHandler.FAST_ACTION_CONTROLLER, animName);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.VARASUCHUSCLAW.get(), 1.0f, 1.0f, 30);
             }
             appliedHit = false;
@@ -108,7 +108,7 @@ public class VarasuchusClawAbility extends DragonAbility<Varasuchus> {
     }
 
     private boolean shouldUseRunClawAnimation(Varasuchus dragon) {
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             return false;
         }
 

@@ -9,16 +9,16 @@ public class ModPotionItems {
     private ModPotionItems() {}
 
     public static final Supplier<Item> POTION_OF_TIDEGUARD =
-            ModItems.REGISTER.register("potion_of_tideguard",
-                    () -> new FixedPotionItem(
-                            new Item.Properties().stacksTo(1),
+            ModItems.register("potion_of_tideguard",
+                    properties -> new FixedPotionItem(
+                            properties.stacksTo(1),
                             ModPotions.TIDEGUARD
                     ));
 
     public static final Supplier<Item> POTION_OF_SEARING =
-            ModItems.REGISTER.register("potion_of_searing",
-                    () -> new FixedPotionItem(
-                            new Item.Properties().stacksTo(1),
+            ModItems.register("potion_of_searing",
+                    properties -> new FixedPotionItem(
+                            properties.stacksTo(1),
                             ModPotions.SEARING
                     ));
 

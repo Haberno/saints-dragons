@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "WSW",
+    "HCH",
+    " S "
+  ],
+  "key": {
+    "W": "saintsdragons:raevyx_wingtalon",
+    "H": "saintsdragons:raevyx_wing_hide",
+    "S": "saintsdragons:raevyx_scale",
+    "C": "saintsdragons:dragon_binder_core"
+  },
+  "result": {
+    "id": "saintsdragons:raevyx_binder",
+    "count": 1
+  }
+}

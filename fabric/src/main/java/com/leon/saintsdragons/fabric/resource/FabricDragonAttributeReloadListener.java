@@ -4,8 +4,6 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfigLoader;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.Identifier;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,12 +23,10 @@ public final class FabricDragonAttributeReloadListener implements IdentifiableRe
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> reload(PreparableReloadListener.@NotNull PreparationBarrier barrier,
-                                                   @NotNull ResourceManager manager,
-                                                   @NotNull ProfilerFiller prepareProfiler,
-                                                   @NotNull ProfilerFiller applyProfiler,
+    public @NotNull CompletableFuture<Void> reload(PreparableReloadListener.@NotNull SharedState state,
                                                    @NotNull Executor prepareExecutor,
+                                                   PreparableReloadListener.@NotNull PreparationBarrier barrier,
                                                    @NotNull Executor applyExecutor) {
-        return delegate.reload(barrier, manager, prepareProfiler, applyProfiler, prepareExecutor, applyExecutor);
+        return delegate.reload(state, prepareExecutor, barrier, applyExecutor);
     }
 }

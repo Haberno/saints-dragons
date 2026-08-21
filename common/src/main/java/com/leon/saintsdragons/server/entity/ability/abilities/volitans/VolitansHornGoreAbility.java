@@ -47,7 +47,7 @@ public class VolitansHornGoreAbility extends DragonAbility<Volitans> {
         }
         if (section.sectionType == STARTUP) {
             getUser().triggerAnim(VolitansAnimationHandler.ACTION_CONTROLLER, "horn_gore");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 getUser().getSoundHandler().playMovingEntitySound(
                         ModSounds.VOLITANS_HORN_GORE.get(),
                         1.4f,
@@ -99,7 +99,7 @@ public class VolitansHornGoreAbility extends DragonAbility<Volitans> {
     }
 
     private void sendDebugBox(Volitans dragon, double range) {
-        if (sentDebugThisUse || dragon.level().isClientSide) {
+        if (sentDebugThisUse || dragon.level().isClientSide()) {
             return;
         }
         DragonMeleeGeometry.ForwardAttack attack = DragonMeleeGeometry.bodyForwardAttack(dragon).offset(HITBOX_FORWARD_OFFSET);

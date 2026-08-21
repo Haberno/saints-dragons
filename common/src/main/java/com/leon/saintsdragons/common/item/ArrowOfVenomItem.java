@@ -13,7 +13,7 @@ public class ArrowOfVenomItem extends ArrowItem {
     }
 
     @Override
-    public AbstractArrow createArrow(Level level, ItemStack stack, LivingEntity shooter) {
+    public AbstractArrow createArrow(Level level, ItemStack stack, LivingEntity shooter, ItemStack weapon) {
         return new ArrowOfVenomEntity(level, shooter);
     }
 }

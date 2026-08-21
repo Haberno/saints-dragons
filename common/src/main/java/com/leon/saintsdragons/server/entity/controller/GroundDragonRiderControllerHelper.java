@@ -61,7 +61,7 @@ public final class GroundDragonRiderControllerHelper {
                 passenger,
                 moveFunction,
                 logicalSeatOffset,
-                dragon.level().isClientSide ? dragon.getClientLocatorPosition("passengerLocator") : null
+                dragon.level().isClientSide() ? dragon.getClientLocatorPosition("passengerLocator") : null
         );
     }
 

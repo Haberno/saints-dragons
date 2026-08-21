@@ -11,9 +11,11 @@ import com.leon.saintsdragons.common.config.ConfigStorageLayout;
 import com.leon.saintsdragons.common.config.SaintsDragonsConfig;
 import com.leon.saintsdragons.platform.Services;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +27,7 @@ import java.util.Map;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadListener {
+public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON = new GsonBuilder()
             .setPrettyPrinting()
             .disableHtmlEscaping()
@@ -53,7 +55,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
     private volatile Map<Identifier, DragonAttributeConfig> configs;
 
     private DragonAttributeConfigLoader() {
-        super(GSON, "dragon_attributes");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("dragon_attributes"));
         ConfigStorageLayout.migrateLegacyFiles();
         this.configDirectory = Services.PLATFORM.getConfigDirectory()
                 .resolve(SaintsDragonsConfig.DRAGON_ATTRIBUTES_CONFIG_FOLDER);

@@ -61,7 +61,9 @@ dependencies {
 
     modImplementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
     modImplementation "net.fabricmc.fabric-api:fabric-api:$rootProject.fabric_api_version"
-    modImplementation include("com.jamieswhiteshirt:reach-entity-attributes:2.4.0")
+    // Disabled for 1.21.11: 2.4.0 injects into a removed Container method and crashes at startup.
+    // The old reach-based item hooks remain preserved in source while the vanilla attack-range port is pending.
+    // modImplementation include("com.jamieswhiteshirt:reach-entity-attributes:2.4.0")
     modImplementation("software.bernie.geckolib:geckolib-fabric-${minecraft_version}:${geckolib_version}")
     modApi include("me.shedaniel.cloth:cloth-config-fabric:${rootProject.cloth_config_version}") {
         exclude group: "net.fabricmc.fabric-api"
@@ -121,6 +123,18 @@ sourcesJar {
 sourceSets {
     main {
         java.srcDirs = ['src/main/java']
+        // ClientLevel exposes these methods directly in 1.21.11. Keep the old accessor source
+        // for reference without shipping a mixin whose removed descriptor cannot be remapped.
+        java.exclude 'com/leon/saintsdragons/fabric/mixin/ClientLevelEntityMapAccessor.java'
+        // Preserve the old renderer hooks until their removed 1.20-era targets can be
+        // reimplemented with the 1.21.11 render-state pipeline.
+        java.exclude 'com/leon/saintsdragons/fabric/client/renderer/FabricDraconianArmorRenderer.java'
+        java.exclude 'com/leon/saintsdragons/fabric/mixin/ClientRecipeBookMixin.java'
+        java.exclude 'com/leon/saintsdragons/fabric/mixin/fabric/BloodTempestAfterimage*Mixin.java'
+        java.exclude 'com/leon/saintsdragons/fabric/mixin/fabric/EntityRenderDispatcherMixin.java'
+        java.exclude 'com/leon/saintsdragons/fabric/mixin/fabric/GameRendererMixin.java'
+        java.exclude 'com/leon/saintsdragons/fabric/mixin/fabric/LivingEntityRendererMixin.java'
+        java.exclude 'com/leon/saintsdragons/fabric/mixin/fabric/RiderMixin.java'
         resources.srcDirs = [
                 'src/main/resources',
                 '../common/src/main/resources',

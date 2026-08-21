@@ -27,7 +27,7 @@ public class VolitansRenderer extends DragonGeoEntityRenderer<Volitans> {
 
     public VolitansRenderer(EntityRendererProvider.Context context) {
         super(context, new VolitansModel());
-        this.addRenderLayer(new VolitansNightEmissiveLayer(this));
+        this.withRenderLayer(new VolitansNightEmissiveLayer(this));
     }
 
     @Override

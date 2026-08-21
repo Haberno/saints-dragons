@@ -12,14 +12,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.chunk.ChunkStatus;
+import net.minecraft.world.level.chunk.status.ChunkStatus;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class DraconianControllerItem extends Item {
     private static final double ACTIVATION_RADIUS = 64.0D;
@@ -30,14 +32,15 @@ public class DraconianControllerItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.empty());
-        tooltip.add(Component.translatable("item.saintsdragons.draconian_controller.tooltip.passive.title")
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        tooltip.accept(Component.empty());
+        tooltip.accept(Component.translatable("item.saintsdragons.draconian_controller.tooltip.passive.title")
                 .withStyle(ChatFormatting.WHITE));
-        tooltip.add(Component.translatable("item.saintsdragons.draconian_controller.tooltip.ability.description")
+        tooltip.accept(Component.translatable("item.saintsdragons.draconian_controller.tooltip.ability.description")
                 .withStyle(ChatFormatting.GRAY));
-        tooltip.add(Component.translatable("item.saintsdragons.draconian_controller.tooltip.requirement")
+        tooltip.accept(Component.translatable("item.saintsdragons.draconian_controller.tooltip.requirement")
                 .withStyle(ChatFormatting.DARK_GRAY));
     }
 
@@ -45,11 +48,11 @@ public class DraconianControllerItem extends Item {
     public @NotNull InteractionResult use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
-        return useController(level, player)
+        return useController(level, player, stack)
                 ? InteractionResult.SUCCESS
                 : InteractionResult.FAIL;
     }
@@ -60,11 +63,11 @@ public class DraconianControllerItem extends Item {
         if (player == null) {
             return InteractionResult.PASS;
         }
-        if (context.getLevel().isClientSide) {
+        if (context.getLevel().isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
-        return useController(context.getLevel(), player)
+        return useController(context.getLevel(), player, context.getItemInHand())
                 ? InteractionResult.SUCCESS
                 : InteractionResult.FAIL;
     }
@@ -73,16 +76,16 @@ public class DraconianControllerItem extends Item {
     public @NotNull InteractionResult interactLivingEntity(@NotNull ItemStack stack, @NotNull Player player,
                                                            @NotNull LivingEntity interactionTarget,
                                                            @NotNull InteractionHand hand) {
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
-        return useController(player.level(), player)
+        return useController(player.level(), player, stack)
                 ? InteractionResult.SUCCESS
                 : InteractionResult.FAIL;
     }
 
-    private boolean useController(Level level, Player player) {
+    private boolean useController(Level level, Player player, ItemStack stack) {
         ServerLevel serverLevel = (ServerLevel) level;
         int affected = deactivateNearbyNuclei(serverLevel, player);
         if (affected <= 0 && !player.isShiftKeyDown()) {
@@ -92,7 +95,7 @@ public class DraconianControllerItem extends Item {
             return false;
         }
 
-        player.getCooldowns().addCooldown(this, COOLDOWN_TICKS);
+        player.getCooldowns().addCooldown(stack, COOLDOWN_TICKS);
         return true;
     }
 

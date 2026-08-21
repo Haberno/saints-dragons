@@ -32,7 +32,7 @@ public final class DragonFindWaterBehaviour<T extends RideableDragonBase & SemiA
     protected boolean canStart(DragonBrainContext<T> context) {
         T dragon = context.dragon();
         if (!dragon.onGround()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLove()
                 || !dragon.shouldEnterWater()
                 || isFollowingDryOwner(dragon)
@@ -47,7 +47,7 @@ public final class DragonFindWaterBehaviour<T extends RideableDragonBase & SemiA
     protected boolean canContinue(DragonBrainContext<T> context) {
         T dragon = context.dragon();
         return target != null
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && !dragon.isInLove()
                 && !isFollowingDryOwner(dragon)
                 && dragon.getAIMovement().isPathing();
@@ -95,7 +95,7 @@ public final class DragonFindWaterBehaviour<T extends RideableDragonBase & SemiA
                     random.nextInt(range) - halfRange
             );
             while (dragon.level().isEmptyBlock(candidate)
-                    && candidate.getY() > dragon.level().getMinBuildHeight()) {
+                    && candidate.getY() > dragon.level().getMinY()) {
                 candidate = candidate.below();
             }
             if (dragon.level().getFluidState(candidate).is(FluidTags.WATER)) {
@@ -117,7 +117,7 @@ public final class DragonFindWaterBehaviour<T extends RideableDragonBase & SemiA
         return owner != null
                 && owner.isAlive()
                 && owner.level() == dragon.level()
-                && !DragonOwnerFollowTarget.anchor(owner).isInWaterOrBubble();
+                && !DragonOwnerFollowTarget.anchor(owner).isInWater();
     }
 
     @Override

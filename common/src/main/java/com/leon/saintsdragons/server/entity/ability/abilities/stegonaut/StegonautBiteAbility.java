@@ -44,7 +44,7 @@ public class StegonautBiteAbility extends DragonAbility<Stegonaut> {
         }
         if (section.sectionType == STARTUP) {
             getUser().triggerAnim(StegonautAnimationHandler.ACTION_CONTROLLER, "bite");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 getUser().getSoundHandler().playMovingEntitySound(ModSounds.STEGONAUT_BITE.get(), 1.0f, getUser().isBaby() ? 1.6f : 1.0f, 59);
             }
             appliedHit = false;

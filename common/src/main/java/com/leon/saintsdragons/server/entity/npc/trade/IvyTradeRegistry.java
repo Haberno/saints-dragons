@@ -3,17 +3,23 @@ package com.leon.saintsdragons.server.entity.npc.trade;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponentExactPredicate;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.npc.villager.AbstractVillager;
-import net.minecraft.world.entity.npc.VillagerTrades;
+import net.minecraft.world.entity.npc.villager.VillagerTrades;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.trading.MerchantOffer;
 import net.minecraft.world.item.trading.MerchantOffers;
+import net.minecraft.world.item.trading.ItemCost;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,19 +108,34 @@ public final class IvyTradeRegistry {
         int maxUses = GsonHelper.getAsInt(trade, "max_uses", 5);
         int xp = GsonHelper.getAsInt(trade, "xp", 0);
         float priceMultiplier = GsonHelper.getAsFloat(trade, "price_multiplier", 0.05F);
-        return (trader, random) -> {
-            ItemStack secondCost = costB.create(random);
+        return (level, trader, random) -> {
+            ItemStack secondCost = costB.create(level, random);
             if (secondCost.isEmpty()) {
-                return new MerchantOffer(costA.create(random), result.create(random), maxUses, xp, priceMultiplier);
+                return new MerchantOffer(
+                        toCost(costA.create(level, random)),
+                        result.create(level, random),
+                        maxUses,
+                        xp,
+                        priceMultiplier
+                );
             }
             return new MerchantOffer(
-                    costA.create(random),
-                    secondCost,
-                    result.create(random),
+                    toCost(costA.create(level, random)),
+                    Optional.of(toCost(secondCost)),
+                    result.create(level, random),
                     maxUses,
                     xp,
                     priceMultiplier);
         };
+    }
+
+    private static ItemCost toCost(ItemStack stack) {
+        return new ItemCost(
+                stack.getItemHolder(),
+                stack.getCount(),
+                DataComponentExactPredicate.allOf(stack.getComponents()),
+                stack
+        );
     }
 
     private static ResultPool parseResultPool(JsonArray array, Identifier fileId) {
@@ -136,18 +157,23 @@ public final class IvyTradeRegistry {
     }
 
     private static StackFactory parseStack(JsonObject object, Identifier fileId) {
-        Identifier itemId = new Identifier(GsonHelper.getAsString(object, "item"));
+        Identifier itemId = Identifier.parse(GsonHelper.getAsString(object, "item"));
         Optional<Item> item = BuiltInRegistries.ITEM.getOptional(itemId);
         if (item.isEmpty()) {
             throw new IllegalArgumentException("Unknown item " + itemId + " in " + fileId);
         }
         CountRange count = parseCount(object);
         List<EnchantmentEntry> enchantments = parseEnchantments(object, fileId);
-        return random -> {
+        return (level, random) -> {
             ItemStack stack = new ItemStack(item.get(), count.roll(random));
             for (EnchantmentEntry enchantment : enchantments) {
                 if (random.nextFloat() <= enchantment.chance()) {
-                    stack.enchant(enchantment.enchantment(), enchantment.level());
+                    Holder<Enchantment> holder = level.registryAccess()
+                            .lookupOrThrow(Registries.ENCHANTMENT)
+                            .get(ResourceKey.create(Registries.ENCHANTMENT, enchantment.enchantmentId()))
+                            .orElseThrow(() -> new IllegalArgumentException(
+                                    "Unknown enchantment " + enchantment.enchantmentId()));
+                    stack.enchant(holder, enchantment.level());
                 }
             }
             return stack;
@@ -177,12 +203,10 @@ public final class IvyTradeRegistry {
         JsonArray array = GsonHelper.getAsJsonArray(object, "enchantments");
         for (JsonElement element : array) {
             JsonObject enchantmentJson = GsonHelper.convertToJsonObject(element, fileId + " enchantment");
-            Identifier id = new Identifier(GsonHelper.getAsString(enchantmentJson, "id"));
-            Enchantment enchantment = BuiltInRegistries.ENCHANTMENT.getOptional(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Unknown enchantment " + id + " in " + fileId));
+            Identifier id = Identifier.parse(GsonHelper.getAsString(enchantmentJson, "id"));
             int level = GsonHelper.getAsInt(enchantmentJson, "level", 1);
             float chance = GsonHelper.getAsFloat(enchantmentJson, "chance", 1.0F);
-            result.add(new EnchantmentEntry(enchantment, level, chance));
+            result.add(new EnchantmentEntry(id, level, chance));
         }
         return List.copyOf(result);
     }
@@ -226,18 +250,21 @@ public final class IvyTradeRegistry {
                                  AbstractVillager trader,
                                  RandomSource random,
                                  MerchantOffers offers) {
-        MerchantOffer offer = listing.getOffer(trader, random);
+        if (!(trader.level() instanceof ServerLevel level)) {
+            return;
+        }
+        MerchantOffer offer = listing.getOffer(level, trader, random);
         if (offer != null) {
             offers.add(offer);
         }
     }
 
     private interface ResultFactory {
-        ItemStack create(RandomSource random);
+        ItemStack create(ServerLevel level, RandomSource random);
     }
 
     private interface StackFactory extends ResultFactory {
-        StackFactory EMPTY = random -> ItemStack.EMPTY;
+        StackFactory EMPTY = (level, random) -> ItemStack.EMPTY;
     }
 
     private record CountRange(int min, int max) {
@@ -255,7 +282,7 @@ public final class IvyTradeRegistry {
         }
     }
 
-    private record EnchantmentEntry(Enchantment enchantment, int level, float chance) {
+    private record EnchantmentEntry(Identifier enchantmentId, int level, float chance) {
     }
 
     private record WeightedTrade(VillagerTrades.ItemListing listing, int weight) {
@@ -266,15 +293,15 @@ public final class IvyTradeRegistry {
 
     private record ResultPool(List<WeightedResult> entries, int totalWeight) implements ResultFactory {
         @Override
-        public ItemStack create(RandomSource random) {
+        public ItemStack create(ServerLevel level, RandomSource random) {
             int roll = random.nextInt(totalWeight);
             for (WeightedResult entry : entries) {
                 roll -= entry.weight();
                 if (roll < 0) {
-                    return entry.factory().create(random);
+                    return entry.factory().create(level, random);
                 }
             }
-            return entries.get(entries.size() - 1).factory().create(random);
+            return entries.get(entries.size() - 1).factory().create(level, random);
         }
     }
 }

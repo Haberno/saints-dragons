@@ -65,7 +65,7 @@ public final class DragonInvestigation {
     }
 
     public static boolean rememberProjectileOrigin(DragonEntity dragon, Projectile projectile) {
-        if (dragon.level().isClientSide
+        if (dragon.level().isClientSide()
                 || !dragon.getBrain().checkMemory(
                         DragonMemories.INVESTIGATION_TARGET,
                         MemoryStatus.REGISTERED

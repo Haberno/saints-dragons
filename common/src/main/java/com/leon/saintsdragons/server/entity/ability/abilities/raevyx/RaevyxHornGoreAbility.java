@@ -47,7 +47,7 @@ public class RaevyxHornGoreAbility extends DragonAbility<Raevyx> {
         if (section == null) return;
         if (section.sectionType == AbilitySectionType.STARTUP) {
             getUser().triggerAnim(RaevyxAnimationHandler.FAST_ACTION_CONTROLLER, "horn_gore");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 float pitch = 0.9f + getUser().getRandom().nextFloat() * 0.2f;
                 getUser().getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_HORNGORE.get(), 1.3f, pitch, 19);
             }
@@ -103,7 +103,7 @@ public class RaevyxHornGoreAbility extends DragonAbility<Raevyx> {
     }
 
     private void sendDebugBox(Raevyx wyvern, double range) {
-        if (sentDebugThisUse || wyvern.level().isClientSide) {
+        if (sentDebugThisUse || wyvern.level().isClientSide()) {
             return;
         }
         DragonMeleeGeometry.ForwardAttack attack = DragonMeleeGeometry.bodyForwardAttack(wyvern).offset(HITBOX_FORWARD_OFFSET);

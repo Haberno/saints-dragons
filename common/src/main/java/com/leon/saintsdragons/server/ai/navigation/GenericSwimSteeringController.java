@@ -89,7 +89,6 @@ public class GenericSwimSteeringController {
                 lerp(smoothedVelocity.z, targetVelocity.z, HORIZONTAL_VELOCITY_LERP)
         );
         mob.setDeltaMovement(smoothedVelocity);
-        mob.hasImpulse = true;
         this.moving = true;
     }
 

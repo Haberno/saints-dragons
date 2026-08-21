@@ -1,7 +1,8 @@
 package com.leon.saintsdragons.server.entity.component;
 
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.syncher.EntityDataAccessor;
 
 public final class DragonCommandComponent {
@@ -25,13 +26,11 @@ public final class DragonCommandComponent {
         }
     }
 
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         tag.putInt("Command", getCommand());
     }
 
-    public void loadFromNBT(CompoundTag tag) {
-        if (tag.contains("Command")) {
-            setCommand(tag.getInt("Command"));
-        }
+    public void loadFromNBT(ValueInput tag) {
+        tag.getInt("Command").ifPresent(this::setCommand);
     }
 }

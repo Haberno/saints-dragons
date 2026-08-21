@@ -51,7 +51,7 @@ public class VarasuchusSlashBarrageAbility extends DragonAbility<Varasuchus> {
             Varasuchus dragon = getUser();
             dragon.triggerAnim(VarasuchusAnimationHandler.FAST_ACTION_CONTROLLER, "slash_barrage");
             dragon.lockAbilities(TOTAL_TICKS);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.VARASUCHUS_SLASH_BARRAGE.get(), 1.0f, 1.0f, SOUND_TICKS);
             }
             enforceWalkOnly(dragon);
@@ -61,7 +61,7 @@ public class VarasuchusSlashBarrageAbility extends DragonAbility<Varasuchus> {
     @Override
     public void tickUsing() {
         DragonAbilitySection section = getCurrentSection();
-        if (section == null || section.sectionType != ACTIVE || getUser().level().isClientSide) {
+        if (section == null || section.sectionType != ACTIVE || getUser().level().isClientSide()) {
             return;
         }
 
@@ -110,7 +110,6 @@ public class VarasuchusSlashBarrageAbility extends DragonAbility<Varasuchus> {
             target.setDeltaMovement(Vec3.ZERO);
             target.push(push.x * 0.1D, 0.0D, push.z * 0.1D);
             target.hurtMarked = true;
-            target.hasImpulse = true;
         }
     }
 

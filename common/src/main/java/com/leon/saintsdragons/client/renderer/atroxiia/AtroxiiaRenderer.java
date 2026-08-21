@@ -14,7 +14,7 @@ public class AtroxiiaRenderer extends DragonGeoEntityRenderer<Atroxiia> {
 
     public AtroxiiaRenderer(EntityRendererProvider.Context context) {
         super(context, new AtroxiiaModel());
-        this.addRenderLayer(new AtroxiiaNightEmissiveLayer(this));
+        this.withRenderLayer(new AtroxiiaNightEmissiveLayer(this));
     }
 
     @Override

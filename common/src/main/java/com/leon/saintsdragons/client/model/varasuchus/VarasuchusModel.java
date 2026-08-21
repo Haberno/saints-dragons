@@ -59,7 +59,7 @@ public class VarasuchusModel extends DragonGeoModel<Varasuchus> {
             if (entity.isDeadOrDying()){
                 return;
             }
-            if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
+            if (!entity.isVehicle() && !entity.isInWater()) {
                 applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
@@ -88,7 +88,7 @@ public class VarasuchusModel extends DragonGeoModel<Varasuchus> {
     }
 
     private void applySwimPitch(Varasuchus entity, float partialTick) {
-        if (!entity.isInWater() && !entity.isInWaterOrBubble()) {
+        if (!entity.isInWater() && !entity.isInWater()) {
             return;
         }
         var bodyOpt = getBone("heightController");

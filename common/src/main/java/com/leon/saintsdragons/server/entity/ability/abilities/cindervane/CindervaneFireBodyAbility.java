@@ -97,7 +97,7 @@ public class CindervaneFireBodyAbility extends DragonAbility<Cindervane> {
         if (!dragon.isAlive() || dragon.isRemoved() || dragon.isFireBodySuppressed()) {
             return false;
         }
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             return false;
         }
         return true;
@@ -107,7 +107,7 @@ public class CindervaneFireBodyAbility extends DragonAbility<Cindervane> {
     public void tickUsing() {
         Cindervane dragon = getUser();
         Level level = dragon.level();
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             activeTicks++;
             applyFireAura((ServerLevel) level, dragon);
             if (dragon.isGroundedForAction() && dragon.getControllingPassenger() != null) {
@@ -140,7 +140,7 @@ public class CindervaneFireBodyAbility extends DragonAbility<Cindervane> {
                     .getConfig(DragonAttributeConfigLoader.CINDERVANE_ID)
                     .abilityDamage("fire_body", BASE_DAMAGE);
             target.hurt(level.damageSources().dragonBreath(), damage);
-            target.setSecondsOnFire(FIRE_SECONDS);
+            target.setRemainingFireTicks(FIRE_SECONDS* 20);
 
             Vec3 pushDir = target.position().subtract(center);
             if (pushDir.lengthSqr() > 1.0E-4) {
@@ -178,7 +178,7 @@ public class CindervaneFireBodyAbility extends DragonAbility<Cindervane> {
         for (ServerPlayer player : level.players()) {
             if (player.distanceToSqr(sample.x, sample.y, sample.z) <= maxDistanceSqr
                     || player.distanceToSqr(dragon) <= maxDistanceSqr) {
-                level.sendParticles(player, particle, true,
+                level.sendParticles(particle, true, true,
                         sample.x, sample.y, sample.z, count, xSpread, ySpread, zSpread, speed);
             }
         }
@@ -211,7 +211,7 @@ public class CindervaneFireBodyAbility extends DragonAbility<Cindervane> {
         for (LivingEntity ally : level.getEntitiesOfClass(LivingEntity.class, expanded,
                 entity -> entity != dragon && entity.isAlive() && dragon.isAlly(entity))) {
             ally.addEffect(new MobEffectInstance(MobEffects.FIRE_RESISTANCE, ALLY_FIRE_RESIST_TICKS, 0, true, false, false));
-            ally.addEffect(new MobEffectInstance(MobEffects.DAMAGE_RESISTANCE, ALLY_DAMAGE_RESIST_TICKS, 4, true, false, false));
+            ally.addEffect(new MobEffectInstance(MobEffects.RESISTANCE, ALLY_DAMAGE_RESIST_TICKS, 4, true, false, false));
             ally.setRemainingFireTicks(0);
         }
     }

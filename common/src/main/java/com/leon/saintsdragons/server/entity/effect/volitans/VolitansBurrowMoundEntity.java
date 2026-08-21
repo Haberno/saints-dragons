@@ -2,9 +2,7 @@ package com.leon.saintsdragons.server.entity.effect.volitans;
 
 import com.leon.saintsdragons.common.registry.ModEntities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -19,6 +17,8 @@ import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoEntity;
@@ -57,9 +57,9 @@ public class VolitansBurrowMoundEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_BLOCK_STATE, Blocks.DIRT.defaultBlockState());
-        this.entityData.define(DATA_VISUAL_YAW, 0.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_BLOCK_STATE, Blocks.DIRT.defaultBlockState());
+        builder.define(DATA_VISUAL_YAW, 0.0F);
     }
 
     public BlockState getBlockState() {
@@ -91,13 +91,13 @@ public class VolitansBurrowMoundEntity extends Entity implements GeoEntity {
         super.tick();
         setDeltaMovement(Vec3.ZERO);
         age++;
-        if (!level().isClientSide && age >= LIFETIME_TICKS) {
+        if (!level().isClientSide() && age >= LIFETIME_TICKS) {
             discard();
         }
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         return false;
     }
 
@@ -117,26 +117,17 @@ public class VolitansBurrowMoundEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        age = tag.getInt("Age");
-        if (tag.contains("BlockState", CompoundTag.TAG_COMPOUND)) {
-            setBlockState(NbtUtils.readBlockState(level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState")));
-        }
-        if (tag.contains("VisualYaw")) {
-            initializeRotation(tag.getFloat("VisualYaw"));
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        age = tag.getIntOr("Age", 0);
+        tag.read("BlockState", BlockState.CODEC).ifPresent(this::setBlockState);
+        initializeRotation(tag.getFloatOr("VisualYaw", 0.0F));
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Age", age);
-        tag.put("BlockState", NbtUtils.writeBlockState(getBlockState()));
+        tag.store("BlockState", BlockState.CODEC, getBlockState());
         tag.putFloat("VisualYaw", getVisualYaw());
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
@@ -157,10 +148,10 @@ public class VolitansBurrowMoundEntity extends Entity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<VolitansBurrowMoundEntity>("controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
+    private PlayState animationPredicate(AnimationTest<VolitansBurrowMoundEntity> state) {
         state.controller().setAnimation(SPAWN);
         return PlayState.CONTINUE;
     }

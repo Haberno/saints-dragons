@@ -1,6 +1,7 @@
 package com.leon.saintsdragons.client.renderer.layer.varasuchus;
 
 import com.leon.saintsdragons.client.renderer.layer.NightEmissiveLayer;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.varasuchus.Varasuchus;
 import net.minecraft.resources.Identifier;
@@ -12,7 +13,7 @@ public class VarasuchusNightEmissiveLayer extends NightEmissiveLayer<Varasuchus>
     private static final Identifier VOID_KISSED_EMISSIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/varasuchus/varasuchus_void_kissed_emissive.png");
 
-    public VarasuchusNightEmissiveLayer(GeoRenderer<Varasuchus> renderer) {
+    public VarasuchusNightEmissiveLayer(GeoRenderer<Varasuchus, Void, SaintsDragonsLivingEntityRenderState> renderer) {
         super(renderer);
     }
 

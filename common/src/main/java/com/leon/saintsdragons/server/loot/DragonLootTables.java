@@ -3,6 +3,8 @@ package com.leon.saintsdragons.server.loot;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
@@ -42,13 +44,14 @@ public final class DragonLootTables {
             return false;
         }
 
-        LootTable table = serverLevel.getServer().getLootData().getLootTable(tableId);
+        LootTable table = serverLevel.getServer().reloadableRegistries().getLootTable(
+                ResourceKey.create(Registries.LOOT_TABLE, tableId));
         LootParams.Builder builder = new LootParams.Builder(serverLevel)
                 .withParameter(LootContextParams.THIS_ENTITY, dragon)
                 .withParameter(LootContextParams.ORIGIN, dragon.position())
                 .withParameter(LootContextParams.DAMAGE_SOURCE, source)
-                .withOptionalParameter(LootContextParams.KILLER_ENTITY, source.getEntity())
-                .withOptionalParameter(LootContextParams.DIRECT_KILLER_ENTITY, source.getDirectEntity());
+                .withOptionalParameter(LootContextParams.ATTACKING_ENTITY, source.getEntity())
+                .withOptionalParameter(LootContextParams.DIRECT_ATTACKING_ENTITY, source.getDirectEntity());
 
         Player player = source.getEntity() instanceof Player sourcePlayer
                 ? sourcePlayer
@@ -59,7 +62,7 @@ public final class DragonLootTables {
         }
 
         List<ItemStack> drops = table.getRandomItems(builder.create(LootContextParamSets.ENTITY), dragon.getLootTableSeed());
-        drops.forEach(dragon::spawnAtLocation);
+        drops.forEach(drop -> dragon.spawnAtLocation(serverLevel, drop));
         return !drops.isEmpty();
     }
 
@@ -68,7 +71,8 @@ public final class DragonLootTables {
             return;
         }
 
-        LootTable table = serverLevel.getServer().getLootData().getLootTable(tableId);
+        LootTable table = serverLevel.getServer().reloadableRegistries().getLootTable(
+                ResourceKey.create(Registries.LOOT_TABLE, tableId));
         LootParams params = new LootParams.Builder(serverLevel)
                 .withParameter(LootContextParams.ORIGIN, dragon.position())
                 .withOptionalParameter(LootContextParams.THIS_ENTITY, dragon)
@@ -78,7 +82,7 @@ public final class DragonLootTables {
         for (ItemStack drop : drops) {
             if (!drop.isEmpty()) {
                 drop.setCount(Math.max(1, scaleCount));
-                dragon.spawnAtLocation(drop);
+                dragon.spawnAtLocation(serverLevel, drop);
             }
         }
     }

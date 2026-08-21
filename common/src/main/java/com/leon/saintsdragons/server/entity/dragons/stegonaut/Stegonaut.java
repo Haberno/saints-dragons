@@ -27,8 +27,7 @@ import com.leon.saintsdragons.common.network.DragonRiderAction;
 import com.leon.saintsdragons.common.config.SaintsDragonsConfig;
 import com.leon.saintsdragons.common.registry.ModTags;
 import com.leon.saintsdragons.server.world.DragonSpawnRules;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -62,11 +61,14 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.SimpleContainer;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import javax.annotation.Nonnull;
@@ -142,22 +144,22 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, 0.18F);
         setupAnimationControllers();
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             applyConfiguredAttributes();
             this.setHealth(this.getMaxHealth());
         }
     }
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
     }
 
     @Override
-    protected void defineRideableDragonData() {
-        this.entityData.define(DATA_HAS_CHEST, false);
-        this.entityData.define(DATA_SADDLED, false);
-        this.entityData.define(DATA_FEEDING_COOLDOWN, 0);
-        this.entityData.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
+    protected void defineRideableDragonData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_HAS_CHEST, false);
+        builder.define(DATA_SADDLED, false);
+        builder.define(DATA_FEEDING_COOLDOWN, 0);
+        builder.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
     }
     @Override
     public Map<String, VocalEntry> getVocalEntries() {
@@ -184,9 +186,9 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     }
 
     @Override
-    protected void customServerAiStep() {
+    protected void customServerAiStep(ServerLevel serverLevel) {
         DragonBrain.tick(DRAGON_BRAIN, this);
-        super.customServerAiStep();
+        super.customServerAiStep(serverLevel);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -218,7 +220,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
                 && !isBaby()
                 && !isDying()
                 && isGroundedForAction()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !isOrderedToSit()
                 && !isInSitTransition()
                 && !isSleeping()
@@ -386,7 +388,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
 
     @Override
     protected void dropAdditionalDeathLootAfterBase(@NotNull DamageSource source) {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             dropEquipmentOnDeath();
             if (getGender() == DragonGender.FEMALE) {
                 DragonLootTables.dropEntityLoot(this, DragonLootTables.STEGONAUT_FEMALE_DEATH, source);
@@ -395,7 +397,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         if (isDying()) {
             return false;
         }
@@ -407,7 +409,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
             amount *= 0.3F;
         }
 
-        return super.hurt(source, amount);
+        return super.hurtServer(level, source, amount);
     }
 
     private boolean isWildStegonautDamageAllowed(@NotNull DamageSource source) {
@@ -517,17 +519,20 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     }
 
     private void dropStegonautChestContents() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
         for (int slot = 0; slot < stegonautChestInventory.getContainerSize(); slot++) {
             ItemStack stack = stegonautChestInventory.getItem(slot);
             if (!stack.isEmpty()) {
-                this.spawnAtLocation(stack.copy());
+                this.spawnAtLocation(serverLevel, stack.copy());
                 stegonautChestInventory.setItem(slot, ItemStack.EMPTY);
             }
         }
     }
 
     public void removeStegonautChestAndDropContents() {
-        if (this.level().isClientSide || !hasStegonautChest()) {
+        if (this.level().isClientSide() || !hasStegonautChest()) {
             return;
         }
         dropStegonautChestContents();
@@ -562,13 +567,13 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     @Override
     public void aiStep() {
         super.aiStep();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             if (this.isTame()) {
                 this.packLeaderUuid = null;
             }
         }
         tickRiderControlLock();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             tickAnimationStates();
         }
     }
@@ -581,7 +586,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
 
     @Override
     public boolean isSleepSuppressed() {
-        return super.isSleepSuppressed() || getTarget() != null || isInWaterOrBubble() || isVehicle();
+        return super.isSleepSuppressed() || getTarget() != null || isInWater() || isVehicle();
     }
 
     @Override
@@ -725,7 +730,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     public void setOrderedToSit(boolean sitting) {
         boolean wasSitting = this.isOrderedToSit();
         super.setOrderedToSit(sitting);
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         if (wasSitting == sitting) {
@@ -747,7 +752,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     public void tick() {
         super.tick();
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             tickFeedingCooldown();
             handleAmbientSounds();
         }
@@ -782,7 +787,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
         return this.isTame() && this.getCommand() == 1;
     }
     public void playEatMovingSound() {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             getSoundHandler().playMovingEntitySound(ModSounds.STEGONAUT_EAT.get(), 1.0f, isBaby() ? 1.6f : 1.0f, 22);
         }
     }
@@ -851,7 +856,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("StegonautCommand", this.getCommand());
         tag.putBoolean("StegonautOrderedSit", this.isOrderedToSit());
@@ -859,51 +864,44 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
         tag.putInt("FeedingCooldownTicks", Math.max(0, this.entityData.get(DATA_FEEDING_COOLDOWN)));
         tag.putBoolean("BoundToBinder", boundToBinder);
         if (this.packLeaderUuid != null) {
-            tag.putUUID("PackLeaderUuid", this.packLeaderUuid);
+            tag.store("PackLeaderUuid", UUIDUtil.CODEC, this.packLeaderUuid);
         }
         tag.putBoolean("StegonautHasChest", hasStegonautChest());
         tag.putBoolean("StegonautSaddled", hasSaddle());
         if (hasStegonautChest()) {
-            tag.put("StegonautChestItems", stegonautChestInventory.createTag());
+            ContainerHelper.saveAllItems(tag.child("StegonautChestItems"), stegonautChestInventory.getItems());
         }
         saveSitProgress(tag);
         saveRideableData(tag);
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
         loadRideableData(tag);
 
-        int restoredCommand = this.getCommand();
-        if (tag.contains("StegonautCommand")) {
-            restoredCommand = tag.getInt("StegonautCommand");
-            this.setCommand(restoredCommand);
-        }
-        boolean restoredOrderedSit = tag.contains("StegonautOrderedSit")
-                ? tag.getBoolean("StegonautOrderedSit")
-                : restoredCommand == 1;
-        grumbleCooldown = tag.getInt("GrumbleCooldown");
-        if (tag.contains("FeedingCooldownTicks")) {
-            this.entityData.set(DATA_FEEDING_COOLDOWN, Math.max(0, tag.getInt("FeedingCooldownTicks")));
-        }
-        boundToBinder = tag.getBoolean("BoundToBinder");
-        this.packLeaderUuid = tag.hasUUID("PackLeaderUuid") ? tag.getUUID("PackLeaderUuid") : null;
+        int restoredCommand = tag.getIntOr("StegonautCommand", this.getCommand());
+        this.setCommand(restoredCommand);
+        boolean restoredOrderedSit = tag.getBooleanOr("StegonautOrderedSit", restoredCommand == 1);
+        grumbleCooldown = tag.getIntOr("GrumbleCooldown", 0);
+        this.entityData.set(DATA_FEEDING_COOLDOWN,
+                Math.max(0, tag.getIntOr("FeedingCooldownTicks", 0)));
+        boundToBinder = tag.getBooleanOr("BoundToBinder", false);
+        this.packLeaderUuid = tag.read("PackLeaderUuid", UUIDUtil.CODEC).orElse(null);
         if (this.isTame()) {
             this.packLeaderUuid = null;
         }
 
-        boolean restoredChest = tag.getBoolean("StegonautHasChest");
+        boolean restoredChest = tag.getBooleanOr("StegonautHasChest", false);
         boolean restoredSaddle = restoredChest
-                || tag.contains("StegonautSaddled") && tag.getBoolean("StegonautSaddled");
+                || tag.getBooleanOr("StegonautSaddled", false);
         setSaddle(restoredSaddle);
         setStegonautChest(restoredChest);
-        if (hasStegonautChest() && tag.contains("StegonautChestItems", Tag.TAG_LIST)) {
-            stegonautChestInventory.fromTag(tag.getList("StegonautChestItems", Tag.TAG_COMPOUND));
+        if (hasStegonautChest()) {
+            tag.child("StegonautChestItems").ifPresent(
+                    input -> ContainerHelper.loadAllItems(input, stegonautChestInventory.getItems()));
         }
-        if (tag.contains("SitProgress")) {
-            setSitProgress(tag.getFloat("SitProgress"));
-        }
+        setSitProgress(tag.getFloatOr("SitProgress", getSitProgress()));
         refreshCommandState();
         this.setOrderedToSit(restoredOrderedSit);
         applyConfiguredAttributes();
@@ -915,13 +913,16 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
     }
 
     private void dropEquipmentOnDeath() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
         if (hasStegonautChest()) {
             dropStegonautChestContents();
-            spawnAtLocation(Items.CHEST);
+            spawnAtLocation(serverLevel, Items.CHEST);
             setStegonautChest(false);
         }
         if (hasSaddle()) {
-            spawnAtLocation(Items.SADDLE);
+            spawnAtLocation(serverLevel, Items.SADDLE);
             setSaddle(false);
         }
     }
@@ -985,7 +986,7 @@ public class Stegonaut extends RideableGroundDragon implements PackMember<Stegon
         }
 
         Vec3 input = riderController.getRiddenInput(player, deltaIn);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             float fwd = (float) Math.max(-1.0D, Math.min(1.0D, input.z));
             float str = (float) Math.max(-1.0D, Math.min(1.0D, input.x));
             setLastRiderForward(Math.abs(fwd) > 0.02f ? fwd : 0f);

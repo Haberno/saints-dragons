@@ -130,8 +130,8 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
     @Override
     protected void addTags(@NotNull HolderLookup.Provider provider) {
         tag(ModTags.Biomes.HAS_ATROXIIA)
-                .addOptionalTag(rl("c", "is_cold/overworld"))
-                .addOptionalTag(rl("forge", "is_cold"))
+                .addOptionalTag(biomeTag("c", "is_cold/overworld"))
+                .addOptionalTag(biomeTag("forge", "is_cold"))
                 .add(Biomes.SNOWY_PLAINS)
                 .add(Biomes.ICE_SPIKES);
 
@@ -139,21 +139,21 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .addTag(BiomeTags.IS_MOUNTAIN)
                 .addTag(BiomeTags.IS_HILL)
                 .addTag(BiomeTags.IS_BADLANDS)
-                .addOptionalTag(rl("c", "mountain"))
-                .addOptionalTag(rl("c", "mountain_peak"))
-                .addOptionalTag(rl("c", "mountain_slope"))
-                .addOptionalTag(rl("c", "is_mountain"))
-                .addOptionalTag(rl("c", "is_mountain/peak"))
-                .addOptionalTag(rl("c", "is_mountain/slope"))
-                .addOptionalTag(rl("c", "is_hill"))
-                .addOptionalTag(rl("c", "is_windswept"))
-                .addOptionalTag(rl("c", "badlands"))
-                .addOptionalTag(rl("c", "is_badlands"))
-                .addOptionalTag(rl("c", "desert"))
-                .addOptionalTag(rl("c", "is_desert"))
-                .addOptionalTag(rl("forge", "is_mountain"))
-                .addOptionalTag(rl("forge", "is_peak"))
-                .addOptionalTag(rl("forge", "is_slope"))
+                .addOptionalTag(biomeTag("c", "mountain"))
+                .addOptionalTag(biomeTag("c", "mountain_peak"))
+                .addOptionalTag(biomeTag("c", "mountain_slope"))
+                .addOptionalTag(biomeTag("c", "is_mountain"))
+                .addOptionalTag(biomeTag("c", "is_mountain/peak"))
+                .addOptionalTag(biomeTag("c", "is_mountain/slope"))
+                .addOptionalTag(biomeTag("c", "is_hill"))
+                .addOptionalTag(biomeTag("c", "is_windswept"))
+                .addOptionalTag(biomeTag("c", "badlands"))
+                .addOptionalTag(biomeTag("c", "is_badlands"))
+                .addOptionalTag(biomeTag("c", "desert"))
+                .addOptionalTag(biomeTag("c", "is_desert"))
+                .addOptionalTag(biomeTag("forge", "is_mountain"))
+                .addOptionalTag(biomeTag("forge", "is_peak"))
+                .addOptionalTag(biomeTag("forge", "is_slope"))
                 .add(Biomes.STONY_PEAKS)
                 .add(Biomes.JAGGED_PEAKS)
                 .add(Biomes.FROZEN_PEAKS)
@@ -166,9 +166,9 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
         }
 
         tag(ModTags.Biomes.HAS_IVY_HOUSE)
-                .addOptionalTag(rl("c", "forest"))
-                .addOptionalTag(rl("c", "is_forest"))
-                .addOptionalTag(rl("forge", "is_forest"))
+                .addOptionalTag(biomeTag("c", "forest"))
+                .addOptionalTag(biomeTag("c", "is_forest"))
+                .addOptionalTag(biomeTag("forge", "is_forest"))
                 .add(Biomes.FOREST)
                 .add(Biomes.BIRCH_FOREST)
                 .add(Biomes.OLD_GROWTH_BIRCH_FOREST)
@@ -199,12 +199,12 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
 
         tag(ModTags.Biomes.HAS_STEGONAUT)
                 .addTag(BiomeTags.IS_JUNGLE)
-                .addOptionalTag(rl("c", "jungle"))
-                .addOptionalTag(rl("c", "is_jungle"))
-                .addOptionalTag(rl("forge", "is_jungle"))
-                .addOptionalTag(rl("c", "plains"))
-                .addOptionalTag(rl("c", "is_plains"))
-                .addOptionalTag(rl("forge", "is_plains"))
+                .addOptionalTag(biomeTag("c", "jungle"))
+                .addOptionalTag(biomeTag("c", "is_jungle"))
+                .addOptionalTag(biomeTag("forge", "is_jungle"))
+                .addOptionalTag(biomeTag("c", "plains"))
+                .addOptionalTag(biomeTag("c", "is_plains"))
+                .addOptionalTag(biomeTag("forge", "is_plains"))
                 .add(Biomes.PLAINS)
                 .add(Biomes.SUNFLOWER_PLAINS)
                 .add(Biomes.JUNGLE)
@@ -213,16 +213,16 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
 
         var stegonautCaveBiomes = tag(ModTags.Biomes.HAS_STEGONAUT_CAVES)
                 .addTag(ModTags.Biomes.HAS_STEGONAUT)
-                .addOptionalTag(rl("forge", "is_lush"))
+                .addOptionalTag(biomeTag("forge", "is_lush"))
                 .add(Biomes.LUSH_CAVES);
         for (Identifier biome : STEGONAUT_CAVE_COMPAT_BIOMES) {
             stegonautCaveBiomes.addOptional(biome);
         }
 
         tag(ModTags.Biomes.HAS_VOLITANS)
-                .addOptionalTag(rl("c", "ocean"))
-                .addOptionalTag(rl("c", "is_ocean"))
-                .addOptionalTag(rl("forge", "is_ocean"))
+                .addOptionalTag(biomeTag("c", "ocean"))
+                .addOptionalTag(biomeTag("c", "is_ocean"))
+                .addOptionalTag(biomeTag("forge", "is_ocean"))
                 .add(Biomes.OCEAN)
                 .add(Biomes.DEEP_OCEAN)
                 .add(Biomes.COLD_OCEAN)
@@ -234,20 +234,20 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .add(Biomes.WARM_OCEAN);
 
         tag(ModTags.Biomes.HAS_VOLITANS_FALLBACK)
-                .addOptionalTag(rl("c", "beach"))
-                .addOptionalTag(rl("forge", "is_swamp"))
-                .addOptionalTag(rl("forge", "is_plains"))
-                .addOptionalTag(rl("c", "plains"))
+                .addOptionalTag(biomeTag("c", "beach"))
+                .addOptionalTag(biomeTag("forge", "is_swamp"))
+                .addOptionalTag(biomeTag("forge", "is_plains"))
+                .addOptionalTag(biomeTag("c", "plains"))
                 .add(Biomes.BEACH)
                 .add(Biomes.STONY_SHORE);
 
         tag(ModTags.Biomes.HAS_MOOP)
-                .addOptionalTag(rl("c", "river"))
-                .addOptionalTag(rl("c", "is_river"))
-                .addOptionalTag(rl("c", "ocean"))
-                .addOptionalTag(rl("c", "is_ocean"))
-                .addOptionalTag(rl("forge", "is_river"))
-                .addOptionalTag(rl("forge", "is_ocean"))
+                .addOptionalTag(biomeTag("c", "river"))
+                .addOptionalTag(biomeTag("c", "is_river"))
+                .addOptionalTag(biomeTag("c", "ocean"))
+                .addOptionalTag(biomeTag("c", "is_ocean"))
+                .addOptionalTag(biomeTag("forge", "is_river"))
+                .addOptionalTag(biomeTag("forge", "is_ocean"))
                 .add(Biomes.RIVER)
                 .add(Biomes.FROZEN_RIVER)
                 .add(Biomes.OCEAN)
@@ -263,18 +263,18 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .add(Biomes.MANGROVE_SWAMP);
 
         tag(ModTags.Biomes.HAS_MOSSBACK)
-                .addOptionalTag(rl("c", "jungle"))
-                .addOptionalTag(rl("c", "is_jungle"))
-                .addOptionalTag(rl("forge", "is_jungle"))
+                .addOptionalTag(biomeTag("c", "jungle"))
+                .addOptionalTag(biomeTag("c", "is_jungle"))
+                .addOptionalTag(biomeTag("forge", "is_jungle"))
                 .add(Biomes.JUNGLE)
                 .add(Biomes.SPARSE_JUNGLE)
                 .add(Biomes.BAMBOO_JUNGLE);
 
         var ignivorusRoostBiomes = tag(ModTags.Biomes.HAS_IGNIVORUS_ROOST)
-                .addOptionalTag(rl("c", "wasteland"))
-                .addOptionalTag(rl("c", "is_wasteland"))
-                .addOptionalTag(rl("forge", "is_wasteland"))
-                .addOptionalTag(rl("terralith", "volcanic"))
+                .addOptionalTag(biomeTag("c", "wasteland"))
+                .addOptionalTag(biomeTag("c", "is_wasteland"))
+                .addOptionalTag(biomeTag("forge", "is_wasteland"))
+                .addOptionalTag(biomeTag("terralith", "volcanic"))
                 .add(Biomes.PLAINS)
                 .add(Biomes.SAVANNA)
                 .add(Biomes.MEADOW)
@@ -288,12 +288,12 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
 
         var varasuchusRoostBiomes = tag(ModTags.Biomes.HAS_VARASUCHUS_ROOST)
                 .addTag(BiomeTags.IS_BEACH)
-                .addOptionalTag(rl("c", "beach"))
-                .addOptionalTag(rl("c", "is_beach"))
-                .addOptionalTag(rl("c", "swamp"))
-                .addOptionalTag(rl("c", "is_swamp"))
-                .addOptionalTag(rl("forge", "is_beach"))
-                .addOptionalTag(rl("forge", "is_swamp"))
+                .addOptionalTag(biomeTag("c", "beach"))
+                .addOptionalTag(biomeTag("c", "is_beach"))
+                .addOptionalTag(biomeTag("c", "swamp"))
+                .addOptionalTag(biomeTag("c", "is_swamp"))
+                .addOptionalTag(biomeTag("forge", "is_beach"))
+                .addOptionalTag(biomeTag("forge", "is_swamp"))
                 .add(Biomes.BEACH)
                 .add(Biomes.STONY_SHORE)
                 .add(Biomes.SWAMP)
@@ -318,5 +318,14 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
 
     private static Identifier rl(String namespace, String path) {
         return Identifier.fromNamespaceAndPath(namespace, path);
+    }
+
+    private static net.minecraft.tags.TagKey<net.minecraft.world.level.biome.Biome> biomeTag(
+            String namespace,
+            String path
+    ) {
+        return net.minecraft.tags.TagKey.create(
+                net.minecraft.core.registries.Registries.BIOME,
+                rl(namespace, path));
     }
 }

@@ -2,6 +2,8 @@ package com.leon.saintsdragons.client.ui;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.menu.DraconicCrucibleMenu;
+import com.mojang.blaze3d.buffers.GpuBuffer;
+import com.mojang.blaze3d.buffers.GpuBufferSlice;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -37,7 +39,6 @@ public class DraconicCrucibleScreen extends AbstractContainerScreen<DraconicCruc
 
     @Override
     protected void renderBg(@NotNull GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         guiGraphics.blit(TEXTURE, this.leftPos, this.topPos, 0, 0,
                 this.imageWidth, this.imageHeight, 256, 256);
         int arrowFillHeight = getArrowFillHeight();
@@ -132,7 +133,7 @@ public class DraconicCrucibleScreen extends AbstractContainerScreen<DraconicCruc
         if (this.crucibleButton != null) {
             this.crucibleButton.active = this.menu.canStartProcessing();
         }
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }
@@ -155,20 +156,17 @@ public class DraconicCrucibleScreen extends AbstractContainerScreen<DraconicCruc
                     ? BUTTON_CLICKED_V
                     : (this.isHovered() ? BUTTON_HIGHLIGHTED_V : BUTTON_DEFAULT_V));
             if (!this.active) {
-                RenderSystem.setShaderColor(0.45F, 0.45F, 0.45F, 1.0F);
             }
             guiGraphics.blit(TEXTURE, this.getX(), this.getY(), BUTTON_U, v,
                     BUTTON_WIDTH, BUTTON_HEIGHT, 256, 256);
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
+
         }
 
-        @Override
         public void onClick(double mouseX, double mouseY) {
             this.pressed = true;
             this.onPress.run();
         }
 
-        @Override
         public void onRelease(double mouseX, double mouseY) {
             this.pressed = false;
         }

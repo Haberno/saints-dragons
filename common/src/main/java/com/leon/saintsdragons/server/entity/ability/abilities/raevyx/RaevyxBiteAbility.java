@@ -43,7 +43,7 @@ public class RaevyxBiteAbility extends DragonAbility<Raevyx> {
         if (section == null) return;
         if (section.sectionType == AbilitySectionType.STARTUP) {
             getUser().triggerAnim(RaevyxAnimationHandler.FAST_ACTION_CONTROLLER, "lightning_bite");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 float pitch = 0.95f + getUser().getRandom().nextFloat() * 0.10f;
                 getUser().getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_BITE.get(), 1.0f, pitch, 50);
             }
@@ -93,7 +93,7 @@ public class RaevyxBiteAbility extends DragonAbility<Raevyx> {
     }
 
     private void sendDebugBox(Raevyx wyvern) {
-        if (wyvern.level().isClientSide) {
+        if (wyvern.level().isClientSide()) {
             return;
         }
         DragonMeleeGeometry.ForwardAttack attack = DragonMeleeGeometry.bodyForwardAttack(wyvern).offset(HITBOX_FORWARD_OFFSET);

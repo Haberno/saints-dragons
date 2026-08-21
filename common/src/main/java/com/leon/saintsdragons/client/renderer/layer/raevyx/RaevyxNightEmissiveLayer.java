@@ -1,6 +1,7 @@
 package com.leon.saintsdragons.client.renderer.layer.raevyx;
 
 import com.leon.saintsdragons.client.renderer.layer.NightEmissiveLayer;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
 import net.minecraft.resources.Identifier;
@@ -13,7 +14,7 @@ public class RaevyxNightEmissiveLayer extends NightEmissiveLayer<Raevyx> {
     private static final Identifier NIGHT_GOLD_EMISSIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_night_gold_emissive.png");
 
-    public RaevyxNightEmissiveLayer(GeoRenderer<Raevyx> renderer) {
+    public RaevyxNightEmissiveLayer(GeoRenderer<Raevyx, Void, SaintsDragonsLivingEntityRenderState> renderer) {
         super(renderer);
     }
 

@@ -1,11 +1,14 @@
 package com.leon.saintsdragons.server.data;
 
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -13,15 +16,28 @@ import java.util.UUID;
 
 public class DragonlordPlayerSavedData extends SavedData {
     private static final String DATA_NAME = "saintsdragons_dragonlord_players";
+    private static final Codec<DragonlordPlayerSavedData> CODEC = SavedHealth.CODEC.listOf()
+            .fieldOf("Players")
+            .xmap(DragonlordPlayerSavedData::new, DragonlordPlayerSavedData::entries)
+            .codec();
+    private static final SavedDataType<DragonlordPlayerSavedData> TYPE = new SavedDataType<>(
+            DATA_NAME,
+            DragonlordPlayerSavedData::new,
+            CODEC,
+            DataFixTypes.SAVED_DATA_COMMAND_STORAGE
+    );
     private final Map<UUID, Float> savedHealth = new HashMap<>();
+
+    public DragonlordPlayerSavedData() {
+    }
+
+    private DragonlordPlayerSavedData(List<SavedHealth> entries) {
+        entries.forEach(entry -> savedHealth.put(entry.playerId(), entry.health()));
+    }
 
     public static DragonlordPlayerSavedData get(ServerLevel level) {
         ServerLevel storageLevel = level.getServer().overworld();
-        return storageLevel.getDataStorage().computeIfAbsent(
-                DragonlordPlayerSavedData::load,
-                DragonlordPlayerSavedData::new,
-                DATA_NAME
-        );
+        return storageLevel.getDataStorage().computeIfAbsent(TYPE);
     }
 
     public void saveHealth(UUID playerId, float health) {
@@ -56,30 +72,16 @@ public class DragonlordPlayerSavedData extends SavedData {
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag tag) {
-        ListTag players = new ListTag();
-        for (Map.Entry<UUID, Float> entry : savedHealth.entrySet()) {
-            CompoundTag playerTag = new CompoundTag();
-            playerTag.putUUID("UUID", entry.getKey());
-            playerTag.putFloat("Health", entry.getValue());
-            players.add(playerTag);
-        }
-        tag.put("Players", players);
-        return tag;
+    private List<SavedHealth> entries() {
+        return savedHealth.entrySet().stream()
+                .map(entry -> new SavedHealth(entry.getKey(), entry.getValue()))
+                .toList();
     }
 
-    public static DragonlordPlayerSavedData load(CompoundTag tag) {
-        DragonlordPlayerSavedData data = new DragonlordPlayerSavedData();
-        if (tag.contains("Players", Tag.TAG_LIST)) {
-            ListTag players = tag.getList("Players", Tag.TAG_COMPOUND);
-            for (int i = 0; i < players.size(); i++) {
-                CompoundTag playerTag = players.getCompound(i);
-                if (playerTag.hasUUID("UUID") && playerTag.contains("Health", Tag.TAG_FLOAT)) {
-                    data.savedHealth.put(playerTag.getUUID("UUID"), playerTag.getFloat("Health"));
-                }
-            }
-        }
-        return data;
+    private record SavedHealth(UUID playerId, float health) {
+        private static final Codec<SavedHealth> CODEC = RecordCodecBuilder.create(instance -> instance.group(
+                UUIDUtil.CODEC.fieldOf("UUID").forGetter(SavedHealth::playerId),
+                Codec.FLOAT.fieldOf("Health").forGetter(SavedHealth::health)
+        ).apply(instance, SavedHealth::new));
     }
 }

@@ -45,7 +45,7 @@ public final class DragonScentAssessmentBehaviour<T extends DragonEntity> extend
         int cooldown = randomBetween(context, profile.minCooldownTicks(), profile.maxCooldownTicks());
         context.memories().set(DragonMemories.SCENT_COOLDOWN, true, cooldown);
 
-        if (context.dragon().isInWaterOrBubble()) {
+        if (context.dragon().isInWater()) {
             assessmentDuration = 0;
             context.memories().erase(DragonMemories.SCENT_CANDIDATE);
             context.dragon().setScentAssessing(false);

@@ -166,7 +166,8 @@ public class WingedDiveBombGoal extends Goal {
         }
         LivingEntity victim = hits.contains(target) ? target : hits.get(0);
         float damage = (float) this.winged.getDiveBombDamage();
-        if (victim.hurt(this.winged.damageSources().mobAttack(this.winged), damage)) {
+        if (victim.hurtServer((net.minecraft.server.level.ServerLevel) this.winged.level(),
+                this.winged.damageSources().mobAttack(this.winged), damage)) {
             victim.setDeltaMovement(victim.getDeltaMovement().scale(0.25D)
                     .add(this.attackDirection.scale(0.9D)).add(0.0D, 0.12D, 0.0D));
             victim.hurtMarked = true;

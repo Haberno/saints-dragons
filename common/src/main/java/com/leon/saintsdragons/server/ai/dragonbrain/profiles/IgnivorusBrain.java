@@ -127,7 +127,7 @@ public class IgnivorusBrain implements DragonBrainOwner<Ignivorus> {
                                                 1.0D,
                                                 120,
                                                 10,
-                                                dragon -> !dragon.isInWaterOrBubble()
+                                                dragon -> !dragon.isInWater()
                                                         && !dragon.shouldSuspendRoostWandering(),
                                                 Ignivorus::isWithinRoostWanderArea
                                         )

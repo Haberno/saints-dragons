@@ -195,7 +195,7 @@ public final class RaevyxChainLightningAbility {
         if (entity instanceof TamableAnimal tamable && tamable.isTame()) {
             return true;
         }
-        return entity instanceof OwnableEntity ownable && ownable.getOwnerUUID() != null;
+        return entity instanceof OwnableEntity ownable && ownable.getOwnerReference() != null;
     }
 
     private static Vec3 centerOf(LivingEntity entity) {

@@ -19,7 +19,7 @@ public final class DragonDiveEffectIntensity {
     }
 
     public static float get(Entity entity) {
-        if (!(entity instanceof RideableFlyingDragon dragon) || !dragon.isFlying() || dragon.isInWaterOrBubble()) {
+        if (!(entity instanceof RideableFlyingDragon dragon) || !dragon.isFlying() || dragon.isInWater()) {
             return 0.0F;
         }
 

@@ -34,7 +34,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
 
         if (dragon.isSleeping() || dragon.isSleepingEntering() || dragon.isSleepingExiting()) {
             sendStatusMessage(player, "entity.saintsdragons.varasuchus.sleeping");
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (dragon.isBaby()) {
@@ -51,7 +51,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
 
         if (!legacyTaming && hand == InteractionHand.MAIN_HAND && heldItem.isEmpty() && !player.isCrouching()) {
             boolean started = dragon.beginUntamedRide(player);
-            return started ? InteractionResult.sidedSuccess(dragon.level().isClientSide) : InteractionResult.PASS;
+            return started ? dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER : InteractionResult.PASS;
         }
 
         return InteractionResult.PASS;
@@ -59,7 +59,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
 
     private InteractionResult handleLegacyTaming(Player player, ItemStack food) {
         if (!dragon.canFeed()) {
-            if (!dragon.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+            if (!dragon.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.displayClientMessage(
                         Component.translatable("entity.saintsdragons.varasuchus.still_eating", dragon.getName()),
                         true
@@ -68,7 +68,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!player.getAbilities().instabuild) {
                 food.shrink(1);
             }
@@ -103,7 +103,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
@@ -175,7 +175,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!player.getAbilities().instabuild) {
                 food.shrink(1);
             }
@@ -208,7 +208,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
 
                 dragon.level().broadcastEntityEvent(dragon, (byte) 7);
 
-                if (!dragon.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+                if (!dragon.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
                     boolean fullyHealed = newHealth >= dragon.getMaxHealth();
                     String messageKey;
                     if (fullyHealed) {
@@ -227,7 +227,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private InteractionResult handleBabyTaming(Player player, ItemStack food, DragonAttributeConfig config) {
@@ -235,7 +235,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
         boolean heartyMeal = food.is(ModItems.HEARTY_DRAGON_MEAL.get());
         boolean validFood = isVarasuchusFood(food);
         if (baby == null) {
-            return validFood ? InteractionResult.sidedSuccess(dragon.level().isClientSide) : InteractionResult.PASS;
+            return validFood ? dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER : InteractionResult.PASS;
         }
 
         double tameChance = getTamingChance(food, config);
@@ -262,7 +262,7 @@ public class VarasuchusInteractionHandler extends AbstractDragonInteractionHandl
     }
 
     private void playEatSound() {
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             float pitch = dragon.isBaby() ? 1.6f : 1.0f;
             dragon.getSoundHandler().playMovingEntitySound(ModSounds.VARASUCHUS_EAT.get(), 1.0f, pitch, 59);
         }

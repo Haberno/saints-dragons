@@ -1,6 +1,7 @@
 package com.leon.saintsdragons.client.renderer.layer.ignivorus;
 
 import com.leon.saintsdragons.client.renderer.layer.NightEmissiveLayer;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
 import net.minecraft.resources.Identifier;
@@ -14,7 +15,7 @@ public class IgnivorusNightEmissiveLayer extends NightEmissiveLayer<Ignivorus> {
     private static final Identifier CRIMSON_FEMALE_EMISSIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/ignivorus/crimson_ignivorus_female_emissive.png");
 
-    public IgnivorusNightEmissiveLayer(GeoRenderer<Ignivorus> renderer) {
+    public IgnivorusNightEmissiveLayer(GeoRenderer<Ignivorus, Void, SaintsDragonsLivingEntityRenderState> renderer) {
         super(renderer);
     }
 

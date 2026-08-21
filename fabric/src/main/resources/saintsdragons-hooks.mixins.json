@@ -12,10 +12,7 @@
     "ServerboundInteractPacketIdAccessor",
     "MultipartInteractionBridgeMixin"
   ],
-  "client": [
-    "ClientLevelEntityMapAccessor",
-    "ClientRecipeBookMixin"
-  ],
+  "client": [],
   "injectors": {
     "defaultRequire": 1
   }

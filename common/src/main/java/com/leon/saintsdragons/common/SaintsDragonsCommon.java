@@ -19,7 +19,7 @@ public final class SaintsDragonsCommon {
     }
 
     public static Identifier rl(String path) {
-        return new Identifier(MOD_ID, path);
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public static synchronized void init() {

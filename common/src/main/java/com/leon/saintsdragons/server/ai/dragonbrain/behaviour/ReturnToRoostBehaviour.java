@@ -146,7 +146,7 @@ public class ReturnToRoostBehaviour<T extends RideableDragonBase> extends Dragon
         groundRouteFailures = 0;
         routeRetryRequested = false;
         groundAttemptStartDistance = Double.NaN;
-        exitingWater = context.dragon().isInWaterOrBubble();
+        exitingWater = context.dragon().isInWater();
         approachingShore = false;
         returningToTerritory = !shouldReturnForSleep(context)
                 && isOutsideTerritory(context, territoryRadiusSqr);
@@ -210,7 +210,7 @@ public class ReturnToRoostBehaviour<T extends RideableDragonBase> extends Dragon
 
     private boolean needsSleepReturnMovement(DragonBrainContext<T> context) {
         GlobalPos destination = getDestination(context, true);
-        return context.dragon().isInWaterOrBubble()
+        return context.dragon().isInWater()
                 || context.dragon().isAerial()
                 || destination.pos().distSqr(context.dragon().blockPosition()) > arrivalRadiusSqr;
     }
@@ -229,7 +229,7 @@ public class ReturnToRoostBehaviour<T extends RideableDragonBase> extends Dragon
 
         boolean needsMovement = returningForSleep
                 ? needsSleepReturnMovement(context)
-                : dragon.isInWaterOrBubble()
+                : dragon.isInWater()
                         || dragon.isAerial()
                         || isOutsideTerritory(context, territoryReturnRadiusSqr);
         if (!needsMovement) {
@@ -245,7 +245,7 @@ public class ReturnToRoostBehaviour<T extends RideableDragonBase> extends Dragon
             return;
         }
 
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             exitingWater = true;
             waterEntryTarget = null;
             rejectedWaterEntries.clear();
@@ -1052,16 +1052,14 @@ public class ReturnToRoostBehaviour<T extends RideableDragonBase> extends Dragon
 
     private void holdAtSurface(T dragon) {
         Vec3 velocity = dragon.getDeltaMovement();
-        if (!dragon.isInWaterOrBubble()) {
+        if (!dragon.isInWater()) {
             dragon.setDeltaMovement(velocity.x * 0.8D, Math.min(velocity.y, -0.04D), velocity.z * 0.8D);
-            dragon.hasImpulse = true;
             return;
         }
         double upward = dragon.getFluidHeight(FluidTags.WATER) > dragon.getBbHeight() * 0.65D
                 ? 0.10D
                 : 0.04D;
         dragon.setDeltaMovement(velocity.x * 0.8D, Math.max(velocity.y, upward), velocity.z * 0.8D);
-        dragon.hasImpulse = true;
     }
 
     private boolean hasBodyClearance(DragonBrainContext<T> context, Vec3 feetPosition) {
@@ -1123,7 +1121,6 @@ public class ReturnToRoostBehaviour<T extends RideableDragonBase> extends Dragon
                 velocity.z * 0.45D + direction.z * horizontalBoost
         );
         dragon.getMoveControl().setWantedPosition(landPosition.x, landPosition.y, landPosition.z, 1.15D);
-        dragon.hasImpulse = true;
     }
 
     private void applyWaterEntryTransition(T dragon, Vec3 waterPosition) {
@@ -1148,7 +1145,6 @@ public class ReturnToRoostBehaviour<T extends RideableDragonBase> extends Dragon
                 waterPosition.z,
                 1.1D
         );
-        dragon.hasImpulse = true;
     }
 
     private void setReturnPhase(DragonBrainContext<T> context,

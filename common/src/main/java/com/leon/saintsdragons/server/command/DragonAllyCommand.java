@@ -40,7 +40,7 @@ public class DragonAllyCommand {
     
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("dragonally")
-            .requires(source -> source.hasPermission(2)) // OP level 2 required
+            .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS)) // OP level 2 required
             .then(Commands.literal("add")
                 .then(Commands.argument("drake", EntityArgument.entity())
                     .then(Commands.argument("username", StringArgumentType.string())

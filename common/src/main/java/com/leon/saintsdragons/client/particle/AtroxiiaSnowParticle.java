@@ -1,9 +1,9 @@
 package com.leon.saintsdragons.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.SimpleParticleType;
 import org.jetbrains.annotations.NotNull;
@@ -29,7 +29,8 @@ public final class AtroxiiaSnowParticle extends AtroxiiaWindParticle {
         super(
                 level, x, y, z, xSpeed, ySpeed, zSpeed,
                 style == Style.SPARK ? 0.018D : 0.026D,
-                style == Style.SPARK ? 0.016D : 0.024D
+                style == Style.SPARK ? 0.016D : 0.024D,
+                sprites
         );
         this.sprites = sprites;
         this.style = style;
@@ -74,11 +75,6 @@ public final class AtroxiiaSnowParticle extends AtroxiiaWindParticle {
         }
     }
 
-    @Override
-    public @NotNull ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
-    }
-
     private void setAnimatedSprite() {
         int frameCount = this.style == Style.SPARK ? SPARK_FRAME_COUNT : SNOW_FRAME_COUNT;
         int frameTicks = this.style == Style.SPARK ? SPARK_FRAME_TICKS : SNOW_FRAME_TICKS;
@@ -96,7 +92,7 @@ public final class AtroxiiaSnowParticle extends AtroxiiaWindParticle {
         @Override
         public Particle createParticle(@NotNull SimpleParticleType type, @NotNull ClientLevel level,
                                        double x, double y, double z,
-                                       double xSpeed, double ySpeed, double zSpeed) {
+                                       double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
             return new AtroxiiaSnowParticle(
                     level, x, y, z, xSpeed, ySpeed, zSpeed, this.sprites, Style.FLAKE
             );
@@ -113,7 +109,7 @@ public final class AtroxiiaSnowParticle extends AtroxiiaWindParticle {
         @Override
         public Particle createParticle(@NotNull SimpleParticleType type, @NotNull ClientLevel level,
                                        double x, double y, double z,
-                                       double xSpeed, double ySpeed, double zSpeed) {
+                                       double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
             return new AtroxiiaSnowParticle(
                     level, x, y, z, xSpeed, ySpeed, zSpeed, this.sprites, Style.SPARK
             );

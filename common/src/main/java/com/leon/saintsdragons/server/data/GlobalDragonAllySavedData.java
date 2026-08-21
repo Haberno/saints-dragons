@@ -3,8 +3,11 @@ package com.leon.saintsdragons.server.data;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.Tag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.util.datafix.DataFixTypes;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,15 +18,17 @@ import java.util.UUID;
  */
 public class GlobalDragonAllySavedData extends SavedData {
     private static final String DATA_NAME = "saintsdragons_global_allies";
+    private static final SavedDataType<GlobalDragonAllySavedData> TYPE = new SavedDataType<>(
+            DATA_NAME,
+            GlobalDragonAllySavedData::new,
+            CompoundTag.CODEC.xmap(GlobalDragonAllySavedData::load, GlobalDragonAllySavedData::save),
+            DataFixTypes.SAVED_DATA_COMMAND_STORAGE
+    );
 
     private final Map<UUID, Map<UUID, String>> alliesByOwner = new HashMap<>();
 
     public static GlobalDragonAllySavedData get(ServerLevel level) {
-        return level.getDataStorage().computeIfAbsent(
-                GlobalDragonAllySavedData::load,
-                GlobalDragonAllySavedData::new,
-                DATA_NAME
-        );
+        return level.getDataStorage().computeIfAbsent(TYPE);
     }
 
     public Map<UUID, String> getAllies(UUID ownerId) {
@@ -72,16 +77,16 @@ public class GlobalDragonAllySavedData extends SavedData {
         }
     }
 
-    @Override
-    public CompoundTag save(CompoundTag tag) {
+    public CompoundTag save() {
+        CompoundTag tag = new CompoundTag();
         ListTag playerList = new ListTag();
         for (Map.Entry<UUID, Map<UUID, String>> entry : alliesByOwner.entrySet()) {
             CompoundTag playerTag = new CompoundTag();
-            playerTag.putUUID("Owner", entry.getKey());
+            playerTag.store("Owner", UUIDUtil.CODEC, entry.getKey());
             ListTag allyList = new ListTag();
             for (Map.Entry<UUID, String> allyEntry : entry.getValue().entrySet()) {
                 CompoundTag allyTag = new CompoundTag();
-                allyTag.putUUID("UUID", allyEntry.getKey());
+                allyTag.store("UUID", UUIDUtil.CODEC, allyEntry.getKey());
                 allyTag.putString("Username", allyEntry.getValue());
                 allyList.add(allyTag);
             }
@@ -94,21 +99,23 @@ public class GlobalDragonAllySavedData extends SavedData {
 
     public static GlobalDragonAllySavedData load(CompoundTag tag) {
         GlobalDragonAllySavedData data = new GlobalDragonAllySavedData();
-        if (tag.contains("Players", Tag.TAG_LIST)) {
-            ListTag playerList = tag.getList("Players", Tag.TAG_COMPOUND);
+        if (tag.contains("Players")) {
+            ListTag playerList = tag.getListOrEmpty("Players");
             for (int i = 0; i < playerList.size(); i++) {
-                CompoundTag playerTag = playerList.getCompound(i);
-                if (!playerTag.hasUUID("Owner")) {
+                CompoundTag playerTag = playerList.getCompoundOrEmpty(i);
+                UUID ownerId = playerTag.read("Owner", UUIDUtil.CODEC).orElse(null);
+                if (ownerId == null) {
                     continue;
                 }
-                UUID ownerId = playerTag.getUUID("Owner");
                 Map<UUID, String> allies = new HashMap<>();
-                if (playerTag.contains("Allies", Tag.TAG_LIST)) {
-                    ListTag allyList = playerTag.getList("Allies", Tag.TAG_COMPOUND);
+                if (playerTag.contains("Allies")) {
+                    ListTag allyList = playerTag.getListOrEmpty("Allies");
                     for (int j = 0; j < allyList.size(); j++) {
-                        CompoundTag allyTag = allyList.getCompound(j);
-                        if (allyTag.hasUUID("UUID") && allyTag.contains("Username", Tag.TAG_STRING)) {
-                            allies.put(allyTag.getUUID("UUID"), allyTag.getString("Username"));
+                        CompoundTag allyTag = allyList.getCompoundOrEmpty(j);
+                        UUID allyId = allyTag.read("UUID", UUIDUtil.CODEC).orElse(null);
+                        String username = allyTag.getStringOr("Username", "");
+                        if (allyId != null && !username.isEmpty()) {
+                            allies.put(allyId, username);
                         }
                     }
                 }

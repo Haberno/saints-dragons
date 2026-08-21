@@ -1,13 +1,14 @@
 package com.leon.saintsdragons.client.renderer.ignivorus;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.leon.saintsdragons.client.renderer.SaintsDragonsDeferredEntityRenderer;
 import com.leon.saintsdragons.server.entity.effect.ignivorus.IgnivorusFlameEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
@@ -16,7 +17,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 
-public class IgnivorusFlameRenderer extends EntityRenderer<IgnivorusFlameEntity> {
+public class IgnivorusFlameRenderer extends SaintsDragonsDeferredEntityRenderer<IgnivorusFlameEntity> {
 
     private static final int TOTAL_FRAMES = 5;
     private static final float FLAME_RENDER_SCALE = 0.65F;
@@ -35,8 +36,10 @@ public class IgnivorusFlameRenderer extends EntityRenderer<IgnivorusFlameEntity>
     }
 
     @Override
-    public void render(@NotNull IgnivorusFlameEntity entity, float entityYaw, float partialTicks,
-                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
+    protected void submitEntity(IgnivorusFlameEntity entity, RenderState<IgnivorusFlameEntity> renderState,
+                                PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                                CameraRenderState cameraState) {
+        float partialTicks = renderState.partialTick;
         int age = entity.getAge();
         int frame = (age / 2) % TOTAL_FRAMES;
 
@@ -49,14 +52,11 @@ public class IgnivorusFlameRenderer extends EntityRenderer<IgnivorusFlameEntity>
         float alpha = 1.0F;
         poseStack.pushPose();
         poseStack.scale(scale, scale, scale);
-        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
-        PoseStack.Pose pose = poseStack.last();
-        Matrix4f matrix4f = pose.pose();
-        Matrix3f matrix3f = pose.normal();
-        VertexConsumer vertexConsumer = bufferSource.getBuffer(RenderType.entityCutoutNoCull(texture));
-        renderBillboard(vertexConsumer, matrix4f, matrix3f, packedLight, alpha);
+        poseStack.mulPose(this.entityRenderDispatcher.camera.rotation());
+        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.entityCutoutNoCull(texture),
+                (pose, vertexConsumer) -> renderBillboard(
+                        vertexConsumer, pose.pose(), pose.normal(), renderState.lightCoords, alpha));
         poseStack.popPose();
-        super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 
     private void renderBillboard(VertexConsumer consumer, Matrix4f matrix4f, Matrix3f matrix3f, int packedLight, float alpha) {
@@ -70,17 +70,12 @@ public class IgnivorusFlameRenderer extends EntityRenderer<IgnivorusFlameEntity>
 
     private void addVertex(VertexConsumer consumer, Matrix4f matrix4f, Matrix3f matrix3f,
                           float x, float y, float z, float u, float v, float alpha) {
-        consumer.vertex(matrix4f, x, y, z)
-                .color(1.0F, 1.0F, 1.0F, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(matrix3f, 0.0F, 0.0F, 1.0F)
-                .endVertex();
+        consumer.addVertex(matrix4f, x, y, z)
+                .setColor(1.0F, 1.0F, 1.0F, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(0.0F, 0.0F, 1.0F);
     }
 
-    @Override
-    public @NotNull Identifier getTextureLocation(@NotNull IgnivorusFlameEntity entity) {
-        return TEXTURES[0];
-    }
 }

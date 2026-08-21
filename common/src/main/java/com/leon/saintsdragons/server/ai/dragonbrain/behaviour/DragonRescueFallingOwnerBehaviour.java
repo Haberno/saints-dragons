@@ -202,7 +202,7 @@ public final class DragonRescueFallingOwnerBehaviour<T extends RideableFlyingDra
         ).intersects(owner.getBoundingBox())) {
             return false;
         }
-        if (!owner.startRiding(dragon, true)) {
+        if (!owner.startRiding(dragon, true, false)) {
             return false;
         }
 
@@ -227,7 +227,7 @@ public final class DragonRescueFallingOwnerBehaviour<T extends RideableFlyingDra
                 - config.gravityPrediction * leadTicks * leadTicks
                 - dragon.getBbHeight() * config.verticalCatchOffset;
         double targetZ = owner.getZ() + velocity.z * leadTicks;
-        targetY = Math.max(dragon.level().getMinBuildHeight() + 1.0D, targetY);
+        targetY = Math.max(dragon.level().getMinY() + 1.0D, targetY);
         return new Vec3(targetX, targetY, targetZ);
     }
 
@@ -243,7 +243,7 @@ public final class DragonRescueFallingOwnerBehaviour<T extends RideableFlyingDra
                 && target.level() == dragon.level()
                 && !target.onGround()
                 && !target.isPassenger()
-                && !target.isInWaterOrBubble()
+                && !target.isInWater()
                 && !target.isFallFlying()
                 && !owner.isSpectator()
                 && !owner.isCreative()
@@ -270,7 +270,7 @@ public final class DragonRescueFallingOwnerBehaviour<T extends RideableFlyingDra
                 && !dragon.isSleepTransitioning()
                 && !dragon.isVehicle()
                 && !dragon.isPassenger()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && dragon.getActiveAbility() == null
                 && !dragon.areRiderControlsLocked()
                 && (dragon.isAerial() || dragon.canTakeoff())
@@ -316,7 +316,7 @@ public final class DragonRescueFallingOwnerBehaviour<T extends RideableFlyingDra
         if (!owner.isAlive()) return "owner-unavailable";
         if (owner.onGround()) return "owner-grounded";
         if (owner.isPassenger()) return "owner-mounted";
-        if (owner.isInWaterOrBubble()) return "owner-in-water";
+        if (owner.isInWater()) return "owner-in-water";
         if (owner.isFallFlying()) return "owner-gliding";
         if (owner.isSpectator() || owner.isCreative() || owner.getAbilities().flying) {
             return "owner-can-fly";

@@ -326,7 +326,7 @@ public class AutonomousFlightBehaviour<T extends RideableFlyingDragon> extends D
         if (!dragon.isFlying() || dragon.isLanding() || dragon.getTarget() != null) {
             return false;
         }
-        if (dragon.isInWater() || dragon.isInWaterOrBubble() || dragon.isInLava()) {
+        if (dragon.isInWater() || dragon.isInWater() || dragon.isInLava()) {
             return false;
         }
         if (!canAutonomousDiveInWeather(dragon) && (dragon.level().isThundering() || dragon.level().isRaining())) {

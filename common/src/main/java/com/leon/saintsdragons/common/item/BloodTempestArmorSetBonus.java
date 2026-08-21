@@ -61,7 +61,7 @@ public final class BloodTempestArmorSetBonus {
                 || player.getAbilities().flying
                 || player.isFallFlying()
                 || player.onClimbable()
-                || player.isInWaterOrBubble()
+                || player.isInWater()
                 || !ToolsArmorConfig.BLOOD_TEMPEST_DODGE_ENABLED.get()
                 || !isWearingFullSet(player)
                 || DODGE_COOLDOWNS.containsKey(player.getUUID())) {
@@ -79,7 +79,6 @@ public final class BloodTempestArmorSetBonus {
 
         Vec3 current = player.getDeltaMovement();
         player.setDeltaMovement(dodge.x, current.y, dodge.z);
-        player.hasImpulse = true;
         player.hurtMarked = true;
         player.connection.send(new ClientboundSetEntityMotionPacket(player));
 

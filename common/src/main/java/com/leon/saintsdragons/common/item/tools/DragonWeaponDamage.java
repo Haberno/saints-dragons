@@ -17,7 +17,7 @@ public final class DragonWeaponDamage {
     }
 
     public static float applyDirectMeleeMultiplier(Player attacker, Entity struckEntity, float damage) {
-        if (attacker.level().isClientSide || damage <= 0.0F) {
+        if (attacker.level().isClientSide() || damage <= 0.0F) {
             return damage;
         }
 

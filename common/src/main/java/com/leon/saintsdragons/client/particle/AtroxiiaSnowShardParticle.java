@@ -1,9 +1,9 @@
 package com.leon.saintsdragons.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.util.RandomSource;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
 import net.minecraft.core.particles.SimpleParticleType;
 import org.jetbrains.annotations.NotNull;
@@ -13,7 +13,7 @@ public final class AtroxiiaSnowShardParticle extends AtroxiiaWindParticle {
 
     private AtroxiiaSnowShardParticle(ClientLevel level, double x, double y, double z,
                                       double xSpeed, double ySpeed, double zSpeed, SpriteSet sprites) {
-        super(level, x, y, z, xSpeed, ySpeed, zSpeed, 0.012D, 0.012D);
+        super(level, x, y, z, xSpeed, ySpeed, zSpeed, 0.012D, 0.012D, sprites);
         this.lifetime = 28 + this.random.nextInt(17);
         this.quadSize = 0.23F + this.random.nextFloat() * 0.05F;
         this.spinSpeed = (this.random.nextBoolean() ? 1.0F : -1.0F)
@@ -41,11 +41,6 @@ public final class AtroxiiaSnowShardParticle extends AtroxiiaWindParticle {
         moveInWind(0.945F, 0.92F, -0.002D);
     }
 
-    @Override
-    public @NotNull ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
-    }
-
     public static final class Factory implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 
@@ -56,7 +51,7 @@ public final class AtroxiiaSnowShardParticle extends AtroxiiaWindParticle {
         @Override
         public Particle createParticle(@NotNull SimpleParticleType type, @NotNull ClientLevel level,
                                        double x, double y, double z,
-                                       double xSpeed, double ySpeed, double zSpeed) {
+                                       double xSpeed, double ySpeed, double zSpeed, RandomSource random) {
             return new AtroxiiaSnowShardParticle(
                     level, x, y, z, xSpeed, ySpeed, zSpeed, this.sprites
             );

@@ -5,7 +5,7 @@ import com.leon.saintsdragons.common.world.DragonBiomeMatcher;
 import com.leon.saintsdragons.common.world.DragonSpawnRegistry;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.common.registry.ModTags;
-import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -17,7 +17,7 @@ import net.minecraftforge.common.world.ModifiableBiomeInfo;
 
 
 public final class AddDragonsBiomeModifier implements BiomeModifier {
-    public static final Codec<AddDragonsBiomeModifier> CODEC = Codec.unit(AddDragonsBiomeModifier::new);
+    public static final MapCodec<AddDragonsBiomeModifier> CODEC = MapCodec.unit(AddDragonsBiomeModifier::new);
 
     private AddDragonsBiomeModifier() {
     }
@@ -89,19 +89,15 @@ public final class AddDragonsBiomeModifier implements BiomeModifier {
 
         @SuppressWarnings("unchecked")
         EntityType<? extends Mob> mobType = (EntityType<? extends Mob>) entityType;
-        MobSpawnSettings.SpawnerData spawnerData = new MobSpawnSettings.SpawnerData(mobType, weight, minGroupSize, maxGroupSize);
+        MobSpawnSettings.SpawnerData spawnerData =
+                new MobSpawnSettings.SpawnerData(mobType, minGroupSize, maxGroupSize);
 
         var spawnSettings = builder.getMobSpawnSettings();
-        boolean alreadyPresent = spawnSettings.getSpawner(category).stream()
-                .anyMatch(existing -> existing.type == entityType);
-
-        if (!alreadyPresent) {
-            spawnSettings.addSpawn(category, spawnerData);
-        }
+        spawnSettings.addSpawn(category, weight, spawnerData);
     }
 
     @Override
-    public Codec<? extends BiomeModifier> codec() {
+    public MapCodec<? extends BiomeModifier> codec() {
         return CODEC;
     }
 }

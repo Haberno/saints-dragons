@@ -49,7 +49,7 @@ public final class RaevyxDiveImpactAbility {
     }
 
     public void tickServer() {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
 
@@ -57,7 +57,7 @@ public final class RaevyxDiveImpactAbility {
         observedMovement = lastPosition != null ? currentPosition.subtract(lastPosition) : Vec3.ZERO;
         lastPosition = currentPosition;
 
-        if (!dragon.isAlive() || dragon.isInWaterOrBubble()) {
+        if (!dragon.isAlive() || dragon.isInWater()) {
             clear();
             return;
         }
@@ -154,7 +154,6 @@ public final class RaevyxDiveImpactAbility {
             }
             outward = outward.normalize().scale(knockback);
             target.push(outward.x, 0.3D + power * 0.35D, outward.z);
-            target.hasImpulse = true;
         }
 
         RaevyxChainLightningAbility.chainFromImpact(dragon, origin, impactTargets, power);

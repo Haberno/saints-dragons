@@ -52,7 +52,7 @@ public class VolitansClawAbility extends DragonAbility<Volitans> {
                     ? VolitansAnimationHandler.AIR_ACTION_CONTROLLER
                     : VolitansAnimationHandler.ACTION_CONTROLLER;
             dragon.triggerAnim(controller, useLeftClaw ? "swipe_left" : "swipe_right");
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 float pitch = 0.96f + dragon.getRandom().nextFloat() * 0.08f;
                 dragon.getSoundHandler().playMovingEntitySound(
                         ModSounds.VOLITANS_CLAWS.get(),
@@ -107,7 +107,7 @@ public class VolitansClawAbility extends DragonAbility<Volitans> {
     }
 
     private void sendDebugBox(Volitans dragon, double range) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         DragonMeleeGeometry.ForwardAttack attack = DragonMeleeGeometry.bodyForwardAttack(dragon).offset(HITBOX_FORWARD_OFFSET);

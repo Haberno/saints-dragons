@@ -108,7 +108,7 @@ public class VarasuchusCombatBehaviour extends DragonBehaviour<Varasuchus> {
         double meleeStopRange = getMeleeStopRange(target);
         if (gap <= HORN_RANGE) {
             if (gap <= meleeStopRange || isPerformingAttack()) {
-                if (!drake.isInWaterOrBubble()) {
+                if (!drake.isInWater()) {
                     stopMovement("varasuchus-combat:melee-range");
                 }
             }
@@ -121,7 +121,7 @@ public class VarasuchusCombatBehaviour extends DragonBehaviour<Varasuchus> {
             return;
         }
 
-        if (!drake.getSensing().hasLineOfSight(target) && !drake.isInWaterOrBubble()) {
+        if (!drake.getSensing().hasLineOfSight(target) && !drake.isInWater()) {
             return;
         }
 
@@ -204,7 +204,7 @@ public class VarasuchusCombatBehaviour extends DragonBehaviour<Varasuchus> {
     }
 
     private double getMeleeStopRange(LivingEntity target) {
-        return DragonTargetingHelper.isBiteOnlyPreyTarget(drake, target) && !drake.isInWaterOrBubble()
+        return DragonTargetingHelper.isBiteOnlyPreyTarget(drake, target) && !drake.isInWater()
                 ? LAND_PREY_BITE_RANGE
                 : BITE_RANGE;
     }

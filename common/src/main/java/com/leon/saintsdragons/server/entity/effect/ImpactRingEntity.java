@@ -1,7 +1,8 @@
 package com.leon.saintsdragons.server.entity.effect;
 
 import com.leon.saintsdragons.common.registry.ModEntities;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -11,6 +12,8 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -38,8 +41,8 @@ public class ImpactRingEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_VISUAL_SCALE, 1.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_VISUAL_SCALE, 1.0F);
     }
 
     public void setVisualScale(float visualScale) {
@@ -69,30 +72,30 @@ public class ImpactRingEntity extends Entity {
         super.tick();
         age++;
         GroundEffectSurfaceSnap.snap(this, RENDER_PLANE_Y);
-        if (!level().isClientSide && age >= DURATION) {
+        if (!level().isClientSide() && age >= DURATION) {
             discard();
         }
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        age = tag.getInt("Age");
-        setVisualScale(tag.contains("VisualScale") ? tag.getFloat("VisualScale") : 1.0F);
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        age = tag.getIntOr("Age", 0);
+        setVisualScale(tag.getFloatOr("VisualScale", 1.0F));
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Age", age);
         tag.putFloat("VisualScale", entityData.get(DATA_VISUAL_SCALE));
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        return distance < 16384.0D;
     }
 
     @Override
-    public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 16384.0D;
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 }

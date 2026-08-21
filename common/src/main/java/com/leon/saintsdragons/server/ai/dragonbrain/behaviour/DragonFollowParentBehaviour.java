@@ -102,8 +102,8 @@ public class DragonFollowParentBehaviour<T extends DragonEntity> extends DragonB
                 && !baby.isTame()
                 && baby.getOwner() == null
                 && !baby.isVehicle()
-                && (!(baby instanceof RideableDragonBase rideable) || !rideable.isInWaterOrBubble())
-                && (baby.canSwim() || !baby.isInWaterOrBubble());
+                && (!(baby instanceof RideableDragonBase rideable) || !rideable.isInWater())
+                && (baby.canSwim() || !baby.isInWater());
     }
 
     @Nullable

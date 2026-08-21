@@ -1,29 +1,29 @@
 package com.leon.saintsdragons.client.model.draconianswarm;
 
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityGeoModel;
+import com.leon.saintsdragons.client.model.LegacyEntityModelData;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.draconianswarm.Latcher;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.animation.state.AnimationTest;
-import software.bernie.geckolib.model.GeoModel;
-import software.bernie.geckolib.model.data.EntityModelData;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
-public class LatcherModel extends GeoModel<Latcher> {
+public class LatcherModel extends LegacyEntityGeoModel<Latcher> {
     private static final Identifier MODEL =
-            SaintsDragonsCommon.rl("geo/entity/latcher.geo.json");
+            SaintsDragonsCommon.rl("geckolib/models/entity/latcher.geo.json");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/latcher/latcher.png");
     private static final Identifier ANIMATIONS =
-            SaintsDragonsCommon.rl("animations/entity/latcher.animation.json");
+            SaintsDragonsCommon.rl("geckolib/animations/entity/latcher.animation.json");
 
     @Override
-    public Identifier getModelResource(Latcher animatable) {
+    public Identifier getModelResource(GeoRenderState renderState) {
         return MODEL;
     }
 
     @Override
-    public Identifier getTextureResource(Latcher animatable) {
+    public Identifier getTextureResource(GeoRenderState renderState) {
         return TEXTURE;
     }
 
@@ -33,9 +33,7 @@ public class LatcherModel extends GeoModel<Latcher> {
     }
 
     @Override
-    public void setCustomAnimations(Latcher entity, long instanceId, AnimationTest<Latcher> animationState) {
-        super.setCustomAnimations(entity, instanceId, animationState);
-
+    protected void setCustomAnimations(Latcher entity, long instanceId, LegacyAnimationState<Latcher> animationState) {
         if (!entity.isAlive()) {
             return;
         }
@@ -45,27 +43,19 @@ public class LatcherModel extends GeoModel<Latcher> {
         float speed = Mth.clamp((float) entity.getDeltaMovement().length(), 0.0F, 0.7F);
         float dragYaw = Mth.clamp(entity.getTailDragYawRadians(partialTick), -0.95F, 0.95F);
         float swayYaw = Mth.sin((entity.tickCount + partialTick) * 0.18F) * speed * 0.12F;
-        EntityModelData modelData = animationState.getData(DataTickets.ENTITY_MODEL_DATA);
 
         applyFlightPitch(pitchRad);
-        applyLook(modelData);
+        applyLook(animationState.entityModelData());
         applyTailDrag("secondrot", dragYaw * 0.85F + swayYaw);
         applyTailDrag("thirdrot", dragYaw * 1.25F + swayYaw * 1.25F);
         applyTailDrag("forthrot", dragYaw * 1.35F + swayYaw * 1.35F);
     }
 
     private void applyFlightPitch(float pitchRad) {
-        getBone("root").ifPresent(bone -> {
-            var snapshot = bone.getInitialSnapshot();
-            bone.setRotX(snapshot.getRotX() + pitchRad);
-        });
+        getBone("root").ifPresent(bone -> bone.setRotX(bone.getRotX() + pitchRad));
     }
 
-    private void applyLook(EntityModelData modelData) {
-        if (modelData == null) {
-            return;
-        }
-
+    private void applyLook(LegacyEntityModelData modelData) {
         float lookPitchRad = Mth.clamp(modelData.headPitch() * Mth.DEG_TO_RAD, -0.65F, 0.65F);
         float lookYawRad = Mth.clamp(modelData.netHeadYaw() * Mth.DEG_TO_RAD, -0.85F, 0.85F);
         applyLookRotation("neck", lookPitchRad * 0.35F, lookYawRad * 0.40F);
@@ -80,9 +70,6 @@ public class LatcherModel extends GeoModel<Latcher> {
     }
 
     private void applyTailDrag(String boneName, float yawRad) {
-        getBone(boneName).ifPresent(bone -> {
-            var snapshot = bone.getInitialSnapshot();
-            bone.setRotY(snapshot.getRotY() + yawRad);
-        });
+        getBone(boneName).ifPresent(bone -> bone.setRotY(bone.getRotY() + yawRad));
     }
 }

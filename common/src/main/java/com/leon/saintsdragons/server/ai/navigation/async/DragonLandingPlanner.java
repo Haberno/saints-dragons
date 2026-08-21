@@ -61,7 +61,7 @@ public final class DragonLandingPlanner {
     }
 
     static boolean isTouchdownStillValid(Mob dragon, DragonLandingPlan plan) {
-        if (plan == null || dragon.level().isClientSide) {
+        if (plan == null || dragon.level().isClientSide()) {
             return false;
         }
         Vec3 touchdown = plan.touchdown();
@@ -78,7 +78,7 @@ public final class DragonLandingPlanner {
                                                              int maxRadius,
                                                              double desiredAnchorDistance,
                                                              Vec3 preferredHeading) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return null;
         }
 
@@ -269,8 +269,8 @@ public final class DragonLandingPlanner {
             return new BlockPos(column.getX(), surfaceY - 1, column.getZ());
         }
 
-        int minY = dragon.level().getMinBuildHeight();
-        int maxY = dragon.level().getMaxBuildHeight() - 1;
+        int minY = dragon.level().getMinY();
+        int maxY = dragon.level().getMaxY() - 1;
         int startY = Math.min(maxY, Math.max(minY, originY + 8));
         for (int y = startY; y >= minY; y--) {
             BlockPos ground = new BlockPos(column.getX(), y, column.getZ());

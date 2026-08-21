@@ -36,7 +36,7 @@ public final class VolitansUnderwaterSpawner {
     }
 
     public static void tick(ServerLevel level) {
-        Identifier dimensionId = level.dimension().location();
+        Identifier dimensionId = level.dimension().identifier();
         int counter = tickCounters.getOrDefault(dimensionId, 0) + 1;
         tickCounters.put(dimensionId, counter);
         if (counter < CHECK_INTERVAL) {
@@ -105,8 +105,8 @@ public final class VolitansUnderwaterSpawner {
     }
 
     private static BlockPos findSpawnPos(ServerLevel level, BlockPos center, RandomSource random) {
-        int minY = level.getMinBuildHeight() + 1;
-        int maxY = level.getMaxBuildHeight() - 2;
+        int minY = level.getMinY() + 1;
+        int maxY = level.getMaxY() - 2;
         for (int attempt = 0; attempt < SEARCH_ATTEMPTS; attempt++) {
             int x = center.getX() + random.nextInt(HORIZONTAL_RADIUS * 2 + 1) - HORIZONTAL_RADIUS;
             int z = center.getZ() + random.nextInt(HORIZONTAL_RADIUS * 2 + 1) - HORIZONTAL_RADIUS;
@@ -153,7 +153,7 @@ public final class VolitansUnderwaterSpawner {
     }
 
     private static boolean spawnOne(ServerLevel level, BlockPos pos, EntitySpawnReason spawnType) {
-        Volitans volitans = ModEntities.VOLITANS.get().create(level);
+        Volitans volitans = ModEntities.VOLITANS.get().create(level, spawnType);
         if (volitans == null) {
             return false;
         }
@@ -162,7 +162,7 @@ public final class VolitansUnderwaterSpawner {
         if (!level.noCollision(volitans, volitans.getBoundingBox())) {
             return false;
         }
-        volitans.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), spawnType, null, null);
+        volitans.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), spawnType, null);
         if (!level.noCollision(volitans, volitans.getBoundingBox())) {
             return false;
         }
@@ -182,8 +182,8 @@ public final class VolitansUnderwaterSpawner {
     }
 
     private static BlockPos findUnderwaterSpawnPos(ServerLevel level, int x, int z, int minY, int maxY) {
-        int startY = Mth.clamp(maxY, level.getMinBuildHeight() + 1, level.getMaxBuildHeight() - 2);
-        int endY = Mth.clamp(minY, level.getMinBuildHeight() + 1, level.getMaxBuildHeight() - 2);
+        int startY = Mth.clamp(maxY, level.getMinY() + 1, level.getMaxY() - 2);
+        int endY = Mth.clamp(minY, level.getMinY() + 1, level.getMaxY() - 2);
 
         int fluidTop = Integer.MIN_VALUE;
         int fluidBottom = Integer.MIN_VALUE;
@@ -235,7 +235,7 @@ public final class VolitansUnderwaterSpawner {
     }
 
     private static boolean canFitVolitansAt(ServerLevel level, BlockPos pos) {
-        Volitans probe = ModEntities.VOLITANS.get().create(level);
+        Volitans probe = ModEntities.VOLITANS.get().create(level, EntitySpawnReason.NATURAL);
         if (probe == null) {
             return false;
         }

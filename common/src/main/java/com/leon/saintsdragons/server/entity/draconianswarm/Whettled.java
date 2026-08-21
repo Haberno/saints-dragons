@@ -50,22 +50,22 @@ public class Whettled extends AbstractDraconianSwarmEntity implements CombatBody
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_COMBAT_FACING, false);
-        this.entityData.define(DATA_HORN_CHARGING, false);
-        this.entityData.define(DATA_HORN_CHARGE_YAW, 0.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_COMBAT_FACING, false);
+        builder.define(DATA_HORN_CHARGING, false);
+        builder.define(DATA_HORN_CHARGE_YAW, 0.0F);
     }
 
     @Override
     public void tick() {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             LivingEntity target = getTarget();
             this.entityData.set(DATA_COMBAT_FACING,
                     target != null && target.isAlive() && !isHornCharging());
         }
         super.tick();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             LivingEntity target = getTarget();
             boolean combatFacing = target != null && target.isAlive() && !isHornCharging();
             this.entityData.set(DATA_COMBAT_FACING, combatFacing);

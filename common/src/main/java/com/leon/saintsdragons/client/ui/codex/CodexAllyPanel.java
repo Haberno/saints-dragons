@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 
@@ -51,9 +52,7 @@ public class CodexAllyPanel {
 
         addAllyButton = new ImageButton(
                 iconButtonX - 36, inputY + 18, 16, 16,
-                0, 0, 0,
-                addIcon,
-                16, 16,
+                new WidgetSprites(addIcon),
                 button -> addAllyFromInput(addCallback)
         );
         addAllyButton.setTooltip(Tooltip.create(
@@ -62,9 +61,7 @@ public class CodexAllyPanel {
 
         removeAllyButton = new ImageButton(
                 iconButtonX - 19, inputY + 18, 16, 16,
-                0, 0, 0,
-                removeIcon,
-                16, 16,
+                new WidgetSprites(removeIcon),
                 button -> removeAllyFromInput(removeCallback)
         );
         removeAllyButton.setTooltip(Tooltip.create(

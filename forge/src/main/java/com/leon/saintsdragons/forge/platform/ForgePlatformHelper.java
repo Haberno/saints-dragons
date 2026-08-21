@@ -14,7 +14,8 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.MobBucketItem;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.SpawnEggItem;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.level.material.Fluid;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraftforge.api.distmarker.Dist;
@@ -22,7 +23,6 @@ import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.ModList;
 import net.minecraftforge.fml.loading.FMLLoader;
 import net.minecraftforge.fml.loading.FMLPaths;
-import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.ForgeMod;
 
 import java.nio.file.Path;
@@ -102,7 +102,7 @@ public final class ForgePlatformHelper implements PlatformHelper {
                                int primaryColor,
                                int secondaryColor,
                                Item.Properties properties) {
-        return new ForgeSpawnEggItem(entityType, primaryColor, secondaryColor, properties);
+        return new SpawnEggItem(properties.spawnEgg(entityType.get()));
     }
 
     @Override
@@ -110,7 +110,7 @@ public final class ForgePlatformHelper implements PlatformHelper {
                                              int primaryColor,
                                              int secondaryColor,
                                              Item.Properties properties) {
-        return new ForgeSpawnEggItem(displayEntityType, primaryColor, secondaryColor, properties) {
+        return new SpawnEggItem(properties.spawnEgg(displayEntityType.get())) {
             @Override
             public net.minecraft.world.InteractionResult useOn(net.minecraft.world.item.context.UseOnContext context) {
                 return com.leon.saintsdragons.common.item.DraconianSwarmSpawnEggSpawner.useOn(context);
@@ -119,13 +119,13 @@ public final class ForgePlatformHelper implements PlatformHelper {
     }
 
     @Override
-    public Item createDragonheartSword(Tier tier,
+    public Item createDragonheartSword(ToolMaterial tier,
                                        int attackDamageModifier,
                                        float attackSpeedModifier,
                                        double entityReach,
                                        float criticalDamageBonus,
                                        Item.Properties properties) {
-        return new ForgeDragonheartSwordItem(
+        return new DragonheartSwordItem(
                 tier,
                 attackDamageModifier,
                 attackSpeedModifier,
@@ -153,8 +153,9 @@ public final class ForgePlatformHelper implements PlatformHelper {
         return FMLPaths.CONFIGDIR.get();
     }
 
+    /* Preserved for a future Forge reach-attribute port. Forge 61 removed the old item modifier hook.
     private static final class ForgeDragonheartSwordItem extends DragonheartSwordItem {
-        private ForgeDragonheartSwordItem(Tier tier,
+        private ForgeDragonheartSwordItem(ToolMaterial tier,
                                           int attackDamageModifier,
                                           float attackSpeedModifier,
                                           double entityReach,
@@ -184,4 +185,5 @@ public final class ForgePlatformHelper implements PlatformHelper {
             return builder.build();
         }
     }
+    */
 }

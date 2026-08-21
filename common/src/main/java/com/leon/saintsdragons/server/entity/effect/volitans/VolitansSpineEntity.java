@@ -6,6 +6,7 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
@@ -53,14 +54,14 @@ public class VolitansSpineEntity extends AbstractArrow implements GeoEntity {
     @Override
     public void tick() {
         super.tick();
-        if (!level().isClientSide && this.tickCount >= LIFETIME_TICKS) {
+        if (!level().isClientSide() && this.tickCount >= LIFETIME_TICKS) {
             discard();
         }
     }
 
     @Override
     protected void onHitEntity(EntityHitResult result) {
-        if (!level().isClientSide) {
+        if (level() instanceof ServerLevel serverLevel) {
             if (impactDamage > 0.0F && result.getEntity() instanceof LivingEntity target) {
                 LivingEntity owner = this.getOwner() instanceof LivingEntity living ? living : null;
                 boolean poisonActive = poisonDurationTicks > 0 && !(owner instanceof Volitans volitans && volitans.isVenomNeutralized());
@@ -70,9 +71,9 @@ public class VolitansSpineEntity extends AbstractArrow implements GeoEntity {
                 }
                 if (validTarget) {
                     if (owner != null) {
-                        target.hurt(this.damageSources().mobAttack(owner), impactDamage);
+                        target.hurtServer(serverLevel, this.damageSources().mobAttack(owner), impactDamage);
                     } else {
-                        target.hurt(this.damageSources().magic(), impactDamage);
+                        target.hurtServer(serverLevel, this.damageSources().magic(), impactDamage);
                     }
                     if (poisonActive) {
                         target.addEffect(new MobEffectInstance(MobEffects.POISON, poisonDurationTicks, poisonAmplifier));
@@ -117,22 +118,22 @@ public class VolitansSpineEntity extends AbstractArrow implements GeoEntity {
     @Override
     protected void onHitBlock(BlockHitResult result) {
         super.onHitBlock(result);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             discard();
         }
     }
 
     @Override
-    protected ItemStack getPickupItem() {
+    protected ItemStack getDefaultPickupItem() {
         return ItemStack.EMPTY;
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 0, this::animationPredicate));
+        controllers.add(new AnimationController<VolitansSpineEntity>("controller", 0, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
+    private PlayState animationPredicate(AnimationTest<VolitansSpineEntity> state) {
         state.controller().setAnimation(IDLE);
         return PlayState.CONTINUE;
     }

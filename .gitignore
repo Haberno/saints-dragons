@@ -1,5 +1,6 @@
 .gradle/
 **/.gradle/
+.architectury-transformer/
 .idea/
 *.iml
 build/

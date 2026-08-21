@@ -105,7 +105,7 @@ public final class AtroxiiaBrain implements DragonBrainOwner<Atroxiia> {
                 && !dragon.isVehicle()
                 && !dragon.isPassenger()
                 && !dragon.isOrderedToSit()
-                && (dragon.isGroundedForAction() || dragon.isInWaterOrBubble())
+                && (dragon.isGroundedForAction() || dragon.isInWater())
                 && withinAggroRange(dragon, target);
     }
 

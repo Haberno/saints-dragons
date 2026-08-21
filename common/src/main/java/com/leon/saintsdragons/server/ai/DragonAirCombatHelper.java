@@ -104,7 +104,7 @@ public final class DragonAirCombatHelper {
             return;
         }
         if (dragon instanceof RideableFlyingDragon flyingDragon
-                && (dragon.isInWaterOrBubble() || dragon.isInLava())) {
+                && (dragon.isInWater() || dragon.isInLava())) {
             flyingDragon.startAiWaterBreachTakeoffSequence(0.18D, takeoffTicks);
         } else if (dragon.isGroundedForAi()) {
             flightCapable.beginAiTakeoff(takeoffTicks);

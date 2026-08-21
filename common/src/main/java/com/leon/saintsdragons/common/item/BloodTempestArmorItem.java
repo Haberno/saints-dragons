@@ -1,78 +1,83 @@
 package com.leon.saintsdragons.common.item;
 
-import com.google.common.collect.Multimap;
 import com.leon.saintsdragons.common.config.ToolsArmorConfig;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
-import net.minecraft.world.entity.ai.attributes.AttributeModifier;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.equipment.ArmorMaterial;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.level.Level;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
+import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import com.leon.saintsdragons.client.renderer.armor.BloodTempestArmorRenderer;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Proxy;
-import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.equipment.ArmorMaterial;
 
-public class BloodTempestArmorItem extends ArmorItem implements GeoItem {
+public class BloodTempestArmorItem extends Item implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
-    private final Supplier<Object> renderProvider = this::createFabricRenderProvider;
+    private final ArmorType type;
 
-    public BloodTempestArmorItem(ArmorMaterial armorMaterial, Type type, Properties properties) {
-        super(armorMaterial, type, properties);
+    public BloodTempestArmorItem(ArmorMaterial armorMaterial, ArmorType type, Properties properties) {
+        super(configureProperties(properties, armorMaterial, type));
+        this.type = type;
     }
 
-    @Override
-    public Multimap<Attribute, AttributeModifier> getDefaultAttributeModifiers(EquipmentSlot slot) {
-        Multimap<Attribute, AttributeModifier> base = super.getDefaultAttributeModifiers(slot);
-        if (slot != getType().getSlot()) {
-            return base;
-        }
-        return ConfiguredItemAttributes.armor(base, configuredDefense(),
+    private static Properties configureProperties(Properties properties, ArmorMaterial material, ArmorType type) {
+        return properties.humanoidArmor(material, type).attributes(ConfiguredItemAttributes.armor(
+                type,
+                configuredDefense(type),
                 ToolsArmorConfig.BLOOD_TEMPEST_TOUGHNESS.get(),
-                ToolsArmorConfig.BLOOD_TEMPEST_KNOCKBACK_RESISTANCE.get());
+                ToolsArmorConfig.BLOOD_TEMPEST_KNOCKBACK_RESISTANCE.get()));
     }
 
-    @Override
     public int getDefense() {
         return (int) Math.round(configuredDefense());
     }
 
-    @Override
     public float getToughness() {
         return (float) ToolsArmorConfig.BLOOD_TEMPEST_TOUGHNESS.get();
     }
 
     private double configuredDefense() {
-        return switch (getType()) {
+        return configuredDefense(type);
+    }
+
+    private static double configuredDefense(ArmorType type) {
+        return switch (type) {
             case HELMET -> ToolsArmorConfig.BLOOD_TEMPEST_HELMET_ARMOR.get();
             case CHESTPLATE -> ToolsArmorConfig.BLOOD_TEMPEST_CHESTPLATE_ARMOR.get();
             case LEGGINGS -> ToolsArmorConfig.BLOOD_TEMPEST_LEGGINGS_ARMOR.get();
             case BOOTS -> ToolsArmorConfig.BLOOD_TEMPEST_BOOTS_ARMOR.get();
+            case BODY -> 0.0D;
         };
     }
 
+    public ArmorType getType() {
+        return type;
+    }
+
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltip, TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
-        tooltip.add(Component.empty());
-        tooltip.add(Component.empty()
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> tooltip, TooltipFlag flag) {
+        super.appendHoverText(stack, context, display, tooltip, flag);
+        tooltip.accept(Component.empty());
+        tooltip.accept(Component.empty()
                 .append(Component.translatable("item.saintsdragons.blood_tempest_armor.tooltip.title")
                         .withStyle(ChatFormatting.DARK_RED))
                 .append(Component.literal(" "))
                 .append(Component.translatable("item.saintsdragons.blood_tempest_armor.tooltip.full_set")
                         .withStyle(ChatFormatting.GRAY)));
-        tooltip.add(Component.translatable("item.saintsdragons.blood_tempest_armor.tooltip.description")
+        tooltip.accept(Component.translatable("item.saintsdragons.blood_tempest_armor.tooltip.description")
                 .withStyle(ChatFormatting.GRAY));
     }
 
@@ -86,33 +91,18 @@ public class BloodTempestArmorItem extends ArmorItem implements GeoItem {
     }
 
     @Override
-    public void createRenderer(Consumer<Object> consumer) {
-        Object provider = createFabricRenderProvider();
-        if (provider != null) {
-            consumer.accept(provider);
-        }
-    }
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            private BloodTempestArmorRenderer renderer;
 
-    @Override
-    public Supplier<Object> getRenderProvider() {
-        return renderProvider;
-    }
-
-    private Object createFabricRenderProvider() {
-        try {
-            Class<?> renderProviderClass = Class.forName("software.bernie.geckolib.animatable.client.RenderProvider");
-            return Proxy.newProxyInstance(
-                    BloodTempestArmorItem.class.getClassLoader(),
-                    new Class<?>[]{renderProviderClass},
-                    (proxyInstance, method, args) -> {
-                        if ("getHumanoidArmorModel".equals(method.getName()) || "getGenericArmorModel".equals(method.getName())) {
-                            return getHumanoidArmorModel(args);
-                        }
-                        return null;
-                    });
-        } catch (ClassNotFoundException ignored) {
-            return null;
-        }
+            @Override
+            public GeoArmorRenderer<?, ?> getGeoArmorRenderer(ItemStack stack, EquipmentSlot slot) {
+                if (this.renderer == null) {
+                    this.renderer = new BloodTempestArmorRenderer();
+                }
+                return this.renderer;
+            }
+        });
     }
 
     public void initializeClient(Consumer<Object> consumer) {

@@ -26,7 +26,7 @@ public class CindervaneAutonomousFlightBehaviour extends AutonomousFlightBehavio
                 || dragon.isTame()
                 || isGroundedPackFollower(dragon)
                 || dragon.isInWater()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava()
                 || dragon.hasNearbyAssignedBabies(Cindervane.class) && !dragon.isOverStandardFlightDanger()) {
             return false;
@@ -41,7 +41,7 @@ public class CindervaneAutonomousFlightBehaviour extends AutonomousFlightBehavio
                 || dragon.isTame()
                 || isGroundedPackFollower(dragon)
                 || dragon.isInWater()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava()
                 || dragon.hasNearbyAssignedBabies(Cindervane.class) && !dragon.isOverStandardFlightDanger()) {
             return false;
@@ -53,7 +53,7 @@ public class CindervaneAutonomousFlightBehaviour extends AutonomousFlightBehavio
     @Override
     protected boolean shouldLandWhenAutonomousFlightBlocked(Cindervane dragon) {
         return dragon.isInWater()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava()
                 || dragon.isTame()
                 || dragon.hasNearbyAssignedBabies(Cindervane.class) && !dragon.isOverStandardFlightDanger();

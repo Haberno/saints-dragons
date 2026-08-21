@@ -2,6 +2,7 @@ package com.leon.saintsdragons.forge.world;
 
 import com.leon.saintsdragons.common.config.SaintsDragonsConfig;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
@@ -18,7 +19,7 @@ import java.util.Optional;
 
 
 public final class AddConditionalFeaturesBiomeModifier implements BiomeModifier {
-    public static final Codec<AddConditionalFeaturesBiomeModifier> CODEC = RecordCodecBuilder.create(instance ->
+    public static final MapCodec<AddConditionalFeaturesBiomeModifier> CODEC = RecordCodecBuilder.mapCodec(instance ->
             instance.group(
                     Biome.LIST_CODEC.fieldOf("biomes").forGetter(m -> m.biomes),
                     PlacedFeature.LIST_CODEC.fieldOf("features").forGetter(m -> m.features),
@@ -71,7 +72,7 @@ public final class AddConditionalFeaturesBiomeModifier implements BiomeModifier 
     }
 
     @Override
-    public Codec<? extends BiomeModifier> codec() {
+    public MapCodec<? extends BiomeModifier> codec() {
         return CODEC;
     }
 }

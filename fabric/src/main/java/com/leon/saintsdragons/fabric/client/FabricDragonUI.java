@@ -9,6 +9,7 @@ import com.leon.saintsdragons.client.ui.MeleeModeNotification;
 import com.leon.saintsdragons.client.ui.RaevyxBeamMeterIndicator;
 import com.leon.saintsdragons.client.ui.SwarmWaveBarOverlay;
 import com.leon.saintsdragons.client.ui.VolitansBreathMeterIndicator;
+import com.leon.saintsdragons.client.input.DragonRideInputHandler;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
@@ -37,7 +38,7 @@ public final class FabricDragonUI {
             "key.saintsdragons.toggle_dragon_ui",
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_F4,
-            "key.categories.saintsdragons"
+            DragonRideInputHandler.KEY_CATEGORY
     );
 
     static {
@@ -82,11 +83,12 @@ public final class FabricDragonUI {
 
             int width = client.getWindow().getGuiScaledWidth();
             int height = client.getWindow().getGuiScaledHeight();
+            float partialTick = tickDelta.getGameTimeDeltaPartialTick(false);
 
-            SwarmWaveBarOverlay.render(graphics, width, tickDelta);
+            SwarmWaveBarOverlay.render(graphics, width, partialTick);
 
             if (FabricClientConfigAccess.isDiveSpeedLinesEnabled()) {
-                diveSpeedLineOverlay.render(graphics, width, height, tickDelta);
+                diveSpeedLineOverlay.render(graphics, width, height, partialTick);
             }
 
             // Get current dragon if riding
@@ -108,28 +110,28 @@ public final class FabricDragonUI {
             if (currentDragon instanceof Ignivorus ignivorus) {
                 // Fireball charge indicator
                 fireballChargeIndicator.setChargeLevel(ignivorus.getFireballChargeLevel());
-                fireballChargeIndicator.render(graphics, width, height, tickDelta);
+                fireballChargeIndicator.render(graphics, width, height, partialTick);
 
                 // Fire breath meter
                 ignivorusFireBreathMeterIndicator.setBreathEnergy(ignivorus.getFireBreathEnergy());
                 ignivorusFireBreathMeterIndicator.setBreathing(ignivorus.isBreathingFire());
-                ignivorusFireBreathMeterIndicator.render(graphics, width, height, tickDelta);
+                ignivorusFireBreathMeterIndicator.render(graphics, width, height, partialTick);
             } else if (currentDragon instanceof Raevyx raevyx) {
                 // Beam meter for Raevyx
                 raevyxBeamMeterIndicator.setBeamEnergy(raevyx.getBeamEnergy());
                 raevyxBeamMeterIndicator.setBeaming(raevyx.isBeaming());
-                raevyxBeamMeterIndicator.render(graphics, width, height, tickDelta);
+                raevyxBeamMeterIndicator.render(graphics, width, height, partialTick);
             } else if (currentDragon instanceof Volitans volitans) {
                 volitansBreathMeterIndicator.setWaterEnergy(volitans.getWaterBreathEnergy());
                 volitansBreathMeterIndicator.setPoisonEnergy(volitans.getPoisonBreathEnergy());
                 volitansBreathMeterIndicator.setBreathMode(volitans.getBreathMode());
                 volitansBreathMeterIndicator.setBreathing(volitans.isBreathing());
-                volitansBreathMeterIndicator.render(graphics, width, height, tickDelta);
+                volitansBreathMeterIndicator.render(graphics, width, height, partialTick);
             }
 
             // Render dragon ride health bar when riding any dragon
             if (currentDragon != null) {
-                rideHealthBar.render(graphics, width, height, tickDelta);
+                rideHealthBar.render(graphics, width, height, partialTick);
             }
         });
     }

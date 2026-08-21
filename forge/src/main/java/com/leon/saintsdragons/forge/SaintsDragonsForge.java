@@ -35,15 +35,19 @@ import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
 import com.leon.saintsdragons.server.entity.dragons.varasuchus.Varasuchus;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.SpawnPlacementType;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.attributes.RangedAttribute;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.AABB;
 import net.minecraftforge.api.distmarker.Dist;
@@ -57,6 +61,7 @@ import net.minecraftforge.event.RegisterCommandsEvent;
 import net.minecraftforge.event.entity.EntityAttributeCreationEvent;
 import net.minecraftforge.event.entity.EntityAttributeModificationEvent;
 import net.minecraftforge.event.entity.SpawnPlacementRegisterEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.DistExecutor;
 import net.minecraftforge.fml.config.ModConfig;
@@ -70,6 +75,7 @@ import net.minecraftforge.registries.RegistryObject;
 import net.minecraftforge.server.ServerLifecycleHooks;
 
 import java.util.ArrayList;
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 import java.util.Map;
 
@@ -79,17 +85,17 @@ public final class SaintsDragonsForge {
     private static final double ATTRIBUTE_CAP = 100000.0D;
     private static final String FORGE_ATTRIBUTES_CONFIG_FILE = SaintsDragonsConfig.DRAGON_ATTRIBUTES_CONFIG_FILE;
     private static final String FORGE_CLIENT_CONFIG_FILE = SaintsDragonsConfig.CLIENT_COMMON_CONFIG_FILE;
-    private static final DeferredRegister<Codec<? extends BiomeModifier>> BIOME_MODIFIERS =
+    private static final DeferredRegister<MapCodec<? extends BiomeModifier>> BIOME_MODIFIERS =
             DeferredRegister.create(ForgeRegistries.Keys.BIOME_MODIFIER_SERIALIZERS, SaintsDragonsCommon.MOD_ID);
 
-    public static final RegistryObject<Codec<AddConditionalFeaturesBiomeModifier>> ADD_CONDITIONAL_FEATURES =
+    public static final RegistryObject<MapCodec<AddConditionalFeaturesBiomeModifier>> ADD_CONDITIONAL_FEATURES =
             BIOME_MODIFIERS.register("add_conditional_features", () -> AddConditionalFeaturesBiomeModifier.CODEC);
 
-    public static final RegistryObject<Codec<AddDragonsBiomeModifier>> ADD_DRAGONS =
+    public static final RegistryObject<MapCodec<AddDragonsBiomeModifier>> ADD_DRAGONS =
             BIOME_MODIFIERS.register("add_dragons", () -> AddDragonsBiomeModifier.CODEC);
 
     public SaintsDragonsForge() {
-        var modEventBus = FMLJavaModLoadingContext.get().getModEventBus();
+        var modEventBus = FMLJavaModLoadingContext.get().getModBusGroup();
         ConfigStorageLayout.migrateLegacyFiles();
         raiseVanillaMaxHealthCap();
         BIOME_MODIFIERS.register(modEventBus);
@@ -99,15 +105,9 @@ public final class SaintsDragonsForge {
                 FORGE_ATTRIBUTES_CONFIG_FILE);
 
         DistExecutor.unsafeRunWhenOn(Dist.CLIENT, () -> ClientOnly::registerConfigScreen);
-        modEventBus.addListener(this::onEntityAttributeCreation);
-        modEventBus.addListener(this::onEntityAttributeModification);
-        modEventBus.addListener(this::onBuildCreativeTabs);
-        modEventBus.addListener(this::onRegisterSpawnPlacements);
-        modEventBus.addListener(this::onCommonSetup);
-        modEventBus.addListener(this::onGatherData);
-        modEventBus.addListener(this::onModConfigEvent);
-        MinecraftForge.EVENT_BUS.addListener(this::onRegisterCommands);
-        MinecraftForge.EVENT_BUS.addListener(this::onAddReloadListeners);
+        modEventBus.register(MethodHandles.lookup(), new ModEvents());
+        ForgeBrewingRecipes.register();
+        MinecraftForge.EVENT_BUS.register(MethodHandles.lookup(), this);
 
         SaintsDragonsCommon.init();
     }
@@ -143,9 +143,9 @@ public final class SaintsDragonsForge {
     }
 
     private void onEntityAttributeModification(EntityAttributeModificationEvent event) {
-        event.add(EntityType.PLAYER, ModAttributes.DOUBLE_JUMP.get());
-        event.add(EntityType.PLAYER, ModAttributes.FIRE_RESISTANCE.get());
-        event.add(EntityType.PLAYER, ModAttributes.BLAST_RESISTANCE.get());
+        event.add(EntityType.PLAYER, BuiltInRegistries.ATTRIBUTE.wrapAsHolder(ModAttributes.DOUBLE_JUMP.get()));
+        event.add(EntityType.PLAYER, BuiltInRegistries.ATTRIBUTE.wrapAsHolder(ModAttributes.FIRE_RESISTANCE.get()));
+        event.add(EntityType.PLAYER, BuiltInRegistries.ATTRIBUTE.wrapAsHolder(ModAttributes.BLAST_RESISTANCE.get()));
     }
 
     private void onBuildCreativeTabs(BuildCreativeModeTabContentsEvent event) {
@@ -175,8 +175,9 @@ public final class SaintsDragonsForge {
             return false;
         }
 
-        Potion potion = PotionUtils.getPotion(stack);
-        return potion == ModPotions.TIDEGUARD.get() || potion == ModPotions.SEARING.get();
+        PotionContents contents = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        return contents.is(BuiltInRegistries.POTION.wrapAsHolder(ModPotions.TIDEGUARD.get()))
+                || contents.is(BuiltInRegistries.POTION.wrapAsHolder(ModPotions.SEARING.get()));
     }
 
     private void onRegisterSpawnPlacements(SpawnPlacementRegisterEvent event) {
@@ -184,7 +185,7 @@ public final class SaintsDragonsForge {
             @Override
             public <T extends Mob> void register(
                     EntityType<T> type,
-                    SpawnPlacements.Type placementType,
+                    SpawnPlacementType placementType,
                     Heightmap.Types heightmap,
                     SpawnPlacements.SpawnPredicate<T> predicate
             ) {
@@ -193,6 +194,7 @@ public final class SaintsDragonsForge {
         });
     }
 
+    @SubscribeEvent
     private void onRegisterCommands(RegisterCommandsEvent event) {
         CommonModEvents.registerCommands(event.getDispatcher());
     }
@@ -216,9 +218,10 @@ public final class SaintsDragonsForge {
         generator.addProvider(event.includeServer(),
                 new SaintsDragonBiomeTagsProvider(output, lookupProvider, existingFileHelper));
         generator.addProvider(event.includeServer(),
-                SaintsDragonLootTableProvider.create(output));
+                SaintsDragonLootTableProvider.create(output, lookupProvider));
     }
 
+    @SubscribeEvent
     private void onAddReloadListeners(AddReloadListenerEvent event) {
         event.addListener(DragonAttributeConfigLoader.getInstance());
         event.addListener(DragonVariantReloadListener.getInstance());
@@ -257,10 +260,10 @@ public final class SaintsDragonsForge {
         for (var level : server.getAllLevels()) {
             AABB bounds = new AABB(
                     level.getWorldBorder().getMinX(),
-                    level.getMinBuildHeight(),
+                    level.getMinY(),
                     level.getWorldBorder().getMinZ(),
                     level.getWorldBorder().getMaxX(),
-                    level.getMaxBuildHeight(),
+                    level.getMaxY(),
                     level.getWorldBorder().getMaxZ()
             );
 
@@ -295,6 +298,38 @@ public final class SaintsDragonsForge {
                             (minecraft, parent) -> new ForgeConfigRootScreen(parent)
                     )
             );
+        }
+    }
+
+    private final class ModEvents {
+        @SubscribeEvent
+        public void onEntityAttributeCreation(EntityAttributeCreationEvent event) {
+            SaintsDragonsForge.this.onEntityAttributeCreation(event);
+        }
+
+        @SubscribeEvent
+        public void onEntityAttributeModification(EntityAttributeModificationEvent event) {
+            SaintsDragonsForge.this.onEntityAttributeModification(event);
+        }
+
+        @SubscribeEvent
+        public void onBuildCreativeTabs(BuildCreativeModeTabContentsEvent event) {
+            SaintsDragonsForge.this.onBuildCreativeTabs(event);
+        }
+
+        @SubscribeEvent
+        public void onRegisterSpawnPlacements(SpawnPlacementRegisterEvent event) {
+            SaintsDragonsForge.this.onRegisterSpawnPlacements(event);
+        }
+
+        @SubscribeEvent
+        public void onGatherData(GatherDataEvent event) {
+            SaintsDragonsForge.this.onGatherData(event);
+        }
+
+        @SubscribeEvent
+        public void onModConfigEvent(ModConfigEvent event) {
+            SaintsDragonsForge.this.onModConfigEvent(event);
         }
     }
 }

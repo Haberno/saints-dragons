@@ -106,7 +106,7 @@ public final class DragonSwimFollowBehaviour<T extends RideableDragonBase & Semi
     private boolean basicConditions(T dragon) {
         return dragon.canSwim()
                 && eligibility.test(dragon)
-                && dragon.isInWaterOrBubble()
+                && dragon.isInWater()
                 && !dragon.isInLove()
                 && !dragon.isVehicle()
                 && !dragon.isAerial()

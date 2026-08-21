@@ -33,15 +33,15 @@ public abstract class RideableGroundDragon extends RideableDragonBase implements
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_RIDER_GROUND_JUMPING, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_RIDER_GROUND_JUMPING, false);
     }
 
     @Override
     public void tick() {
         super.tick();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             tickRiderGroundJumpAnimationState();
         }
         if (usesGroundJumpLandingAnimation() && !isBaby()) {
@@ -137,7 +137,6 @@ public abstract class RideableGroundDragon extends RideableDragonBase implements
                     getRiderJumpForwardBoost() * Mth.cos(yawRad) * charge
             ));
         }
-        hasImpulse = true;
         hurtMarked = true;
         fallDistance = 0.0F;
         riderJumping = true;
@@ -151,7 +150,7 @@ public abstract class RideableGroundDragon extends RideableDragonBase implements
                 && canBeControlledBy(player)
                 && isGroundedForRiderJump()
                 && !isBaby()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !areRiderControlsLocked()
                 && canGroundDragonJump();
     }
@@ -183,7 +182,7 @@ public abstract class RideableGroundDragon extends RideableDragonBase implements
             return;
         }
 
-        if (!isAlive() || !isVehicle() || isInWaterOrBubble()) {
+        if (!isAlive() || !isVehicle() || isInWater()) {
             resetGroundJumpLandingTracking();
             return;
         }
@@ -224,7 +223,7 @@ public abstract class RideableGroundDragon extends RideableDragonBase implements
         return this.entityData.get(DATA_RIDER_GROUND_JUMPING)
                 && isVehicle()
                 && getControllingPassenger() instanceof Player
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !onGround()
                 && !verticalCollisionBelow
                 && (getDeltaMovement().y > 0.0D || riderJumpAnimationHoldTicks > 0);
@@ -238,7 +237,7 @@ public abstract class RideableGroundDragon extends RideableDragonBase implements
         }
 
         riderJumpAnimationTicks++;
-        if (this.isInWaterOrBubble() || !this.isVehicle()) {
+        if (this.isInWater() || !this.isVehicle()) {
             stopRiderGroundJumpAnimation();
             return;
         }

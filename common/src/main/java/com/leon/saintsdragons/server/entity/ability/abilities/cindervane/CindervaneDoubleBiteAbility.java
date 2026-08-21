@@ -46,7 +46,7 @@ public class CindervaneDoubleBiteAbility extends DragonAbility<Cindervane> {
         Cindervane dragon = getUser();
         String animation = dragon.isAerial() ? "double_bite_air" : "double_bite";
         dragon.triggerAnim(CindervaneAnimationHandler.ACTION_CONTROLLER, animation);
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             dragon.getSoundHandler().playMovingEntitySound(
                     ModSounds.CINDERVANE_DOUBLE_BITE.get(), 1.2F, 1.0F, SOUND_TICKS
             );
@@ -61,7 +61,7 @@ public class CindervaneDoubleBiteAbility extends DragonAbility<Cindervane> {
     @Override
     public void tickUsing() {
         Cindervane dragon = getUser();
-        if (dragon.level().isClientSide || getCurrentSection() == null
+        if (dragon.level().isClientSide() || getCurrentSection() == null
                 || getCurrentSection().sectionType != STARTUP) {
             return;
         }

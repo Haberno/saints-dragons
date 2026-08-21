@@ -239,7 +239,7 @@ public class CindervaneAirCombatMovementBehaviour extends AirCombatMovementBehav
             return;
         }
         fireBodyTicks++;
-        boolean unsafe = dragon.isInWaterOrBubble() || dragon.isFireBodySuppressed();
+        boolean unsafe = dragon.isInWater() || dragon.isFireBodySuppressed();
         boolean spent = fireBodyTicks >= FIRE_BODY_MAX_TICKS;
         boolean disengaged = fireBodyTicks >= FIRE_BODY_MIN_TICKS
                 && (gap > FIRE_BODY_EXIT_RANGE || !hasLineOfSight);
@@ -259,7 +259,7 @@ public class CindervaneAirCombatMovementBehaviour extends AirCombatMovementBehav
     private boolean canUseAirCombat(Cindervane dragon) {
         return !dragon.isBaby()
                 && !dragon.isInWater()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && !dragon.isInLava();
     }
 

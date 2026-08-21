@@ -773,8 +773,8 @@ public final class RaevyxAirCombatBehaviour extends AirCombatMovementBehaviour<R
     }
 
     private Vec3 clampFlightY(Raevyx dragon, Vec3 target) {
-        double minY = dragon.level().getMinBuildHeight() + 4.0D;
-        double maxY = dragon.level().getMaxBuildHeight() - 4.0D;
+        double minY = dragon.level().getMinY() + 4.0D;
+        double maxY = dragon.level().getMaxY() - 4.0D;
         return new Vec3(target.x, Mth.clamp(target.y, minY, maxY), target.z);
     }
 

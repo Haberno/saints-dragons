@@ -1,20 +1,19 @@
 package com.leon.saintsdragons.client.renderer.vfx;
 
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
-import com.mojang.blaze3d.vertex.DefaultVertexFormat;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.client.renderer.MultiBufferSource;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 
 public final class RaevyxBeamLightningRenderer {
-    private static final RenderType GLOW_RENDER_TYPE = BeamRenderType.TRANSLUCENT;
-    private static final RenderType CORE_RENDER_TYPE = BeamRenderType.OPAQUE;
+    private static final RenderType GLOW_RENDER_TYPE = RenderTypes.lightning();
+    private static final RenderType CORE_RENDER_TYPE = RenderTypes.lightning();
     private static final long PHASE_SEED = 0x9E3779B97F4A7C15L;
     private static final long SECONDARY_SEED = 0x632BE59BD9B4E019L;
     private static final long BRANCH_SEED = 0xD1B54A32D192ED03L;
@@ -24,7 +23,7 @@ public final class RaevyxBeamLightningRenderer {
     private RaevyxBeamLightningRenderer() {
     }
 
-    public static void render(Raevyx raevyx, PoseStack poseStack, MultiBufferSource bufferSource,
+    public static void render(Raevyx raevyx, PoseStack poseStack, SubmitNodeCollector renderTasks,
                               float beamLength, float visibility, float ageInTicks,
                               boolean nightGold, boolean ending) {
         if (raevyx == null || beamLength <= 0.05F || visibility <= 0.01F) {
@@ -33,11 +32,11 @@ public final class RaevyxBeamLightningRenderer {
 
         long entitySeed = raevyx.getUUID().getMostSignificantBits()
                 ^ raevyx.getUUID().getLeastSignificantBits();
-        renderLightning(poseStack, bufferSource, beamLength, visibility,
+        renderLightning(poseStack, renderTasks, beamLength, visibility,
                 ageInTicks, entitySeed, nightGold, ending);
     }
 
-    private static void renderLightning(PoseStack poseStack, MultiBufferSource bufferSource,
+    private static void renderLightning(PoseStack poseStack, SubmitNodeCollector renderTasks,
                                         float beamLength,
                                         float visibility, float ageInTicks,
                                         long entitySeed, boolean nightGold, boolean ending) {
@@ -61,36 +60,39 @@ public final class RaevyxBeamLightningRenderer {
                 ? new BoltStyle(1.0F, 0.70F, 0.065F, 0.62F * visibility, 0.055F)
                 : new BoltStyle(0.92F, 0.16F, 0.075F, 0.64F * visibility, 0.055F);
 
-        Matrix4f matrix = poseStack.last().pose();
         float coreCoverage = ending ? visibility : 1.0F;
 
         // Shader packs may heavily attenuate their translucent entity pass against an HDR sky.
         // Keep the broad energy there, then draw a narrow opaque core as a reliable anchor.
-        VertexConsumer glowConsumer = bufferSource.getBuffer(GLOW_RENDER_TYPE);
-        renderMorphingBolt(matrix, glowConsumer, BOLT_START, end, seed, nextSeed,
-                morph, segments, spread, glow, true, 1.0F, entitySeed ^ PHASE_SEED);
+        renderTasks.order(1).submitCustomGeometry(poseStack, GLOW_RENDER_TYPE, (pose, glowConsumer) -> {
+            Matrix4f matrix = pose.pose();
+            renderMorphingBolt(matrix, glowConsumer, BOLT_START, end, seed, nextSeed,
+                    morph, segments, spread, glow, true, 1.0F, entitySeed ^ PHASE_SEED);
 
-        // A separate thin filament crawls around the primary bolt.
-        renderMorphingBolt(matrix, glowConsumer, BOLT_START, end,
-                seed ^ SECONDARY_SEED, nextSeed ^ SECONDARY_SEED,
-                morph, segments, spread * 1.35F, crawler, false,
-                1.0F, entitySeed ^ SECONDARY_SEED);
+            // A separate thin filament crawls around the primary bolt.
+            renderMorphingBolt(matrix, glowConsumer, BOLT_START, end,
+                    seed ^ SECONDARY_SEED, nextSeed ^ SECONDARY_SEED,
+                    morph, segments, spread * 1.35F, crawler, false,
+                    1.0F, entitySeed ^ SECONDARY_SEED);
 
-        BoltStyle impactGlow = new BoltStyle(glow.red(), glow.green(), glow.blue(),
-                glow.alpha() * 0.78F, glow.width() * 0.72F);
-        renderImpactArcs(matrix, glowConsumer, end, seed ^ BRANCH_SEED,
-                beamLength, visibility, impactGlow, 1.0F, entitySeed ^ BRANCH_SEED);
+            BoltStyle impactGlow = new BoltStyle(glow.red(), glow.green(), glow.blue(),
+                    glow.alpha() * 0.78F, glow.width() * 0.72F);
+            renderImpactArcs(matrix, glowConsumer, end, seed ^ BRANCH_SEED,
+                    beamLength, visibility, impactGlow, 1.0F, entitySeed ^ BRANCH_SEED);
+        });
 
-        VertexConsumer coreConsumer = bufferSource.getBuffer(CORE_RENDER_TYPE);
-        renderMorphingBolt(matrix, coreConsumer, BOLT_START, end, seed, nextSeed,
-                morph, segments, spread, core, true,
-                coreCoverage, entitySeed ^ BRANCH_SEED);
+        renderTasks.order(2).submitCustomGeometry(poseStack, CORE_RENDER_TYPE, (pose, coreConsumer) -> {
+            Matrix4f matrix = pose.pose();
+            renderMorphingBolt(matrix, coreConsumer, BOLT_START, end, seed, nextSeed,
+                    morph, segments, spread, core, true,
+                    coreCoverage, entitySeed ^ BRANCH_SEED);
 
-        BoltStyle impactCore = new BoltStyle(core.red(), core.green(), core.blue(),
-                1.0F, core.width() * 0.76F);
-        renderImpactArcs(matrix, coreConsumer, end, seed ^ BRANCH_SEED,
-                beamLength, visibility, impactCore, coreCoverage,
-                entitySeed ^ SECONDARY_SEED);
+            BoltStyle impactCore = new BoltStyle(core.red(), core.green(), core.blue(),
+                    1.0F, core.width() * 0.76F);
+            renderImpactArcs(matrix, coreConsumer, end, seed ^ BRANCH_SEED,
+                    beamLength, visibility, impactCore, coreCoverage,
+                    entitySeed ^ SECONDARY_SEED);
+        });
     }
 
     private static float smoothStep(float value) {
@@ -299,9 +301,8 @@ public final class RaevyxBeamLightningRenderer {
     }
 
     private static void vertex(Matrix4f matrix, VertexConsumer consumer, Vec3 position, BoltStyle style) {
-        consumer.vertex(matrix, (float) position.x, (float) position.y, (float) position.z)
-                .color(style.red(), style.green(), style.blue(), style.alpha())
-                .endVertex();
+        consumer.addVertex(matrix, (float) position.x, (float) position.y, (float) position.z)
+                .setColor(style.red(), style.green(), style.blue(), style.alpha());
     }
 
     private static Vec3 randomOrthogonal(Vec3 direction, RandomSource random) {
@@ -324,49 +325,6 @@ public final class RaevyxBeamLightningRenderer {
             );
         } while (vector.lengthSqr() < 1.0E-6D);
         return vector.normalize();
-    }
-
-    private static final class BeamRenderType extends RenderType {
-        private static final RenderType TRANSLUCENT = create(
-                "saintsdragons_raevyx_beam_glow",
-                DefaultVertexFormat.POSITION_COLOR,
-                VertexFormat.Mode.QUADS,
-                2048,
-                false,
-                true,
-                CompositeState.builder()
-                        .setShaderState(POSITION_COLOR_SHADER)
-                        .setTransparencyState(TRANSLUCENT_TRANSPARENCY)
-                        .setDepthTestState(LEQUAL_DEPTH_TEST)
-                        .setCullState(NO_CULL)
-                        .setWriteMaskState(COLOR_WRITE)
-                        .setOutputState(TRANSLUCENT_TARGET)
-                        .createCompositeState(false)
-        );
-
-        private static final RenderType OPAQUE = create(
-                "saintsdragons_raevyx_beam_core",
-                DefaultVertexFormat.POSITION_COLOR,
-                VertexFormat.Mode.QUADS,
-                1024,
-                false,
-                false,
-                CompositeState.builder()
-                        .setShaderState(POSITION_COLOR_SHADER)
-                        .setTransparencyState(NO_TRANSPARENCY)
-                        .setDepthTestState(LEQUAL_DEPTH_TEST)
-                        .setCullState(NO_CULL)
-                        .setWriteMaskState(COLOR_DEPTH_WRITE)
-                        .setOutputState(MAIN_TARGET)
-                        .createCompositeState(false)
-        );
-
-        private BeamRenderType(String name, VertexFormat format, VertexFormat.Mode mode,
-                               int bufferSize, boolean affectsCrumbling, boolean sortOnUpload,
-                               Runnable setupState, Runnable clearState) {
-            super(name, format, mode, bufferSize, affectsCrumbling, sortOnUpload,
-                    setupState, clearState);
-        }
     }
 
     private record BoltStyle(float red, float green, float blue, float alpha, float width) {

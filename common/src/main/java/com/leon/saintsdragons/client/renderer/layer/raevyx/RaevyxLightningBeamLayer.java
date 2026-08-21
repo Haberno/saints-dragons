@@ -1,11 +1,11 @@
 package com.leon.saintsdragons.client.renderer.layer.raevyx;
 
 import com.leon.saintsdragons.client.renderer.vfx.RaevyxBeamLightningRenderer;
+import com.leon.saintsdragons.client.renderer.GeoRenderDataTickets;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -13,15 +13,17 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
-import org.jetbrains.annotations.NotNull;
 import org.joml.Vector4f;
 import software.bernie.geckolib.cache.model.BakedGeoModel;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
+import software.bernie.geckolib.renderer.base.GeoRenderer;
+import software.bernie.geckolib.renderer.base.RenderPassInfo;
 import net.minecraft.util.Mth;
 import java.util.Map;
 import java.util.WeakHashMap;
 
-public class RaevyxLightningBeamLayer extends GeoRenderLayer<Raevyx> {
+public class RaevyxLightningBeamLayer
+        extends GeoRenderLayer<Raevyx, Void, SaintsDragonsLivingEntityRenderState> {
     private static final float BEAM_SHAKE_INTENSITY = 0.01F;
 
     private static final class BeamState {
@@ -35,12 +37,21 @@ public class RaevyxLightningBeamLayer extends GeoRenderLayer<Raevyx> {
     private static final float APPEAR_TICKS = 5f;
     private static final float DISAPPEAR_TICKS = 10f;
 
-    public RaevyxLightningBeamLayer() { super(null); }
+    public RaevyxLightningBeamLayer(
+            GeoRenderer<Raevyx, Void, SaintsDragonsLivingEntityRenderState> renderer) {
+        super(renderer);
+    }
 
     @Override
-    public void render(@NotNull PoseStack poseStack, Raevyx animatable, BakedGeoModel bakedModel,
-                       @NotNull RenderType renderType, @NotNull MultiBufferSource bufferSource, @NotNull VertexConsumer buffer,
-                       float partialTick, int packedLight, int packedOverlay) {
+    public void submitRenderTask(RenderPassInfo<SaintsDragonsLivingEntityRenderState> renderPassInfo,
+                                 SubmitNodeCollector renderTasks) {
+        PoseStack poseStack = renderPassInfo.poseStack();
+        Raevyx animatable = (Raevyx) renderPassInfo.getGeckolibData(GeoRenderDataTickets.ANIMATABLE);
+        if (animatable == null) {
+            return;
+        }
+        BakedGeoModel bakedModel = renderPassInfo.model();
+        float partialTick = renderPassInfo.renderState().getPartialTick();
 
         BeamState state = STATES.computeIfAbsent(animatable, k -> new BeamState());
         boolean beaming = animatable.isBeaming();
@@ -119,7 +130,7 @@ public class RaevyxLightningBeamLayer extends GeoRenderLayer<Raevyx> {
                 ? Math.max(0.001F, length * visScale)
                 : length;
         boolean isNightGold = animatable.getTextureVariant() == Raevyx.VARIANT_NIGHT_GOLD;
-        RaevyxBeamLightningRenderer.render(animatable, poseStack, bufferSource,
+        RaevyxBeamLightningRenderer.render(animatable, poseStack, renderTasks,
                 renderLength, visScale, ageInTicks, isNightGold, !beaming);
         poseStack.popPose();
     }
@@ -195,28 +206,6 @@ public class RaevyxLightningBeamLayer extends GeoRenderLayer<Raevyx> {
         if (model == null || boneName == null || entity == null) return null;
         var boneOpt = model.getBone(boneName);
         if (boneOpt.isEmpty()) return null;
-        var bone = boneOpt.get();
-        Matrix4f worldMat = new Matrix4f(bone.getWorldSpaceMatrix());
-
-        Vector4f pivotWorld = new Vector4f(0f, 0f, 0f, 1f);
-        worldMat.transform(pivotWorld);
-
-        double entityX = entity.getX();
-        double entityY = entity.getY();
-        double entityZ = entity.getZ();
-
-        double entityOldX = entity.xo;
-        double entityOldY = entity.yo;
-        double entityOldZ = entity.zo;
-
-        double interpX = Mth.lerp(partialTick, entityOldX, entityX);
-        double interpY = Mth.lerp(partialTick, entityOldY, entityY);
-        double interpZ = Mth.lerp(partialTick, entityOldZ, entityZ);
-
-        double correctedX = pivotWorld.x() - entityX + interpX;
-        double correctedY = pivotWorld.y() - entityY + interpY;
-        double correctedZ = pivotWorld.z() - entityZ + interpZ;
-
-        return new Vec3(correctedX, correctedY, correctedZ);
+        return entity.getEyePosition(partialTick);
     }
 }

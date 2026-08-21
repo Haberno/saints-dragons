@@ -46,7 +46,7 @@ public class VolitansBiteAbility extends DragonAbility<Volitans> {
         }
         if (section.sectionType == STARTUP) {
             getUser().triggerAnim(VolitansAnimationHandler.FAST_ACTION_CONTROLLER, "bite");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 getUser().getSoundHandler().playMovingEntitySound(
                         ModSounds.VOLITANS_BITE.get(),
                         1.4f,
@@ -96,7 +96,7 @@ public class VolitansBiteAbility extends DragonAbility<Volitans> {
     }
 
     private void sendDebugBox(Volitans dragon) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         DragonMeleeGeometry.ForwardAttack attack = DragonMeleeGeometry.bodyForwardAttack(dragon).offset(HITBOX_FORWARD_OFFSET);

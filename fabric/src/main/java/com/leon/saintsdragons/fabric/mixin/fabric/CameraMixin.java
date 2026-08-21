@@ -16,7 +16,7 @@ import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.client.Camera;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Vector3f;
 import org.spongepowered.asm.mixin.Mixin;
@@ -29,10 +29,10 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 public abstract class CameraMixin implements CameraAccessor {
 
     @Shadow
-    protected abstract void move(double distance, double yaw, double pitch);
+    protected abstract void move(float distance, float yaw, float pitch);
 
     @Shadow
-    protected abstract double getMaxZoom(double distance);
+    protected abstract float getMaxZoom(float distance);
 
     @Shadow
     protected abstract void setPosition(double x, double y, double z);
@@ -42,12 +42,6 @@ public abstract class CameraMixin implements CameraAccessor {
 
     @Shadow
     protected abstract void setPosition(Vec3 pos);
-
-    @Shadow
-    protected abstract float getXRot();
-
-    @Shadow
-    protected abstract float getYRot();
 
     @Shadow
     private Vector3f up;
@@ -62,12 +56,12 @@ public abstract class CameraMixin implements CameraAccessor {
      * Accessor methods for other parts of the mod to call.
      */
     @Override
-    public void saintsdragons$invokeMove(double distance, double yaw, double pitch) {
+    public void saintsdragons$invokeMove(float distance, float yaw, float pitch) {
         this.move(distance, yaw, pitch);
     }
 
     @Override
-    public double saintsdragons$invokeGetMaxZoom(double distance) {
+    public float saintsdragons$invokeGetMaxZoom(float distance) {
         return this.getMaxZoom(distance);
     }
 
@@ -83,17 +77,17 @@ public abstract class CameraMixin implements CameraAccessor {
 
     @Override
     public float saintsdragons$invokeGetXRot() {
-        return this.getXRot();
+        return ((Camera) (Object) this).xRot();
     }
 
     @Override
     public float saintsdragons$invokeGetYRot() {
-        return this.getYRot();
+        return ((Camera) (Object) this).yRot();
     }
 
     @Inject(method = "setup", at = @At("HEAD"), require = 0)
     private void saintsdragons$preSetupSyncRoll(
-            BlockGetter area,
+            Level area,
             Entity focusedEntity,
             boolean thirdPerson,
             boolean inverseView,
@@ -135,7 +129,7 @@ public abstract class CameraMixin implements CameraAccessor {
 
     @Inject(method = "setup", at = @At("RETURN"), require = 0)
     private void saintsdragons$onCameraSetup(
-            BlockGetter area,
+            Level area,
             Entity focusedEntity,
             boolean thirdPerson,
             boolean inverseView,

@@ -205,7 +205,7 @@ final class DragonPursuitSafety {
     private boolean hasRouteFailure(DragonBrainContext<? extends RideableDragonBase> context,
                                     LivingEntity target) {
         RideableDragonBase dragon = context.dragon();
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             AsyncSwimController.DebugSnapshot swim = dragon.getAiSwimController().getDebugSnapshot();
             return swim.rejectedTarget() != null
                     && swim.rejectedCooldown() > 0

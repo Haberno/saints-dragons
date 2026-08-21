@@ -1,24 +1,15 @@
 package com.leon.saintsdragons.client.renderer.layer.ignivorus;
 
+import com.leon.saintsdragons.client.renderer.layer.DynamicTextureGeoLayer;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
+import net.minecraft.util.ARGB;
 import net.minecraft.util.Mth;
-import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.cache.model.BakedGeoModel;
 import software.bernie.geckolib.renderer.base.GeoRenderer;
-import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
-/**
- * Emissive overlay for Ignivorus that pulses while the dragon is breathing fire
- * or charging a fireball. Mirrors the Raevyx beam glow behavior.
- */
-public class IgnivorusGlowLayer extends GeoRenderLayer<Ignivorus> {
+public class IgnivorusGlowLayer extends DynamicTextureGeoLayer<Ignivorus> {
     private static final Identifier GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/ignivorus/ignivorus_glow.png");
     private static final Identifier FEMALE_GLOW_TEXTURE =
@@ -26,81 +17,44 @@ public class IgnivorusGlowLayer extends GeoRenderLayer<Ignivorus> {
     private static final Identifier CRIMSON_GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/ignivorus/crimson_ignivorus_glow.png");
 
-    public IgnivorusGlowLayer(GeoRenderer<Ignivorus> renderer) {
+    public IgnivorusGlowLayer(
+            GeoRenderer<Ignivorus, Void, SaintsDragonsLivingEntityRenderState> renderer) {
         super(renderer);
     }
 
     @Override
-    public void render(@NotNull PoseStack poseStack,
-                       Ignivorus animatable,
-                       BakedGeoModel bakedModel,
-                       @NotNull RenderType renderType,
-                       @NotNull MultiBufferSource bufferSource,
-                       @NotNull VertexConsumer buffer,
-                       float partialTick,
-                       int packedLight,
-                       int packedOverlay) {
-
-        boolean isBreathingFire = animatable.isBreathingFire();
-        boolean isChargingFireball = animatable.isChargingFireball();
-
-        if (!isBreathingFire && !isChargingFireball) {
-            return;
+    protected LayerRenderData getLayerRenderData(Ignivorus animatable, float partialTick) {
+        boolean breathingFire = animatable.isBreathingFire();
+        boolean chargingFireball = animatable.isChargingFireball();
+        if (!breathingFire && !chargingFireball) {
+            return null;
         }
 
         float ticks = animatable.tickCount + partialTick;
         float alpha;
-
-        if (isChargingFireball) {
-            // Fireball charging glow - intensity scales with charge level
+        if (chargingFireball) {
             int chargeLevel = animatable.getFireballChargeLevel();
-            float chargeIntensity = chargeLevel / 3.0f; // 0.33, 0.66, 1.0
-
-            // Faster pulse at higher charge levels
-            float pulseSpeed = 0.15f + (chargeLevel * 0.1f); // 0.25, 0.35, 0.45
-            float pulse = 0.5f + 0.5f * Mth.sin(ticks * pulseSpeed);
-
-            // Base alpha scales with charge, pulse adds variation
-            alpha = chargeIntensity * (0.4f + 0.6f * pulse);
-
-            // At max charge, add extra intensity with rapid flicker
+            float chargeIntensity = chargeLevel / 3.0F;
+            float pulseSpeed = 0.15F + chargeLevel * 0.1F;
+            float pulse = 0.5F + 0.5F * Mth.sin(ticks * pulseSpeed);
+            alpha = chargeIntensity * (0.4F + 0.6F * pulse);
             if (chargeLevel == 3) {
-                float rapidPulse = 0.8f + 0.2f * Mth.sin(ticks * 0.8f);
-                alpha = Math.min(1.0f, alpha * rapidPulse * 1.2f);
+                float rapidPulse = 0.8F + 0.2F * Mth.sin(ticks * 0.8F);
+                alpha = Math.min(1.0F, alpha * rapidPulse * 1.2F);
             }
         } else {
-            // Fire breathing glow - original behavior
-            float pulse = 0.5f + 0.5f * Mth.sin(ticks * 0.2f);
-            float streamProgress = animatable.getFireBreathProgress() / 40.0f;
-            alpha = Mth.clamp(streamProgress, 0.0f, 1.0f) * (0.35f + 0.65f * pulse);
+            float pulse = 0.5F + 0.5F * Mth.sin(ticks * 0.2F);
+            float streamProgress = animatable.getFireBreathProgress() / 40.0F;
+            alpha = Mth.clamp(streamProgress, 0.0F, 1.0F) * (0.35F + 0.65F * pulse);
         }
 
-        if (alpha <= 0.01f) {
-            return;
+        if (alpha <= 0.01F) {
+            return null;
         }
-
-        Identifier glowTexture = getGlowTexture(animatable);
-        RenderType glowType = RenderType.entityTranslucent(glowTexture);
-        VertexConsumer glowBuffer = bufferSource.getBuffer(glowType);
-
-        getRenderer().reRender(
-                bakedModel,
-                poseStack,
-                bufferSource,
-                animatable,
-                glowType,
-                glowBuffer,
-                partialTick,
-                0xF000F0,
-                OverlayTexture.NO_OVERLAY,
-                1.0f,
-                1.0f,
-                1.0f,
-                alpha
-        );
+        return new LayerRenderData(getGlowTexture(animatable), ARGB.white(alpha), 0xF000F0);
     }
 
-    private Identifier getGlowTexture(Ignivorus animatable) {
+    private static Identifier getGlowTexture(Ignivorus animatable) {
         if (animatable.getTextureVariant() == Ignivorus.VARIANT_CRIMSON) {
             return CRIMSON_GLOW_TEXTURE;
         }

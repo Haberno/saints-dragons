@@ -44,7 +44,6 @@ public final class DragonlordFlightBoostController {
                 look.y * DIRECT_ACCELERATION + (target.y - motion.y) * VELOCITY_BLEND,
                 look.z * DIRECT_ACCELERATION + (target.z - motion.z) * VELOCITY_BLEND
         ));
-        player.hasImpulse = true;
         player.resetFallDistance();
         boostTicks--;
     }
@@ -55,7 +54,7 @@ public final class DragonlordFlightBoostController {
                 && !player.isPassenger()
                 && !player.onGround()
                 && !player.onClimbable()
-                && !player.isInWaterOrBubble()
+                && !player.isInWater()
                 && !player.getAbilities().flying
                 && player.isFallFlying()
                 && DragonlordArmorSetBonus.isWearingFullSet(player);

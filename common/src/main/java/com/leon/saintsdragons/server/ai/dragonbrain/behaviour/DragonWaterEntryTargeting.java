@@ -99,7 +99,6 @@ public final class DragonWaterEntryTargeting {
                 target.waterPosition().z,
                 1.1D
         );
-        dragon.hasImpulse = true;
     }
 
     @Nullable
@@ -173,11 +172,11 @@ public final class DragonWaterEntryTargeting {
                                                                                         Vec3 destination) {
         BlockPos destinationPos = BlockPos.containing(destination);
         int highestY = Math.min(
-                context.level().getMaxBuildHeight() - 1,
+                context.level().getMaxY() - 1,
                 Math.max(context.dragon().blockPosition().getY(), destinationPos.getY()) + 8
         );
         int lowestY = Math.max(
-                context.level().getMinBuildHeight(),
+                context.level().getMinY(),
                 Math.min(context.dragon().blockPosition().getY(), destinationPos.getY()) - 16
         );
         for (int y = highestY; y >= lowestY; y--) {

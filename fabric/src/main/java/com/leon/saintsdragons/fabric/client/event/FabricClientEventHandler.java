@@ -78,7 +78,7 @@ public class FabricClientEventHandler {
         ClientCameraImpulse.Offset impulse = ClientCameraImpulse.sample(partialTicks);
         if (impulse.active()) {
             ((CameraAccessor) camera).saintsdragons$invokeMove(
-                    impulse.forward(), impulse.vertical(), impulse.lateral());
+                    (float) impulse.forward(), (float) impulse.vertical(), (float) impulse.lateral());
         }
     }
 
@@ -153,12 +153,12 @@ public class FabricClientEventHandler {
 
         DragonRideCameraController.CameraOutput output = DragonRideCameraController.update(vehicle, partialTicks);
         CameraAccessor cameraAccessor = (CameraAccessor) camera;
-        double maxZoom = cameraAccessor.saintsdragons$invokeGetMaxZoom(output.zoom());
+        float maxZoom = cameraAccessor.saintsdragons$invokeGetMaxZoom(output.zoom());
         cameraAccessor.saintsdragons$invokeMove(-maxZoom, 0, 0);
         double lateralShift = FabricClientConfigAccess.isThirdPersonBankingCameraEnabled()
                 ? output.lateralShift()
                 : 0.0D;
-        cameraAccessor.saintsdragons$invokeMove(0, output.verticalShift(), lateralShift);
+        cameraAccessor.saintsdragons$invokeMove(0, (float) output.verticalShift(), (float) lateralShift);
 
         float currentYaw = cameraAccessor.saintsdragons$invokeGetYRot();
         float currentPitch = cameraAccessor.saintsdragons$invokeGetXRot();
@@ -191,9 +191,9 @@ public class FabricClientEventHandler {
 
             CameraAccessor cameraAccessor = (CameraAccessor) camera;
             cameraAccessor.saintsdragons$invokeMove(
-                randomTremorOffsets[0] * 0.2F * intensity,
-                randomTremorOffsets[1] * 0.2F * intensity,
-                randomTremorOffsets[2] * 0.5F * intensity
+                (float) (randomTremorOffsets[0] * 0.2F * intensity),
+                (float) (randomTremorOffsets[1] * 0.2F * intensity),
+                (float) (randomTremorOffsets[2] * 0.5F * intensity)
             );
 
             // Update random offsets for next frame

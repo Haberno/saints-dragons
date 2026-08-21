@@ -26,9 +26,9 @@ public class RaevyxRenderer extends DragonGeoEntityRenderer<Raevyx> {
 
     public RaevyxRenderer(EntityRendererProvider.Context context) {
         super(context, new RaevyxModel());
-        this.addRenderLayer(new RaevyxNightEmissiveLayer(this));
-        this.addRenderLayer(new RaevyxGlowLayer(this));
-        this.addRenderLayer(new RaevyxLightningBeamLayer());
+        this.withRenderLayer(new RaevyxNightEmissiveLayer(this));
+        this.withRenderLayer(new RaevyxGlowLayer(this));
+        this.withRenderLayer(new RaevyxLightningBeamLayer(this));
     }
 
     @Override

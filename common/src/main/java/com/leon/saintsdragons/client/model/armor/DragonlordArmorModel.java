@@ -1,58 +1,52 @@
 package com.leon.saintsdragons.client.model.armor;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.leon.saintsdragons.client.renderer.GeoRenderDataTickets;
 import com.leon.saintsdragons.common.item.DragonlordArmorItem;
 import com.leon.saintsdragons.common.item.DragonlordArmorSetBonus;
 import com.leon.saintsdragons.server.flight.DragonFlightVisuals;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
-import software.bernie.geckolib.constant.DataTickets;
-import software.bernie.geckolib.animation.state.AnimationTest;
+import software.bernie.geckolib.animation.state.BoneSnapshot;
 import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.GeoArmorRenderer;
+import software.bernie.geckolib.renderer.base.BoneSnapshots;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 import java.util.Map;
 import java.util.WeakHashMap;
 
 public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
     private static final float DEG_TO_RAD = Mth.DEG_TO_RAD;
-    private static final Identifier MODEL = SaintsDragonsCommon.rl("geo/armor/dragonlord_armor.geo.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("geckolib/models/armor/dragonlord_armor.geo.json");
     private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/armor/dragonlord_armor.png");
-    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("animations/armor/dragonlord_armor.animation.json");
+    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("geckolib/animations/armor/dragonlord_armor.animation.json");
     private final Map<LivingEntity, DivePoseTracker> divePoseTrackers = new WeakHashMap<>();
 
-    @Override
-    public void setCustomAnimations(DragonlordArmorItem animatable, long instanceId,
-                                    AnimationTest<DragonlordArmorItem> animationState) {
-        super.setCustomAnimations(animatable, instanceId, animationState);
-
-        Entity wearer = animationState.getData(DataTickets.ENTITY);
-        if (!(wearer instanceof LivingEntity living)
-                || !living.isFallFlying()
+    public void applyCustomBonePose(LivingEntity living, float partialTick, BoneSnapshots snapshots) {
+        if (!living.isFallFlying()
                 || !DragonlordArmorSetBonus.isWearingFullSet(living)) {
-            if (wearer instanceof LivingEntity livingEntity) {
-                divePoseTrackers.remove(livingEntity);
-            }
+            divePoseTrackers.remove(living);
             return;
         }
 
-        float blend = getDivePose(living, animationState.renderState().getPartialTick());
+        float blend = getDivePose(living, partialTick);
         if (blend <= 0.001F) {
             return;
         }
 
-        applyDiveRotation("leftwing", blend, -4.49F, -3.48F, 22.68F);
-        applyDiveRotation("leftforewing", blend, -0.08F, 62.5F, -0.7F);
-        applyDiveRotation("leftfinger1", blend, 3.5F, -57.66F, 7.3F);
-        applyDiveRotation("leftfinger2", blend, 0.0F, -25.0F, 0.0F);
-        applyDiveRotation("leftfinger3", blend, 0.0F, -27.5F, 0.0F);
+        applyDiveRotation(snapshots, "leftwing", blend, -4.49F, -3.48F, 22.68F);
+        applyDiveRotation(snapshots, "leftforewing", blend, -0.08F, 62.5F, -0.7F);
+        applyDiveRotation(snapshots, "leftfinger1", blend, 3.5F, -57.66F, 7.3F);
+        applyDiveRotation(snapshots, "leftfinger2", blend, 0.0F, -25.0F, 0.0F);
+        applyDiveRotation(snapshots, "leftfinger3", blend, 0.0F, -27.5F, 0.0F);
 
-        applyDiveRotation("rightwing", blend, -4.49F, 3.48F, -22.68F);
-        applyDiveRotation("rightforewing", blend, -0.08F, -62.5F, 0.7F);
-        applyDiveRotation("rightfinger1", blend, 3.5F, 57.66F, -7.3F);
-        applyDiveRotation("rightfinger2", blend, 0.0F, 25.0F, 0.0F);
-        applyDiveRotation("rightfinger3", blend, 0.0F, 27.5F, 0.0F);
+        applyDiveRotation(snapshots, "rightwing", blend, -4.49F, 3.48F, -22.68F);
+        applyDiveRotation(snapshots, "rightforewing", blend, -0.08F, -62.5F, 0.7F);
+        applyDiveRotation(snapshots, "rightfinger1", blend, 3.5F, 57.66F, -7.3F);
+        applyDiveRotation(snapshots, "rightfinger2", blend, 0.0F, 25.0F, 0.0F);
+        applyDiveRotation(snapshots, "rightfinger3", blend, 0.0F, 27.5F, 0.0F);
     }
 
     private float getDivePose(LivingEntity living, float partialTick) {
@@ -76,9 +70,9 @@ public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
         return Mth.clamp(DragonFlightVisuals.getDivePose(tracker.pose, partialTick), 0.0F, 1.0F);
     }
 
-    private void applyDiveRotation(String boneName, float blend,
+    private void applyDiveRotation(BoneSnapshots snapshots, String boneName, float blend,
                                    float xDegrees, float yDegrees, float zDegrees) {
-        getBone(boneName).ifPresent(bone -> {
+        snapshots.get(boneName).ifPresent(bone -> {
             // GeckoLib converts Blockbench rotations with inverted X/Y axes.
             bone.setRotX(bone.getRotX() - xDegrees * DEG_TO_RAD * blend);
             bone.setRotY(bone.getRotY() - yDegrees * DEG_TO_RAD * blend);
@@ -87,13 +81,20 @@ public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
     }
 
     @Override
-    public Identifier getModelResource(DragonlordArmorItem animatable) {
+    public Identifier getModelResource(GeoRenderState renderState) {
         return MODEL;
     }
 
     @Override
-    public Identifier getTextureResource(DragonlordArmorItem animatable) {
+    public Identifier getTextureResource(GeoRenderState renderState) {
         return TEXTURE;
+    }
+
+    @Override
+    public void addAdditionalStateData(DragonlordArmorItem animatable, Object relatedObject, GeoRenderState renderState) {
+        if (relatedObject instanceof GeoArmorRenderer.RenderData renderData) {
+            renderState.addGeckolibData(GeoRenderDataTickets.ARMOR_WEARER, renderData.entity());
+        }
     }
 
     @Override

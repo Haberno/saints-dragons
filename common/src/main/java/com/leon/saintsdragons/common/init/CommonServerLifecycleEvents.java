@@ -21,6 +21,8 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 
+import java.net.URI;
+
 public final class CommonServerLifecycleEvents {
     private static final String WIKI_URL = "https://raevyx.miraheze.org/wiki/Main_Page";
 
@@ -77,7 +79,7 @@ public final class CommonServerLifecycleEvents {
             return;
         }
 
-        SaintsDragonsCommon.LOGGER.info("Restoring mounted dragon {} for player {}", dragon, player.getGameProfile().getName());
+        SaintsDragonsCommon.LOGGER.info("Restoring mounted dragon {} for player {}", dragon, player.getGameProfile().name());
         dragon.restoreMountedAnimationStateAfterLogin();
     }
 
@@ -86,14 +88,14 @@ public final class CommonServerLifecycleEvents {
             return;
         }
 
-        if (player == null || !WikiReminderSavedData.get(player.serverLevel()).markShownIfFirst(player.getUUID())) {
+        if (player == null || !WikiReminderSavedData.get(player.level()).markShownIfFirst(player.getUUID())) {
             return;
         }
 
         Component url = Component.literal(WIKI_URL).withStyle(style -> style
                 .withColor(ChatFormatting.AQUA)
                 .withUnderlined(true)
-                .withClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, WIKI_URL)));
+                .withClickEvent(new ClickEvent.OpenUrl(URI.create(WIKI_URL))));
         player.displayClientMessage(Component.translatable("saintsdragons.message.wiki_prompt").append(" ").append(url), false);
     }
 
@@ -109,7 +111,7 @@ public final class CommonServerLifecycleEvents {
             return;
         }
 
-        SaintsDragonsCommon.LOGGER.info("Preserving mounted dragon {} for player {} on disconnect", dragon, player.getGameProfile().getName());
+        SaintsDragonsCommon.LOGGER.info("Preserving mounted dragon {} for player {} on disconnect", dragon, player.getGameProfile().name());
         dragon.setPersistenceRequired();
         dragon.getNavigation().stop();
         dragon.setAccelerating(false);

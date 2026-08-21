@@ -1,7 +1,8 @@
 package com.leon.saintsdragons.server.entity.component;
 
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.util.Mth;
 
@@ -52,14 +53,12 @@ public final class DragonSitComponent {
         sitProgress = dragon.getEntityData().get(dataAccessor);
     }
 
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         tag.putFloat("SitProgress", sitProgress);
     }
 
-    public void loadFromNBT(CompoundTag tag, boolean orderedToSit) {
-        float savedSitProgress = tag.contains("SitProgress")
-                ? tag.getFloat("SitProgress")
-                : (orderedToSit ? dragon.maxSitTicks() : 0f);
+    public void loadFromNBT(ValueInput tag, boolean orderedToSit) {
+        float savedSitProgress = tag.getFloatOr("SitProgress", orderedToSit ? dragon.maxSitTicks() : 0f);
         sitProgress = Mth.clamp(savedSitProgress, 0f, dragon.maxSitTicks());
         prevSitProgress = sitProgress;
         dragon.getEntityData().set(dataAccessor, sitProgress);

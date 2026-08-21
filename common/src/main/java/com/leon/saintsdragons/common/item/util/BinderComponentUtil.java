@@ -4,8 +4,13 @@ import com.leon.saintsdragons.common.item.AbstractDragonBinderItem;
 import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.entity.item.ItemEntity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
+import net.minecraft.nbt.CompoundTag;
 
 import java.util.UUID;
 
@@ -24,30 +29,22 @@ public final class BinderComponentUtil {
         if (!isBinderStack(stack) || !isBound(stack)) {
             return null;
         }
-        var tag = stack.getTag();
-        if (tag == null || !tag.hasUUID(BOUND_DRAGON_UUID)) {
-            return null;
-        }
-        return tag.getUUID(BOUND_DRAGON_UUID);
+        CompoundTag tag = getTag(stack);
+        return tag.read(BOUND_DRAGON_UUID, UUIDUtil.CODEC).orElse(null);
     }
 
     public static String getBoundDragonName(ItemStack stack) {
         if (!isBinderStack(stack) || !isBound(stack)) {
             return null;
         }
-        var tag = stack.getTag();
-        if (tag == null || !tag.contains(BOUND_DRAGON_NAME)) {
-            return null;
-        }
-        return tag.getString(BOUND_DRAGON_NAME);
+        return getTag(stack).getString(BOUND_DRAGON_NAME).orElse(null);
     }
 
     public static boolean isBound(ItemStack stack) {
         if (!isBinderStack(stack)) {
             return false;
         }
-        var tag = stack.getTag();
-        return tag != null && tag.getBoolean(IS_BOUND);
+        return getTag(stack).getBooleanOr(IS_BOUND, false);
     }
 
     public static boolean isBinderStack(ItemStack stack) {
@@ -67,18 +64,13 @@ public final class BinderComponentUtil {
             return false;
         }
 
-        for (ItemStack stack : player.getInventory().items) {
+        for (ItemStack stack : player.getInventory().getNonEquipmentItems()) {
             if (containsDragonUuid(stack, dragonId)) {
                 return true;
             }
         }
-        for (ItemStack stack : player.getInventory().offhand) {
-            if (containsDragonUuid(stack, dragonId)) {
-                return true;
-            }
-        }
-        for (ItemStack stack : player.getInventory().armor) {
-            if (containsDragonUuid(stack, dragonId)) {
+        for (EquipmentSlot slot : EquipmentSlot.values()) {
+            if (containsDragonUuid(player.getItemBySlot(slot), dragonId)) {
                 return true;
             }
         }
@@ -94,14 +86,18 @@ public final class BinderComponentUtil {
     }
 
     public static UUID getBoundOwnerUuid(ItemStack stack) {
-        if (!isBinderStack(stack) || !stack.hasTag()) {
+        if (!isBinderStack(stack)) {
             return null;
         }
-        var tag = stack.getTag();
-        if (tag == null || !tag.hasUUID(BOUND_OWNER_UUID)) {
-            return null;
-        }
-        return tag.getUUID(BOUND_OWNER_UUID);
+        return getTag(stack).read(BOUND_OWNER_UUID, UUIDUtil.CODEC).orElse(null);
+    }
+
+    public static CompoundTag getTag(ItemStack stack) {
+        return stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+    }
+
+    public static void setTag(ItemStack stack, CompoundTag tag) {
+        CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
     }
 
     /**

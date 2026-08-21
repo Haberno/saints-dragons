@@ -82,7 +82,7 @@ public class IgnivorusGroundCombatBehaviour extends DragonBehaviour<Ignivorus> {
             return false;
         }
 
-        if (!dragon.isInWaterOrBubble() && dragon.isAerial()) {
+        if (!dragon.isInWater() && dragon.isAerial()) {
             return false;
         }
 
@@ -121,7 +121,7 @@ public class IgnivorusGroundCombatBehaviour extends DragonBehaviour<Ignivorus> {
             return false;
         }
 
-        if (!dragon.isInWaterOrBubble() && dragon.isAerial()) {
+        if (!dragon.isInWater() && dragon.isAerial()) {
             return false;
         }
 
@@ -212,7 +212,7 @@ public class IgnivorusGroundCombatBehaviour extends DragonBehaviour<Ignivorus> {
             return;
         }
 
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             handleWaterCombat(target, gap, hasLineOfSight);
             return;
         }

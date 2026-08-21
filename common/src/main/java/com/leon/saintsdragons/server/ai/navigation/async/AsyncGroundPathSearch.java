@@ -1,5 +1,6 @@
 package com.leon.saintsdragons.server.ai.navigation.async;
 
+import com.leon.saintsdragons.server.ai.pathfinding.DragonWalkNodeEvaluator;
 import com.leon.saintsdragons.server.ai.pathfinding.DragonPathSearchDebug;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonDestructionManager;
 import java.util.ArrayList;
@@ -21,7 +22,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.pathfinder.PathType;
 import net.minecraft.world.level.pathfinder.Node;
 import net.minecraft.world.level.pathfinder.Path;
-import net.minecraft.world.level.pathfinder.WalkNodeEvaluator;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.Nullable;
@@ -627,7 +627,7 @@ final class AsyncGroundPathSearch {
                     }
                     PathType pathType = state.is(Blocks.LADDER)
                             ? PathType.WALKABLE
-                            : WalkNodeEvaluator.getBlockPathTypeStatic(this.snapshot, cursor);
+                            : DragonWalkNodeEvaluator.getPathTypeFromSnapshot(this.snapshot, cursor);
                     if (pathType == PathType.WATER
                             || pathType == PathType.WATER_BORDER
                             || pathType == PathType.LAVA) {

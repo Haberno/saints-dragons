@@ -67,42 +67,42 @@ public class HurtAbility<T extends DragonEntity> extends DragonAbility<T> {
             getUser().triggerAnim(controllerId, animationTrigger);
         }
 
-        if ("raevyx_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("raevyx_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Raevyx raevyx) {
             float pitch = 0.95f + raevyx.getRandom().nextFloat() * 0.1f;
             raevyx.getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_HURT.get(), 1.2f, pitch, 40);
         }
-        if ("ignivorus_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("ignivorus_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Ignivorus ignivorus) {
             float pitch = 0.95f + ignivorus.getRandom().nextFloat() * 0.1f;
             ignivorus.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_HURT.get(), 1.2f, pitch, 40);
         }
-        if ("cindervane_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("cindervane_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Cindervane cindervane) {
             float pitch = 0.95f + cindervane.getRandom().nextFloat() * 0.1f;
             cindervane.getSoundHandler().playMovingEntitySound(ModSounds.CINDERVANE_HURT.get(), 1.2f, pitch, 52);
         }
-        if ("varasuchus_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("varasuchus_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Varasuchus varasuchus) {
             float pitch = 0.95f + varasuchus.getRandom().nextFloat() * 0.1f;
             varasuchus.getSoundHandler().playMovingEntitySound(ModSounds.VARASUCHUS_HURT.get(), 1.2f, pitch, 34);
         }
-        if ("stegonaut_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("stegonaut_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Stegonaut stegonaut) {
             float pitch = 0.95f + stegonaut.getRandom().nextFloat() * 0.1f;
             stegonaut.getSoundHandler().playMovingEntitySound(ModSounds.STEGONAUT_HURT.get(), 1.2f, pitch, 30);
         }
-        if ("volitans_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("volitans_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Volitans volitans) {
             float pitch = 0.95f + volitans.getRandom().nextFloat() * 0.1f;
             volitans.getSoundHandler().playMovingEntitySound(ModSounds.VOLITANS_HURT.get(), 1.3f, pitch, 30);
         }
-        if ("nulljaw_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("nulljaw_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Nulljaw nulljaw) {
             float pitch = 0.95f + nulljaw.getRandom().nextFloat() * 0.1f;
             nulljaw.getSoundHandler().playMovingEntitySound(ModSounds.NULLJAW_HURT.get(), 1.2f, pitch, 44);
         }
-        if ("atroxiia_hurt".equals(animationTrigger) && !getUser().level().isClientSide
+        if ("atroxiia_hurt".equals(animationTrigger) && !getUser().level().isClientSide()
                 && getUser() instanceof Atroxiia atroxiia) {
             float pitch = 0.95f + atroxiia.getRandom().nextFloat() * 0.1f;
             atroxiia.getSoundHandler().playMovingEntitySound(

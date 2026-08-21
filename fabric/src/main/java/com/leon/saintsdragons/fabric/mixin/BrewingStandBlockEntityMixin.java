@@ -5,9 +5,13 @@ import com.leon.saintsdragons.common.registry.ModPotionItems;
 import com.leon.saintsdragons.common.registry.ModPotions;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BrewingStandBlockEntity;
@@ -25,6 +29,17 @@ public final class BrewingStandBlockEntityMixin {
     private static final int BOTTLE_SLOT_END = 2;
     @Unique
     private static final int INGREDIENT_SLOT = 3;
+
+    @Unique
+    private static boolean hasPotion(ItemStack stack, Holder<Potion> potion) {
+        return stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).is(potion);
+    }
+
+    @Unique
+    private static void setPotion(ItemStack stack, Potion potion) {
+        stack.set(DataComponents.POTION_CONTENTS,
+                new PotionContents(BuiltInRegistries.POTION.wrapAsHolder(potion)));
+    }
 
     @Inject(method = "doBrew", at = @At("HEAD"), cancellable = true)
     private static void saintsdragons$brewCustomPotions(
@@ -47,12 +62,12 @@ public final class BrewingStandBlockEntityMixin {
         boolean brewedAny = false;
         for (int slot = BOTTLE_SLOT_START; slot <= BOTTLE_SLOT_END; slot++) {
             ItemStack input = nonNullList.get(slot);
-            if (!input.is(Items.POTION) || PotionUtils.getPotion(input) != Potions.AWKWARD) {
+            if (!input.is(Items.POTION) || !hasPotion(input, Potions.AWKWARD)) {
                 continue;
             }
 
             ItemStack output = new ItemStack(tideguard ? ModPotionItems.POTION_OF_TIDEGUARD.get() : ModPotionItems.POTION_OF_SEARING.get());
-            PotionUtils.setPotion(output, tideguard ? ModPotions.TIDEGUARD.get() : ModPotions.SEARING.get());
+            setPotion(output, tideguard ? ModPotions.TIDEGUARD.get() : ModPotions.SEARING.get());
             nonNullList.set(slot, output);
             brewedAny = true;
         }

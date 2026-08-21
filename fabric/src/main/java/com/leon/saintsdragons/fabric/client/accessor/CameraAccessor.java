@@ -5,8 +5,8 @@ package com.leon.saintsdragons.fabric.client.accessor;
  * The Camera class will implement this interface via the CameraMixin.
  */
 public interface CameraAccessor {
-    void saintsdragons$invokeMove(double distance, double yaw, double pitch);
-    double saintsdragons$invokeGetMaxZoom(double distance);
+    void saintsdragons$invokeMove(float distance, float yaw, float pitch);
+    float saintsdragons$invokeGetMaxZoom(float distance);
     void saintsdragons$invokeSetPosition(double x, double y, double z);
     void saintsdragons$invokeSetRotation(float yaw, float pitch);
     float saintsdragons$invokeGetXRot();

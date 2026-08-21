@@ -1,26 +1,27 @@
 package com.leon.saintsdragons.client.model.draconianswarm;
 
+import com.leon.saintsdragons.client.model.LegacyAnimationState;
+import com.leon.saintsdragons.client.model.LegacyEntityGeoModel;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.draconianswarm.Whettled;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
-import software.bernie.geckolib.animation.state.AnimationTest;
-import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
-public class WhettledModel extends GeoModel<Whettled> {
-    private static final Identifier MODEL = SaintsDragonsCommon.rl("geo/entity/whettled.geo.json");
+public class WhettledModel extends LegacyEntityGeoModel<Whettled> {
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("geckolib/models/entity/whettled.geo.json");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/whettled/whettled.png");
     private static final Identifier ANIMATIONS =
-            SaintsDragonsCommon.rl("animations/entity/whettled.animation.json");
+            SaintsDragonsCommon.rl("geckolib/animations/entity/whettled.animation.json");
 
     @Override
-    public Identifier getModelResource(Whettled animatable) {
+    public Identifier getModelResource(GeoRenderState renderState) {
         return MODEL;
     }
 
     @Override
-    public Identifier getTextureResource(Whettled animatable) {
+    public Identifier getTextureResource(GeoRenderState renderState) {
         return TEXTURE;
     }
 
@@ -30,21 +31,21 @@ public class WhettledModel extends GeoModel<Whettled> {
     }
 
     @Override
-    public void setCustomAnimations(Whettled entity, long instanceId, AnimationTest<Whettled> animationState) {
-        super.setCustomAnimations(entity, instanceId, animationState);
+    protected void setCustomAnimations(Whettled entity, long instanceId, LegacyAnimationState<Whettled> animationState) {
         if (!entity.isAlive()) {
             return;
         }
+
         float partialTick = animationState.renderState().getPartialTick();
         float pitch = Mth.clamp(entity.getFlightPitchRadians(partialTick), -0.95F, 0.95F);
         float drag = Mth.clamp(entity.getTailDragYawRadians(partialTick), -0.95F, 0.95F);
-        getBone("root").ifPresent(bone -> bone.setRotX(bone.getInitialSnapshot().getRotX() + pitch));
+        getBone("root").ifPresent(bone -> bone.setRotX(bone.getRotX() + pitch));
         applyTailDrag("tail1rot", drag * 0.70F);
-        applyTailDrag("tail2rot", drag * 1.00F);
+        applyTailDrag("tail2rot", drag);
         applyTailDrag("tail3rot", drag * 1.30F);
     }
 
     private void applyTailDrag(String boneName, float yaw) {
-        getBone(boneName).ifPresent(bone -> bone.setRotY(bone.getInitialSnapshot().getRotY() + yaw));
+        getBone(boneName).ifPresent(bone -> bone.setRotY(bone.getRotY() + yaw));
     }
 }

@@ -73,13 +73,13 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
                     && continueCondition.test(dragon)
                     && !dragon.isVehicle()
                     && !dragon.isAerial()
-                    && dragon.isInWaterOrBubble();
+                    && dragon.isInWater();
         }
         return target != null
                 && continueCondition.test(dragon)
                 && !dragon.isVehicle()
                 && !dragon.isAerial()
-                && (dragon.isInWaterOrBubble() || !dragon.onGround());
+                && (dragon.isInWater() || !dragon.onGround());
     }
 
     @Override
@@ -99,7 +99,7 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
 
         dragon.getNavigation().stop();
         if (shoreTransitioning) {
-            if (dragon.isInWaterOrBubble() && target.landPosition() != null) {
+            if (dragon.isInWater() && target.landPosition() != null) {
                 applyShoreAssist(dragon, target.landPosition());
             }
             return;
@@ -153,7 +153,7 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
         return startCondition.test(dragon)
                 && !dragon.isVehicle()
                 && !dragon.isAerial()
-                && dragon.isInWaterOrBubble();
+                && dragon.isInWater();
     }
 
     @Nullable
@@ -191,7 +191,7 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
             return null;
         }
         LivingEntity owner = dragon.getOwner();
-        if (owner == null || DragonOwnerFollowTarget.anchor(owner).isInWaterOrBubble()) {
+        if (owner == null || DragonOwnerFollowTarget.anchor(owner).isInWater()) {
             return null;
         }
 
@@ -254,8 +254,8 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
         if (!dragon.level().hasChunkAt(column)) {
             return null;
         }
-        int minY = Math.max(dragon.level().getMinBuildHeight() + 1, originY - VERTICAL_SEARCH);
-        int maxY = Math.min(dragon.level().getMaxBuildHeight() - 2, originY + VERTICAL_SEARCH);
+        int minY = Math.max(dragon.level().getMinY() + 1, originY - VERTICAL_SEARCH);
+        int maxY = Math.min(dragon.level().getMaxY() - 2, originY + VERTICAL_SEARCH);
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
         for (int y = maxY; y >= minY; y--) {
             cursor.set(x, y, z);
@@ -298,8 +298,8 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
             if (!dragon.level().hasChunkAt(column)) {
                 continue;
             }
-            int minY = Math.max(dragon.level().getMinBuildHeight() + 1, origin.getY() - VERTICAL_SEARCH);
-            int maxY = Math.min(dragon.level().getMaxBuildHeight() - 2, origin.getY() + VERTICAL_SEARCH);
+            int minY = Math.max(dragon.level().getMinY() + 1, origin.getY() - VERTICAL_SEARCH);
+            int maxY = Math.min(dragon.level().getMaxY() - 2, origin.getY() + VERTICAL_SEARCH);
             EscapeTarget target = findSurfaceBiasedWaterRoamTargetInColumn(
                     dragon, cursor, x, z, origin.getY(), minY, maxY);
             if (target != null) {
@@ -339,8 +339,8 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
             return null;
         }
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos();
-        int minY = Math.max(dragon.level().getMinBuildHeight() + 1, originY - VERTICAL_SEARCH);
-        int maxY = Math.min(dragon.level().getMaxBuildHeight() - 2, originY + VERTICAL_SEARCH);
+        int minY = Math.max(dragon.level().getMinY() + 1, originY - VERTICAL_SEARCH);
+        int maxY = Math.min(dragon.level().getMaxY() - 2, originY + VERTICAL_SEARCH);
         return findSurfaceBiasedWaterRoamTargetInColumn(
                 dragon, cursor, x, z, originY, minY, maxY);
     }
@@ -353,7 +353,7 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
                                                                   int originY,
                                                                   int minY,
                                                                   int maxY) {
-        int scanTop = Math.min(dragon.level().getMaxBuildHeight() - 2,
+        int scanTop = Math.min(dragon.level().getMaxY() - 2,
                 Math.max(maxY, originY + SURFACE_SEARCH_UP));
         for (int y = scanTop; y >= minY; y--) {
             cursor.set(x, y, z);
@@ -416,7 +416,6 @@ public final class DragonWaterEscapeBehaviour<T extends RideableDragonBase> exte
         );
         dragon.getMoveControl().setWantedPosition(
                 landPosition.x, landPosition.y, landPosition.z, 1.15D);
-        dragon.hasImpulse = true;
     }
 
     private void preserveEscapeAir(T dragon) {

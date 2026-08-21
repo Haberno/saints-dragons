@@ -21,12 +21,18 @@ import org.jetbrains.annotations.NotNull;
 import java.util.function.Supplier;
 
 public class IgnivorusEggBlock extends AbstractTimedDragonEggBlock<IgnivorusEggBlockEntity> {
+    public static final com.mojang.serialization.MapCodec<IgnivorusEggBlock> CODEC = simpleCodec(IgnivorusEggBlock::new);
     private static final int DEFAULT_HATCH_TICKS = 36000; // 30 minutes
     private static final VoxelShape SHAPE = box(3.0D, 0.0D, 3.0D, 13.0D, 13.0D, 13.0D);
 
     public IgnivorusEggBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(HATCH, 0));
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<IgnivorusEggBlock> codec() {
+        return CODEC;
     }
 
     @Override
@@ -73,7 +79,7 @@ public class IgnivorusEggBlock extends AbstractTimedDragonEggBlock<IgnivorusEggB
 
     @Override
     protected DragonEntity createBaby(ServerLevel level) {
-        return ModEntities.IGNIVORUS.get().create(level);
+        return ModEntities.IGNIVORUS.get().create(level, net.minecraft.world.entity.EntitySpawnReason.BREEDING);
     }
 
     @Override

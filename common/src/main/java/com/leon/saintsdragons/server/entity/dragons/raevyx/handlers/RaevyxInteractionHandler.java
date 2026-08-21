@@ -27,7 +27,7 @@ public class RaevyxInteractionHandler extends AbstractDragonInteractionHandler<R
 
     @Override
     protected InteractionResult handleUntamedInteraction(Player player, InteractionHand hand, ItemStack itemstack) {
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
 
         DragonAttributeConfig config = DragonAttributeConfigLoader.getInstance()
                 .getConfig(DragonAttributeConfigLoader.RAEVYX_ID);
@@ -116,7 +116,7 @@ public class RaevyxInteractionHandler extends AbstractDragonInteractionHandler<R
             }
         }
 
-        return InteractionResult.sidedSuccess(client);
+        return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private InteractionResult handleBabyTaming(Player player, ItemStack itemstack, DragonAttributeConfig config) {
@@ -124,7 +124,7 @@ public class RaevyxInteractionHandler extends AbstractDragonInteractionHandler<R
         boolean hearty = itemstack.is(ModItems.HEARTY_DRAGON_MEAL.get());
         boolean validFood = dragon.isFood(itemstack);
         if (baby == null) {
-            return validFood ? InteractionResult.sidedSuccess(dragon.level().isClientSide) : InteractionResult.PASS;
+            return validFood ? dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER : InteractionResult.PASS;
         }
 
         double tameChance = getTamingChance(itemstack, config);
@@ -183,13 +183,13 @@ public class RaevyxInteractionHandler extends AbstractDragonInteractionHandler<R
 
             if (canOwnerCommand(player) && !dragon.isFood(itemstack) && hand == InteractionHand.MAIN_HAND) {
                 if (isSleeping) {
-                    if (!dragon.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+                    if (!dragon.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
                         serverPlayer.displayClientMessage(
                             Component.translatable("entity.saintsdragons.raevyx.sleeping", dragon.getName()),
                             true
                         );
                     }
-                    return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+                    return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
                 }
                 return handleCommandCycling(player);
             }
@@ -228,7 +228,7 @@ public class RaevyxInteractionHandler extends AbstractDragonInteractionHandler<R
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!player.getAbilities().instabuild) {
                 consumeHeldItem(player, itemstack);
             }
@@ -259,7 +259,7 @@ public class RaevyxInteractionHandler extends AbstractDragonInteractionHandler<R
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private Float nextFailureHealTarget() {
@@ -272,8 +272,8 @@ public class RaevyxInteractionHandler extends AbstractDragonInteractionHandler<R
 
     private void triggerTamingAdvancement(Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            var advancement = serverPlayer.server.getAdvancements()
-                .getAdvancement(SaintsDragonsCommon.rl("tame_raevyx"));
+            var advancement = serverPlayer.level().getServer().getAdvancements()
+                .get(SaintsDragonsCommon.rl("tame_raevyx"));
             if (advancement != null) {
                 serverPlayer.getAdvancements().award(advancement, "tame_raevyx");
             }

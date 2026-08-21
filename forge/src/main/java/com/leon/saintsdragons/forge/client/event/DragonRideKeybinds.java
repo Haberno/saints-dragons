@@ -7,7 +7,7 @@ import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraftforge.client.settings.KeyModifier;
 import net.minecraftforge.event.TickEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.minecraftforge.eventbus.api.listener.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.api.distmarker.Dist;
 
@@ -20,12 +20,10 @@ public final class DragonRideKeybinds {
     }
 
     @SubscribeEvent
-    public static void onClientTick(TickEvent.ClientTickEvent event) {
-        if (event.phase == TickEvent.Phase.END) {
-            normalizeFlexModifier();
-            BloodTempestDodgeInput.clientTick();
-            DragonRideInputHandler.clientTick();
-        }
+    public static void onClientTick(TickEvent.ClientTickEvent.Post event) {
+        normalizeFlexModifier();
+        BloodTempestDodgeInput.clientTick();
+        DragonRideInputHandler.clientTick();
     }
 
     private static void normalizeFlexModifier() {

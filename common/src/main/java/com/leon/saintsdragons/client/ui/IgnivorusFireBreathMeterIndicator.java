@@ -7,11 +7,11 @@ import net.minecraft.resources.Identifier;
 
 
 public class IgnivorusFireBreathMeterIndicator {
-    private static final Identifier FIRE_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_base.png");
-    private static final Identifier FIRE_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_overlay.png");
-    private static final Identifier FIRE_FLASH_RED = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_overlay_flashes_red.png");
-    private static final Identifier FIRE_FLASH_WHITE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_overlay_flashes_white.png");
-    private static final Identifier FIRE_ICON = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/red_flame.png");
+    private static final Identifier FIRE_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_base.png");
+    private static final Identifier FIRE_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_overlay.png");
+    private static final Identifier FIRE_FLASH_RED = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_overlay_flashes_red.png");
+    private static final Identifier FIRE_FLASH_WHITE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/ignivorus_fire_overlay_flashes_white.png");
+    private static final Identifier FIRE_ICON = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/red_flame.png");
     private static final int BAR_WIDTH = 182;
     private static final int BAR_HEIGHT = 30;
     private static final int ICON_SIZE = 16;
@@ -74,21 +74,16 @@ public class IgnivorusFireBreathMeterIndicator {
         float smoothAlpha = lerp(previousFadeAlpha, fadeAlpha, clampedPartial);
         float smoothRedFlash = lerp(previousRedFlashAlpha, redFlashAlpha, clampedPartial);
         float smoothWhiteFlash = lerp(previousWhiteFlashAlpha, whiteFlashAlpha, clampedPartial);
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         int x = (screenWidth - BAR_WIDTH) / 2;
         int y = screenHeight - 45;
         int iconX = x - ICON_SIZE - ICON_GAP;
         int iconY = y + (BAR_HEIGHT - ICON_SIZE) / 2;
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha);
         guiGraphics.blit(FIRE_ICON, iconX, iconY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
 
         if (smoothWhiteFlash > 0.01f) {
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha * smoothWhiteFlash);
             guiGraphics.blit(FIRE_FLASH_WHITE, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         }
 
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha);
 
         int fillWidth = Math.max(0, Math.min(BAR_WIDTH, Math.round(BAR_WIDTH * smoothFill)));
         if (fillWidth > 0) {
@@ -97,11 +92,8 @@ public class IgnivorusFireBreathMeterIndicator {
         guiGraphics.blit(FIRE_OVERLAY, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
 
         if (smoothRedFlash > 0.01f) {
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha * smoothRedFlash);
             guiGraphics.blit(FIRE_FLASH_RED, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         }
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.disableBlend();
     }
     private static float clamp(float value, float min, float max) {
         return Math.max(min, Math.min(max, value));

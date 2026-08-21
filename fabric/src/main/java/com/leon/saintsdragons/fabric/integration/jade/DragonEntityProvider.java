@@ -26,16 +26,16 @@ public enum DragonEntityProvider implements IEntityComponentProvider, IServerDat
 
         // Display gender
         if (serverData.contains("Gender")) {
-            String genderName = serverData.getString("Gender");
+            String genderName = serverData.getString("Gender").orElse("");
             Component genderComponent = Component.translatable("saintsdragons.gender." + genderName.toLowerCase());
             tooltip.add(Component.translatable("jade.saintsdragons.gender", genderComponent));
         }
 
         if (serverData.contains("VariantTranslationKey")) {
-            String key = serverData.getString("VariantTranslationKey");
+            String key = serverData.getString("VariantTranslationKey").orElse("");
             String fallback = serverData.contains("VariantFallbackName")
-                    ? serverData.getString("VariantFallbackName")
-                    : serverData.getString("VariantResourceId");
+                    ? serverData.getString("VariantFallbackName").orElse("Default")
+                    : serverData.getString("VariantResourceId").orElse("Default");
             Component variantComponent = Component.translatableWithFallback(key, fallback);
             tooltip.add(Component.translatable("jade.saintsdragons.variant", variantComponent));
         }
@@ -61,7 +61,7 @@ public enum DragonEntityProvider implements IEntityComponentProvider, IServerDat
 
     @Override
     public Identifier getUid() {
-        return new Identifier("saintsdragons", "dragon_info");
+        return Identifier.fromNamespaceAndPath("saintsdragons", "dragon_info");
     }
 
     private static String formatFallbackName(String name) {

@@ -51,7 +51,7 @@ public class CindervaneBiteAbility extends DragonAbility<Cindervane> {
             Cindervane dragon = getUser();
             String animation = dragon.isFlying() ? "bite_air" : "bite";
             dragon.triggerAnim(CindervaneAnimationHandler.ACTION_CONTROLLER, animation);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.CINDERVANE_BITE.get(), 1.0f, 0.95f, 25);
             }
             appliedHit = false;
@@ -84,7 +84,7 @@ public class CindervaneBiteAbility extends DragonAbility<Cindervane> {
                 .abilityDamage(damageKey, baseDamage);
         damage *= dragon.getHungerMeleeDamageMultiplier();
         DamageSource source = dragon.level().damageSources().mobAttack(dragon);
-        boolean hurt = target.hurt(source, damage);
+        boolean hurt = target.hurtServer((net.minecraft.server.level.ServerLevel) dragon.level(), source, damage);
 
         Vec3 push = dragon.getLookAngle().scale(0.3);
         target.push(push.x, dragon.isFlying() ? 0.15 : 0.05, push.z);
@@ -121,7 +121,7 @@ public class CindervaneBiteAbility extends DragonAbility<Cindervane> {
     }
 
     private static void sendDebugBox(Cindervane dragon, double range) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         DragonMeleeGeometry.ForwardAttack attack = DragonMeleeGeometry.bodyForwardAttack(dragon).offset(HITBOX_FORWARD_OFFSET);

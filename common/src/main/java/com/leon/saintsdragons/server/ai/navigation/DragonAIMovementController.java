@@ -49,7 +49,7 @@ public class DragonAIMovementController {
     }
 
     public void serverTick() {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         if (dragon.isVehicle() || dragon.isPassenger()) {
@@ -119,7 +119,7 @@ public class DragonAIMovementController {
     }
 
     public boolean setWaypoint(Vec3 target, double speed) {
-        if (target == null || dragon.level().isClientSide) {
+        if (target == null || dragon.level().isClientSide()) {
             return false;
         }
         return startWaypoint(new QueuedWaypoint(target, speed, false, MovementMode.AUTO));
@@ -127,7 +127,7 @@ public class DragonAIMovementController {
 
     public boolean setAsyncAirWaypoint(Vec3 target, double speed) {
         if (target == null
-                || dragon.level().isClientSide
+                || dragon.level().isClientSide()
                 || !(dragon instanceof RideableFlyingDragon)) {
             return false;
         }
@@ -135,14 +135,14 @@ public class DragonAIMovementController {
     }
 
     public boolean setWaypoint(LivingEntity target, double speed, boolean running) {
-        if (target == null || dragon.level().isClientSide) {
+        if (target == null || dragon.level().isClientSide()) {
             return false;
         }
         return startWaypoint(new QueuedWaypoint(resolveTargetPosition(target), speed, running, MovementMode.AUTO));
     }
 
     public boolean setWaypoint(Vec3 target, double speed, boolean running) {
-        if (target == null || dragon.level().isClientSide) {
+        if (target == null || dragon.level().isClientSide()) {
             return false;
         }
         return startWaypoint(new QueuedWaypoint(target, speed, running, MovementMode.AUTO));
@@ -664,7 +664,7 @@ public class DragonAIMovementController {
     private boolean shouldUseWaterMovement() {
         return dragon instanceof SemiAquaticDragon
                 && dragon.canSwim()
-                && dragon.isInWaterOrBubble()
+                && dragon.isInWater()
                 && !dragon.isVehicle()
                 && !dragon.isPassenger()
                 && dragon.isAlive();
@@ -734,7 +734,7 @@ public class DragonAIMovementController {
     }
 
     private Vec3 resolveTargetPosition(LivingEntity target) {
-        if (shouldUseWaterMovement() && target.isInWaterOrBubble()) {
+        if (shouldUseWaterMovement() && target.isInWater()) {
             return target.position().add(0.0D, target.getBbHeight() * 0.35D, 0.0D);
         }
         return target.position();
@@ -1039,7 +1039,7 @@ public class DragonAIMovementController {
     }
 
     private boolean canUseGroundNavigation() {
-        return !dragon.level().isClientSide
+        return !dragon.level().isClientSide()
                 && !dragon.isVehicle()
                 && !dragon.isPassenger()
                 && dragon.isAlive()
@@ -1047,7 +1047,7 @@ public class DragonAIMovementController {
                 && !dragon.isTakeoff()
                 && !dragon.isHovering()
                 && !dragon.isLanding()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && !dragon.isInLava();
     }
 
@@ -1063,8 +1063,8 @@ public class DragonAIMovementController {
             return new BlockPos(column.getX(), surfaceY - 1, column.getZ());
         }
 
-        int minY = dragon.level().getMinBuildHeight();
-        int maxY = dragon.level().getMaxBuildHeight() - 1;
+        int minY = dragon.level().getMinY();
+        int maxY = dragon.level().getMaxY() - 1;
         int startY = Math.min(maxY, Math.max(minY, originY + 8));
         for (int y = startY; y >= minY; y--) {
             BlockPos ground = new BlockPos(column.getX(), y, column.getZ());

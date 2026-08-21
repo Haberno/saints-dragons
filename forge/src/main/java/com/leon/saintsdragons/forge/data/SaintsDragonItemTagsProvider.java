@@ -8,8 +8,9 @@ import com.leon.saintsdragons.common.registry.ModTags;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
-import net.minecraft.data.tags.ItemTagsProvider;
+import net.minecraft.data.tags.IntrinsicHolderTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
@@ -21,10 +22,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
-public final class SaintsDragonItemTagsProvider extends ItemTagsProvider {
+public final class SaintsDragonItemTagsProvider extends IntrinsicHolderTagsProvider<Item> {
     private static final TagKey<Item> MINECRAFT_EGGS = TagKey.create(
             Registries.ITEM,
             Identifier.fromNamespaceAndPath("minecraft", "eggs")
+    );
+    private static final TagKey<Item> MINECRAFT_MUSIC_DISCS = TagKey.create(
+            Registries.ITEM,
+            Identifier.fromNamespaceAndPath("minecraft", "music_discs")
     );
 
     public SaintsDragonItemTagsProvider(
@@ -33,7 +38,8 @@ public final class SaintsDragonItemTagsProvider extends ItemTagsProvider {
             CompletableFuture<TagsProvider.TagLookup<Block>> blockTags,
             ExistingFileHelper existingFileHelper
     ) {
-        super(output, lookupProvider, blockTags, SaintsDragonsCommon.MOD_ID, existingFileHelper);
+        super(output, Registries.ITEM, lookupProvider,
+                item -> BuiltInRegistries.ITEM.getResourceKey(item).orElseThrow());
     }
 
     @Override
@@ -202,7 +208,7 @@ public final class SaintsDragonItemTagsProvider extends ItemTagsProvider {
         tag(ItemTags.ARROWS).add(ModItems.ARROW_OF_VENOM.get());
         tag(MINECRAFT_EGGS).addTag(ModTags.Items.DRAGON_EGGS);
         tag(ItemTags.FISHES).add(ModItems.RAW_MOOP.get());
-        tag(ItemTags.MUSIC_DISCS).add(ModItems.BLEEDING_BOLT_MUSIC_DISC.get());
+        tag(MINECRAFT_MUSIC_DISCS).add(ModItems.BLEEDING_BOLT_MUSIC_DISC.get());
         tag(ItemTags.TRIMMABLE_ARMOR)
                 .add(ModArmors.DRACONIAN_HELMET.get())
                 .add(ModArmors.DRACONIAN_CHESTPLATE.get())
@@ -230,5 +236,9 @@ public final class SaintsDragonItemTagsProvider extends ItemTagsProvider {
                 .addTag(ConventionalTags.Items.ARMOR_CHESTPLATES)
                 .addTag(ConventionalTags.Items.ARMOR_LEGGINGS)
                 .addTag(ConventionalTags.Items.ARMOR_BOOTS);
+    }
+
+    private void copy(TagKey<Block> blockTag, TagKey<Item> itemTag) {
+        getOrCreateRawBuilder(itemTag).addTag(blockTag.location());
     }
 }

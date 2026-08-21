@@ -9,8 +9,8 @@ import com.leon.saintsdragons.common.registry.ModSounds;
 import com.leon.saintsdragons.server.entity.controller.DragonBodyControl;
 import com.leon.saintsdragons.server.entity.controller.GenericLookControl;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -46,6 +46,8 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -65,7 +67,7 @@ public class Mossback extends Animal implements GeoEntity {
     private static final double TOXIN_RADIUS = 3.25D;
     private static final int TOXIN_PARTICLES = 36;
 
-    public static MobEffectInstance createToxinEffect(MobEffect effect) {
+    public static MobEffectInstance createToxinEffect(Holder<MobEffect> effect) {
         return new MobEffectInstance(effect, TOXIN_EFFECT_TICKS, 0);
     }
 
@@ -94,11 +96,11 @@ public class Mossback extends Animal implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_THROWN, false);
-        this.entityData.define(DATA_THROWN_AIRBORNE, false);
-        this.entityData.define(DATA_LANDED_TICKS, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_THROWN, false);
+        builder.define(DATA_THROWN_AIRBORNE, false);
+        builder.define(DATA_LANDED_TICKS, 0);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -141,7 +143,7 @@ public class Mossback extends Animal implements GeoEntity {
     public void tick() {
         super.tick();
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return;
         }
 
@@ -223,7 +225,7 @@ public class Mossback extends Animal implements GeoEntity {
         AABB toxinArea = this.getBoundingBox().inflate(TOXIN_RADIUS, 1.4D, TOXIN_RADIUS);
         for (LivingEntity target : serverLevel.getEntitiesOfClass(LivingEntity.class, toxinArea, target -> target != this)) {
             target.addEffect(createToxinEffect(MobEffects.POISON));
-            target.addEffect(createToxinEffect(MobEffects.CONFUSION));
+            target.addEffect(createToxinEffect(MobEffects.NAUSEA));
             target.addEffect(createToxinEffect(MobEffects.BLINDNESS));
         }
 
@@ -231,9 +233,9 @@ public class Mossback extends Animal implements GeoEntity {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
-        boolean hurt = super.hurt(source, amount);
-        if (hurt && amount > 0.0F && !this.level().isClientSide) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        boolean hurt = super.hurtServer(level, source, amount);
+        if (hurt && amount > 0.0F && !this.level().isClientSide()) {
             releaseToxin();
         }
         return hurt;
@@ -264,7 +266,7 @@ public class Mossback extends Animal implements GeoEntity {
             return super.mobInteract(player, hand);
         }
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             ItemStack mossback = new ItemStack(ModItems.MOSSBACK.get());
             MossbackItem.setBaby(mossback, isBaby());
             if (!player.getInventory().add(mossback)) {
@@ -273,11 +275,11 @@ public class Mossback extends Animal implements GeoEntity {
             this.discard();
         }
 
-        return InteractionResult.sidedSuccess(this.level().isClientSide);
+        return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, @NotNull DamageSource source) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, @NotNull DamageSource source) {
         return false;
     }
 
@@ -286,15 +288,15 @@ public class Mossback extends Animal implements GeoEntity {
     }
 
     @Override
-    protected void dropFromLootTable(@NotNull DamageSource source, boolean recentlyHit) {
+    protected void dropFromLootTable(@NotNull ServerLevel level, @NotNull DamageSource source, boolean recentlyHit) {
         if (!isBaby()) {
-            super.dropFromLootTable(source, recentlyHit);
+            super.dropFromLootTable(level, source, recentlyHit);
         }
     }
 
     @Override
-    public int getExperienceReward() {
-        return isBaby() ? 0 : super.getExperienceReward();
+    protected int getBaseExperienceReward(@NotNull ServerLevel level) {
+        return isBaby() ? 0 : super.getBaseExperienceReward(level);
     }
 
     @Override
@@ -305,7 +307,7 @@ public class Mossback extends Animal implements GeoEntity {
     @Nullable
     @Override
     public AgeableMob getBreedOffspring(@NotNull ServerLevel level, @NotNull AgeableMob otherParent) {
-        Mossback baby = ModEntities.MOSSBACK.get().create(level);
+        Mossback baby = ModEntities.MOSSBACK.get().create(level, EntitySpawnReason.BREEDING);
         if (baby != null) {
             baby.setBaby(true);
         }
@@ -317,7 +319,7 @@ public class Mossback extends Animal implements GeoEntity {
         boolean wasBaby = isBaby();
         super.setAge(age);
         boolean isNowBaby = isBaby();
-        if (!level().isClientSide && wasBaby != isNowBaby) {
+        if (!level().isClientSide() && wasBaby != isNowBaby) {
             applyAgeAttributes(wasBaby && !isNowBaby);
         }
     }
@@ -339,7 +341,7 @@ public class Mossback extends Animal implements GeoEntity {
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean("Thrown", isThrown());
         tag.putBoolean("ThrownAirborne", isThrownAirborne());
@@ -347,14 +349,14 @@ public class Mossback extends Animal implements GeoEntity {
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             applyAgeAttributes(false);
         }
-        setThrown(tag.getBoolean("Thrown"));
-        setThrownAirborne(tag.getBoolean("ThrownAirborne"));
-        setLandedTicks(tag.getInt("LandedTicks"));
+        setThrown(tag.getBooleanOr("Thrown", false));
+        setThrownAirborne(tag.getBooleanOr("ThrownAirborne", false));
+        setLandedTicks(tag.getIntOr("LandedTicks", 0));
     }
 
     @Override

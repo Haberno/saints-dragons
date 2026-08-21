@@ -6,11 +6,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 
 public class RaevyxBeamMeterIndicator {
-    private static final Identifier BEAM_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_base.png");
-    private static final Identifier BEAM_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay.png");
-    private static final Identifier BEAM_FLASH_RED = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_red.png");
-    private static final Identifier BEAM_FLASH_WHITE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_white.png");
-    private static final Identifier BEAM_ICON = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/red_lightning.png");
+    private static final Identifier BEAM_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_base.png");
+    private static final Identifier BEAM_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay.png");
+    private static final Identifier BEAM_FLASH_RED = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_red.png");
+    private static final Identifier BEAM_FLASH_WHITE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_white.png");
+    private static final Identifier BEAM_ICON = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/red_lightning.png");
     private static final int BAR_WIDTH = 182;
     private static final int BAR_HEIGHT = 30;
     private static final int ICON_SIZE = 16;
@@ -96,32 +96,24 @@ public class RaevyxBeamMeterIndicator {
             return;
         }
 
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         int x = (screenWidth - BAR_WIDTH) / 2;
         int y = screenHeight - 45;
         int iconX = x - ICON_SIZE - ICON_GAP;
         int iconY = y + (BAR_HEIGHT - ICON_SIZE) / 2;
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha);
         guiGraphics.blit(BEAM_ICON, iconX, iconY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
         if (smoothWhiteFlash > 0.01f) {
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha * smoothWhiteFlash);
             guiGraphics.blit(BEAM_FLASH_WHITE, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         }
 
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha);
         int fillWidth = Math.max(0, Math.min(BAR_WIDTH, Math.round(BAR_WIDTH * smoothFill)));
         if (fillWidth > 0) {
             guiGraphics.blit(BEAM_BASE, x, y, 0, 0, fillWidth, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         }
         guiGraphics.blit(BEAM_OVERLAY, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         if (smoothRedFlash > 0.01f) {
-            RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, smoothAlpha * smoothRedFlash);
             guiGraphics.blit(BEAM_FLASH_RED, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         }
 
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.disableBlend();
     }
 
     public boolean shouldRender() {

@@ -5,7 +5,8 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonElementalImmunity;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.particles.ColorParticleOption;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -23,6 +24,8 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.projectile.ProjectileUtil;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -67,12 +70,11 @@ public class VolitansPoisonBallEntity extends Entity {
         this.lifetimeTicks = lifetimeTicks;
         this.setDeltaMovement(Vec3.ZERO);
         this.setVisualScale(1.0F);
-        this.hasImpulse = true;
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_SCALE, 1.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_SCALE, 1.0F);
     }
 
     public void setVisualScale(float scale) {
@@ -123,7 +125,7 @@ public class VolitansPoisonBallEntity extends Entity {
             this.setPos(nextPos);
         }
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             if (!this.isNoGravity()) {
                 motion = motion.scale(0.99D);
             }
@@ -143,7 +145,7 @@ public class VolitansPoisonBallEntity extends Entity {
 
     @Nullable
     private EntityHitResult findEntityHit(Vec3 start, Vec3 end) {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return null;
         }
         AABB bounds = getBoundingBox().expandTowards(end.subtract(start)).inflate(1.0D);
@@ -159,12 +161,13 @@ public class VolitansPoisonBallEntity extends Entity {
                 return false;
             }
             return true;
-        });
+        }, ProjectileUtil.DEFAULT_ENTITY_HIT_RESULT_MARGIN);
     }
 
     private void spawnTrailParticles() {
         float scale = getVisualScale();
-        level().addParticle(ParticleTypes.ENTITY_EFFECT, getX(), getY() + 0.2D * scale, getZ(), 0.25D, 0.75D, 0.2D);
+        level().addParticle(ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, 0.25F, 0.75F, 0.2F),
+                getX(), getY() + 0.2D * scale, getZ(), 0.0D, 0.0D, 0.0D);
         level().addParticle(ParticleTypes.WITCH, getX(), getY() + 0.1D * scale, getZ(), 0.0D, 0.01D, 0.0D);
     }
 
@@ -178,7 +181,8 @@ public class VolitansPoisonBallEntity extends Entity {
         float scale = getVisualScale();
 
         int effectCount = Math.min(80, Math.max(8, (int) (14 * scale)));
-        server.sendParticles(ParticleTypes.ENTITY_EFFECT, impact.x, impact.y + 0.35D * scale, impact.z,
+        server.sendParticles(ColorParticleOption.create(ParticleTypes.ENTITY_EFFECT, 0.25F, 0.75F, 0.2F),
+                impact.x, impact.y + 0.35D * scale, impact.z,
                 effectCount, 0.7D * scale, 0.45D * scale, 0.7D * scale, 0.0D);
         server.sendParticles(ParticleTypes.WITCH, impact.x, impact.y + 0.35D * scale, impact.z,
                 effectCount / 2, 0.65D * scale, 0.4D * scale, 0.65D * scale, 0.03D);
@@ -200,9 +204,9 @@ public class VolitansPoisonBallEntity extends Entity {
 
         for (LivingEntity target : hits) {
             if (ownerEntity != null) {
-                target.hurt(server.damageSources().mobAttack(ownerEntity), impactDamage);
+                target.hurtServer(server, server.damageSources().mobAttack(ownerEntity), impactDamage);
             } else {
-                target.hurt(server.damageSources().magic(), impactDamage);
+                target.hurtServer(server, server.damageSources().magic(), impactDamage);
             }
             if (poisonActive && poisonDurationTicks > 0) {
                 target.addEffect(new MobEffectInstance(MobEffects.POISON, poisonDurationTicks, poisonAmplifier));
@@ -212,7 +216,6 @@ public class VolitansPoisonBallEntity extends Entity {
             if (knockback.lengthSqr() > 1.0E-6) {
                 knockback = knockback.normalize().scale(0.18D * scale);
                 target.push(knockback.x, 0.05D, knockback.z);
-                target.hasImpulse = true;
             }
         }
 
@@ -244,23 +247,19 @@ public class VolitansPoisonBallEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        livedTicks = tag.getInt("Lived");
-        lifetimeTicks = tag.getInt("Lifetime");
-        impactRadius = tag.getDouble("ImpactRadius");
-        impactDamage = tag.getFloat("ImpactDamage");
-        poisonDurationTicks = tag.getInt("PoisonDuration");
-        poisonAmplifier = tag.getInt("PoisonAmplifier");
-        if (tag.contains("Scale")) {
-            setVisualScale(tag.getFloat("Scale"));
-        }
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        livedTicks = tag.getIntOr("Lived", 0);
+        lifetimeTicks = tag.getIntOr("Lifetime", 0);
+        impactRadius = tag.getDoubleOr("ImpactRadius", 0.0D);
+        impactDamage = tag.getFloatOr("ImpactDamage", 0.0F);
+        poisonDurationTicks = tag.getIntOr("PoisonDuration", 0);
+        poisonAmplifier = tag.getIntOr("PoisonAmplifier", 0);
+        setVisualScale(tag.getFloatOr("Scale", 1.0F));
+        ownerUUID = tag.read("Owner", UUIDUtil.CODEC).orElse(null);
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Lived", livedTicks);
         tag.putInt("Lifetime", lifetimeTicks);
         tag.putDouble("ImpactRadius", impactRadius);
@@ -269,19 +268,14 @@ public class VolitansPoisonBallEntity extends Entity {
         tag.putInt("PoisonAmplifier", poisonAmplifier);
         tag.putFloat("Scale", getVisualScale());
         if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
+            tag.store("Owner", UUIDUtil.CODEC, ownerUUID);
         }
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
     public void recreateFromPacket(ClientboundAddEntityPacket packet) {
         super.recreateFromPacket(packet);
-        this.setDeltaMovement(packet.getXa(), packet.getYa(), packet.getZa());
+        this.setDeltaMovement(packet.getMovement());
     }
 
     @Override
@@ -300,21 +294,12 @@ public class VolitansPoisonBallEntity extends Entity {
     }
 
     @Override
-    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
         if (source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            return super.hurt(source, amount);
+            discard();
+            return true;
         }
         return false;
-    }
-
-    @Override
-    public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source) {
-        return !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY);
-    }
-
-    @Override
-    public float getEyeHeight(@NotNull Pose pose) {
-        return 0.5F * getVisualScale();
     }
 
     @Override

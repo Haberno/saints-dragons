@@ -25,6 +25,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.SpawnPlacements;
+import net.minecraft.world.entity.SpawnPlacementType;
+import net.minecraft.world.entity.SpawnPlacementTypes;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
@@ -65,61 +67,61 @@ public final class CommonModEvents {
     public static void registerSpawnPlacements(SpawnPlacementRegistrar registrar) {
         registrar.register(
                 ModEntities.RAEVYX.get(),
-                SpawnPlacements.Type.ON_GROUND,
+                SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Raevyx::canSpawnHere
         );
         registrar.register(
                 ModEntities.STEGONAUT.get(),
-                SpawnPlacements.Type.NO_RESTRICTIONS,
+                SpawnPlacementTypes.NO_RESTRICTIONS,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Stegonaut::canSpawnHere
         );
         registrar.register(
                 ModEntities.CINDERVANE.get(),
-                SpawnPlacements.Type.ON_GROUND,
+                SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Cindervane::canSpawnHere
         );
         registrar.register(
                 ModEntities.VARASUCHUS.get(),
-                SpawnPlacements.Type.ON_GROUND,
+                SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Varasuchus::canSpawnHere
         );
         registrar.register(
                 ModEntities.IGNIVORUS.get(),
-                SpawnPlacements.Type.ON_GROUND,
+                SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Ignivorus::canSpawnHere
         );
         registrar.register(
                 ModEntities.ATROXIIA.get(),
-                SpawnPlacements.Type.ON_GROUND,
+                SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Atroxiia::canSpawnHere
         );
         registrar.register(
                 ModEntities.VOLITANS.get(),
-                SpawnPlacements.Type.ON_GROUND,
+                SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Volitans::canSpawnHere
         );
         registrar.register(
                 ModEntities.NULLJAW.get(),
-                SpawnPlacements.Type.NO_RESTRICTIONS,
+                SpawnPlacementTypes.NO_RESTRICTIONS,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Nulljaw::canSpawnHere
         );
         registrar.register(
                 ModEntities.MOOP.get(),
-                SpawnPlacements.Type.IN_WATER,
+                SpawnPlacementTypes.IN_WATER,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Moop::canSpawnHere
         );
         registrar.register(
                 ModEntities.MOSSBACK.get(),
-                SpawnPlacements.Type.ON_GROUND,
+                SpawnPlacementTypes.ON_GROUND,
                 Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
                 Mossback::canSpawnHere
         );
@@ -140,7 +142,7 @@ public final class CommonModEvents {
     @FunctionalInterface
     public interface SpawnPlacementRegistrar {
         <T extends Mob> void register(EntityType<T> type,
-                                      SpawnPlacements.Type placementType,
+                                      SpawnPlacementType placementType,
                                       Heightmap.Types heightmap,
                                       SpawnPlacements.SpawnPredicate<T> predicate);
     }

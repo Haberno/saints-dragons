@@ -154,10 +154,10 @@ public final class ForgeDragonAttributesScreen extends ForgePagedConfigScreen {
         for (var level : server.getAllLevels()) {
             AABB bounds = new AABB(
                     level.getWorldBorder().getMinX(),
-                    level.getMinBuildHeight(),
+                    level.getMinY(),
                     level.getWorldBorder().getMinZ(),
                     level.getWorldBorder().getMaxX(),
-                    level.getMaxBuildHeight(),
+                    level.getMaxY(),
                     level.getWorldBorder().getMaxZ()
             );
 

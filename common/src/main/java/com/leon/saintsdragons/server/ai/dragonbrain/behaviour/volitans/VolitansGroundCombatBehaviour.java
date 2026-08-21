@@ -271,10 +271,10 @@ public class VolitansGroundCombatBehaviour extends DragonBehaviour<Volitans> {
         if (dragon.distanceToSqr(target) > getMaxAggroDistanceSqr()) {
             return false;
         }
-        if (dragon.isInWaterOrBubble() || dragon.isUnderWater()) {
+        if (dragon.isInWater() || dragon.isUnderWater()) {
             return false;
         }
-        if (target.isInWaterOrBubble()) {
+        if (target.isInWater()) {
             return false;
         }
         return !isTargetAirborne(target);
@@ -562,7 +562,7 @@ public class VolitansGroundCombatBehaviour extends DragonBehaviour<Volitans> {
     }
 
     private boolean isTargetAirborne(LivingEntity target) {
-        return DragonTargetingHelper.isTargetAirborne(target, 8.0D) && !target.isInWaterOrBubble();
+        return DragonTargetingHelper.isTargetAirborne(target, 8.0D) && !target.isInWater();
     }
 
     private enum CombatCommitment {

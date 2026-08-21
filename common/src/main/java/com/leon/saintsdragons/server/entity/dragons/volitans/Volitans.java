@@ -80,6 +80,8 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.phys.AABB;
@@ -342,7 +344,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         this.interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1, AnimationHelper::interactionIdle);
         setupAnimationControllers();
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             applyConfiguredAttributes();
         }
         resetAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY);
@@ -373,7 +375,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         this.setRunning(false);
         this.setAccelerating(false);
         this.setDeltaMovement(Vec3.ZERO);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             triggerAnim(AnimationHelper.FLIGHT_CONTROLLER, AnimationHelper.TAKEOFF);
             if (isVehicle() && !isFlying() && TAKEOFF_LAUNCH_DELAY_TICKS > 0) {
                 lockRiderControls(TAKEOFF_LAUNCH_DELAY_TICKS);
@@ -444,10 +446,9 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
             @NotNull ServerLevelAccessor level,
             @NotNull DifficultyInstance difficulty,
             @NotNull EntitySpawnReason spawnReason,
-            @Nullable SpawnGroupData spawnData,
-            @Nullable CompoundTag dataTag
+            @Nullable SpawnGroupData spawnData
     ) {
-        spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData, dataTag);
+        spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData);
         applyConfiguredAttributes();
         this.setHealth(this.getMaxHealth());
         return spawnData;
@@ -478,7 +479,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
                 && !isLanding()
                 && !isHovering()
                 && !isSwimming()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !isOrderedToSit()
                 && !isInSitTransition()
                 && !isSleeping()
@@ -510,28 +511,28 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     @Override
-    protected void defineRideableDragonData() {
-        this.entityData.define(DATA_FLIGHT_PITCH, 0.0F);
-        this.entityData.define(DATA_ACCUMULATED_ROLL, 0.0F);
-        this.entityData.define(DATA_PITCH_KEY_MODE, false);
-        this.entityData.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
-        this.entityData.define(DATA_ULTIMATE_SLAM_ACTIVE, false);
-        this.entityData.define(DATA_BREATH_MODE, 0); // 0=water, 1=poison
-        this.entityData.define(DATA_BREATHING, false);
-        this.entityData.define(DATA_WATER_BREATH_ENERGY, 1.0F);
-        this.entityData.define(DATA_POISON_BREATH_ENERGY, 1.0F);
-        this.entityData.define(DATA_WATER_BREATH_DEPLETED, false);
-        this.entityData.define(DATA_POISON_BREATH_DEPLETED, false);
-        this.entityData.define(DATA_BURROWING, false);
-        this.entityData.define(DATA_FEEDING_COOLDOWN, 0);
-        this.entityData.define(DATA_VENOM_NEUTRALIZED_TICKS, 0);
-        this.entityData.define(DATA_TAMING_STUNNED, false);
-        this.entityData.define(DATA_RIDER_NUDGE_TICKS, 0);
-        this.entityData.define(DATA_RIDER_NUDGE_X, 0.0F);
-        this.entityData.define(DATA_RIDER_NUDGE_Z, 0.0F);
-        this.entityData.define(DATA_RIDER_NUDGE_DRAG, 1.0F);
-        this.entityData.define(DATA_RIDER_NUDGE_MODE, RIDER_NUDGE_NONE);
-        this.entityData.define(DATA_RIDER_NUDGE_STEER_OFFSET, 0.0F);
+    protected void defineRideableDragonData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_FLIGHT_PITCH, 0.0F);
+        builder.define(DATA_ACCUMULATED_ROLL, 0.0F);
+        builder.define(DATA_PITCH_KEY_MODE, false);
+        builder.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
+        builder.define(DATA_ULTIMATE_SLAM_ACTIVE, false);
+        builder.define(DATA_BREATH_MODE, 0); // 0=water, 1=poison
+        builder.define(DATA_BREATHING, false);
+        builder.define(DATA_WATER_BREATH_ENERGY, 1.0F);
+        builder.define(DATA_POISON_BREATH_ENERGY, 1.0F);
+        builder.define(DATA_WATER_BREATH_DEPLETED, false);
+        builder.define(DATA_POISON_BREATH_DEPLETED, false);
+        builder.define(DATA_BURROWING, false);
+        builder.define(DATA_FEEDING_COOLDOWN, 0);
+        builder.define(DATA_VENOM_NEUTRALIZED_TICKS, 0);
+        builder.define(DATA_TAMING_STUNNED, false);
+        builder.define(DATA_RIDER_NUDGE_TICKS, 0);
+        builder.define(DATA_RIDER_NUDGE_X, 0.0F);
+        builder.define(DATA_RIDER_NUDGE_Z, 0.0F);
+        builder.define(DATA_RIDER_NUDGE_DRAG, 1.0F);
+        builder.define(DATA_RIDER_NUDGE_MODE, RIDER_NUDGE_NONE);
+        builder.define(DATA_RIDER_NUDGE_STEER_OFFSET, 0.0F);
     }
 
     @Override
@@ -573,11 +574,11 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected boolean shouldUpdateRiderGroundMoveState() {
-        return super.shouldUpdateRiderGroundMoveState() && !isInWaterOrBubble();
+        return super.shouldUpdateRiderGroundMoveState() && !isInWater();
     }
 
     public boolean isSwimmingMoving() {
-        if (!isInWaterOrBubble() || isFlying()) {
+        if (!isInWater() || isFlying()) {
             return false;
         }
 
@@ -653,7 +654,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (this.isBaby() || !this.isAlive()) {
             return false;
         }
-        return this.onGround() || (this.isInWaterOrBubble() && !this.isUnderWater()) || this.isInLava();
+        return this.onGround() || (this.isInWater() && !this.isUnderWater()) || this.isInLava();
     }
 
     @Override
@@ -665,7 +666,6 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     protected void afterSwitchToGroundNavigation() {
         if (onGround()) {
             setDeltaMovement(Vec3.ZERO);
-            hasImpulse = false;
         }
     }
 
@@ -722,7 +722,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void beforeStandardRiderTakeoff(Player player) {
-        if (!this.isInWaterOrBubble()) {
+        if (!this.isInWater()) {
             clearGroundMobilityState();
         }
     }
@@ -832,7 +832,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onRiderBackwardDodge(Player player) {
-        if (isBurrowing() || isFlying() || isInWaterOrBubble() || riderBackDashCooldownTicks > 0 || isRiderForwardDashing()
+        if (isBurrowing() || isFlying() || isInWater() || riderBackDashCooldownTicks > 0 || isRiderForwardDashing()
                 || isRiderBackDashing() || riderBackDashRecoveryTicks > 0
                 || isRiderSideDodging() || riderSideDodgeRecoveryTicks > 0
                 || !isAlive() || isDying() || isOrderedToSit() || isInSitTransition() || (isTamingStunned() && !isTame())) {
@@ -859,7 +859,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onRiderDash(Player player) {
-        if (isBurrowing() || isFlying() || isInWaterOrBubble() || riderBackDashCooldownTicks > 0
+        if (isBurrowing() || isFlying() || isInWater() || riderBackDashCooldownTicks > 0
                 || isRiderForwardDashing() || isRiderBackDashing() || riderBackDashRecoveryTicks > 0
                 || isRiderSideDodging() || riderSideDodgeRecoveryTicks > 0
                 || !isAlive() || isDying() || isOrderedToSit() || isInSitTransition()) {
@@ -886,7 +886,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onRiderDodge(Player player, boolean isLeft) {
-        if (isBurrowing() || isFlying() || isInWaterOrBubble() || riderBackDashCooldownTicks > 0
+        if (isBurrowing() || isFlying() || isInWater() || riderBackDashCooldownTicks > 0
                 || isRiderForwardDashing() || isRiderBackDashing() || riderBackDashRecoveryTicks > 0
                 || isRiderSideDodging() || riderSideDodgeRecoveryTicks > 0
                 || !isAlive() || isDying() || isOrderedToSit() || isInSitTransition() || (isTamingStunned() && !isTame())) {
@@ -920,7 +920,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         }
         tickScreenShake();
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (isTamingStunned()) {
                 if (getTarget() != null) {
                     super.setTarget(null);
@@ -1010,7 +1010,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
                 handleAiLandingComplete();
             }
 
-            if (!isUltimateSlamActive() && this.isInWaterOrBubble() && shouldClearRiderFlightStateInWater()) {
+            if (!isUltimateSlamActive() && this.isInWater() && shouldClearRiderFlightStateInWater()) {
                 markLandedNow();
             }
 
@@ -1040,7 +1040,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         syncFlightAnimationState();
         tickAsyncFlightNavigation(isAiSpecialCombatActive() || isAiSpecialCombatReserved());
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             tickAnimationStates();
             tickBurrowRumbleShake();
         }
@@ -1057,9 +1057,9 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     @Override
-    protected void customServerAiStep() {
+    protected void customServerAiStep(ServerLevel serverLevel) {
         DragonBrain.tick(DRAGON_BRAIN, this);
-        super.customServerAiStep();
+        super.customServerAiStep(serverLevel);
     }
 
     @Override
@@ -1118,7 +1118,6 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         return null;
     }
 
-    @Override
     public double getPassengersRidingOffset() {
         return riderController.getPassengersRidingOffset();
     }
@@ -1141,7 +1140,6 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
             Vec3 slamMotion = new Vec3(current.x, verticalMotion, current.z);
             this.setDeltaMovement(slamMotion);
             this.move(MoverType.SELF, slamMotion);
-            this.hasImpulse = true;
             this.hurtMarked = true;
             return;
         }
@@ -1183,8 +1181,8 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (this.isVehicle() && this.getControllingPassenger() instanceof Player rider
                 && this.isTame() && this.isOwnedBy(rider)) {
             Vec3 riddenInput = this.getRiddenInput(rider, motion);
-            boolean inWater = this.isInWaterOrBubble() || this.isInLava();
-            if (inWater && !level().isClientSide) {
+            boolean inWater = this.isInWater() || this.isInLava();
+            if (inWater && !level().isClientSide()) {
                 clearRiderFlightStateInWaterIfNeeded();
             }
             if (isFlying() && (!inWater || shouldUseRiderFlightMovementInWater())) {
@@ -1194,10 +1192,10 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
             if (inWater) {
                 riderController.handleSwimTravel(rider, riddenInput);
-                if (!level().isClientSide) {
+                if (!level().isClientSide()) {
                     setGroundMoveStateFromRider(0);
                 }
-                if (!level().isClientSide) {
+                if (!level().isClientSide()) {
                     tryAutoBreachRiderTakeoff();
                 }
                 return;
@@ -1346,7 +1344,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (boneName == null) {
             return null;
         }
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return this.clientLocatorCache.get(boneName);
         }
         return this.serverBonePositionCache.get(boneName);
@@ -1364,7 +1362,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     public BlockState getEggBlockState() {
-        return ModBlocks.VOLITANS_EGG.get().defaultBlockState().setValue(VolitansEggBlock.WATERLOGGED, isInWaterOrBubble());
+        return ModBlocks.VOLITANS_EGG.get().defaultBlockState().setValue(VolitansEggBlock.WATERLOGGED, isInWater());
     }
 
     @Override
@@ -1424,36 +1422,20 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
         loadRideableData(tag);
         tamingController.load(tag);
-        if (tag.contains("VolitansBreathMode")) {
-            setBreathMode(tag.getInt("VolitansBreathMode"));
-        }
-        if (tag.contains("VolitansWaterBreathEnergy")) {
-            setWaterBreathEnergy(tag.getFloat("VolitansWaterBreathEnergy"));
-        } else {
-            setWaterBreathEnergy(1.0F);
-        }
-        if (tag.contains("VolitansPoisonBreathEnergy")) {
-            setPoisonBreathEnergy(tag.getFloat("VolitansPoisonBreathEnergy"));
-        } else {
-            setPoisonBreathEnergy(1.0F);
-        }
-        if (tag.contains("VolitansWaterBreathDepleted")) {
-            setWaterBreathDepleted(tag.getBoolean("VolitansWaterBreathDepleted"));
-        }
-        if (tag.contains("VolitansPoisonBreathDepleted")) {
-            setPoisonBreathDepleted(tag.getBoolean("VolitansPoisonBreathDepleted"));
-        }
-        if (tag.contains("FeedingCooldownTicks")) {
-            this.entityData.set(DATA_FEEDING_COOLDOWN, Math.max(0, tag.getInt("FeedingCooldownTicks")));
-        }
-        if (tag.contains("VenomNeutralizedTicks")) {
-            this.entityData.set(DATA_VENOM_NEUTRALIZED_TICKS, Math.max(0, tag.getInt("VenomNeutralizedTicks")));
-        }
-        tempInvulnTicks = Math.max(0, tag.getInt("VolitansTempInvulnTicks"));
+        tag.getInt("VolitansBreathMode").ifPresent(this::setBreathMode);
+        setWaterBreathEnergy(tag.getFloatOr("VolitansWaterBreathEnergy", 1.0F));
+        setPoisonBreathEnergy(tag.getFloatOr("VolitansPoisonBreathEnergy", 1.0F));
+        setWaterBreathDepleted(tag.getBooleanOr("VolitansWaterBreathDepleted", false));
+        setPoisonBreathDepleted(tag.getBooleanOr("VolitansPoisonBreathDepleted", false));
+        tag.getInt("FeedingCooldownTicks")
+                .ifPresent(ticks -> this.entityData.set(DATA_FEEDING_COOLDOWN, Math.max(0, ticks)));
+        tag.getInt("VenomNeutralizedTicks")
+                .ifPresent(ticks -> this.entityData.set(DATA_VENOM_NEUTRALIZED_TICKS, Math.max(0, ticks)));
+        tempInvulnTicks = Math.max(0, tag.getIntOr("VolitansTempInvulnTicks", 0));
         if (tempInvulnTicks > 0) {
             setInvulnerable(true);
         } else if (!isDying()) {
@@ -1471,7 +1453,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         saveRideableData(tag);
         tag.putInt("VolitansBreathMode", getBreathMode());
@@ -1536,7 +1518,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     private void tickWaterPreferenceTimers() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             this.setAirSupply(this.getMaxAirSupply());
             this.ticksInWater = Math.min(this.ticksInWater + 1, 1200);
             this.ticksOutOfWater = 0;
@@ -1553,7 +1535,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void dropAdditionalDeathLootAfterBase(@NotNull DamageSource source) {
-        if (!level().isClientSide && getGender() == DragonGender.FEMALE) {
+        if (!level().isClientSide() && getGender() == DragonGender.FEMALE) {
             DragonLootTables.dropEntityLoot(this, DragonLootTables.VOLITANS_FEMALE_DEATH, source);
         }
     }
@@ -1630,7 +1612,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         setTarget(null);
         setAggressive(false);
         setLastHurtByMob(null);
-        this.setLastHurtByPlayer(null);
+        this.setLastHurtByPlayer((Player) null, 0);
         setInvulnerable(false);
         setBurrowing(false);
         stopUltimateSlamMovement();
@@ -1662,7 +1644,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         if (isDying() || !isAlive()) {
             return false;
         }
@@ -1679,7 +1661,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (tryReactiveHitEvade(source, amount)) {
             return false;
         }
-        boolean hurt = super.hurt(source, amount);
+        boolean hurt = super.hurtServer(level, source, amount);
         if (hurt && shouldDropCombatSpine(source, amount)) {
             if (DragonLootTables.dropEntityLoot(this, DragonLootTables.VOLITANS_HIT, source)) {
                 spineDropCooldownTicks = SPINE_DROP_COOLDOWN_TICKS;
@@ -1689,7 +1671,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     private boolean shouldDropCombatSpine(@NotNull DamageSource source, float amount) {
-        if (level().isClientSide || amount <= 0.0F || spineDropCooldownTicks > 0) {
+        if (level().isClientSide() || amount <= 0.0F || spineDropCooldownTicks > 0) {
             return false;
         }
         if (source.getEntity() instanceof LivingEntity) {
@@ -1699,7 +1681,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     private boolean tryReactiveHitEvade(@NotNull DamageSource source, float amount) {
-        if (level().isClientSide || amount <= 0.0F || isVehicle() || !isAlive() || isDying() || (isTamingStunned() && !isTame())) {
+        if (level().isClientSide() || amount <= 0.0F || isVehicle() || !isAlive() || isDying() || (isTamingStunned() && !isTame())) {
             return false;
         }
 
@@ -1920,9 +1902,9 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
             return;
         }
         this.entityData.set(DATA_ULTIMATE_SLAM_ACTIVE, false);
-        if (isAiSpecialCombatActive() && !onGround() && !isVehicle() && !isPassenger() && !isInWaterOrBubble() && !isInLava()) {
+        if (isAiSpecialCombatActive() && !onGround() && !isVehicle() && !isPassenger() && !isInWater() && !isInLava()) {
             beginAiFlight();
-        } else if (!onGround() && !isVehicle() && !isPassenger() && !isInWaterOrBubble() && !isInLava()) {
+        } else if (!onGround() && !isVehicle() && !isPassenger() && !isInWater() && !isInLava()) {
             beginAiFlight();
         }
     }
@@ -1952,12 +1934,12 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     public void handleAiLandingComplete() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             suppressSleep(60);
             completeTouchdownLanding(LandingSource.AI);
             return;
         }
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             triggerAnim(AnimationHelper.MOVEMENT_CONTROLLER, AnimationHelper.LANDED);
             if (!isBaby()) {
                 getSoundHandler().playMovingEntitySound(ModSounds.VOLITANS_LANDED.get(), 2.0f, 1.0f, 32);
@@ -2013,10 +1995,10 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     public boolean isAiRootedByAbility() {
-        if (isAbilityActive(ModAbilities.VOLITANS_ROAR) && !isFlying() && !isInWaterOrBubble()) {
+        if (isAbilityActive(ModAbilities.VOLITANS_ROAR) && !isFlying() && !isInWater()) {
             return true;
         }
-        if (isAbilityActive(ModAbilities.VOLITANS_POISON_BALL) && !isFlying() && !isInWaterOrBubble()) {
+        if (isAbilityActive(ModAbilities.VOLITANS_POISON_BALL) && !isFlying() && !isInWater()) {
             return true;
         }
         return isAbilityActive(ModAbilities.VOLITANS_BURROW) && !isBurrowing();
@@ -2044,7 +2026,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     private boolean tryReactiveGroundDodge(@Nullable LivingEntity threat) {
-        if (isAerial() || isInWaterOrBubble() || isBurrowing() || (isTamingStunned() && !isTame())) {
+        if (isAerial() || isInWater() || isBurrowing() || (isTamingStunned() && !isTame())) {
             return false;
         }
         if (isGroundMobilityActive() || aiGroundMobilityCooldownTicks > 0 || areRiderControlsLocked()) {
@@ -2076,7 +2058,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     private boolean tryReactiveGroundBackstep(@Nullable LivingEntity threat) {
-        if (isAerial() || isInWaterOrBubble() || isBurrowing() || (isTamingStunned() && !isTame())) {
+        if (isAerial() || isInWater() || isBurrowing() || (isTamingStunned() && !isTame())) {
             return false;
         }
         if (isGroundMobilityActive() || aiGroundMobilityCooldownTicks > 0 || riderBackDashCooldownTicks > 0 || areRiderControlsLocked()) {
@@ -2197,7 +2179,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     private void tickBackwardDashSpikes() {
-        if (level().isClientSide || riderBackDashSpikeDelayTicks <= 0) {
+        if (level().isClientSide() || riderBackDashSpikeDelayTicks <= 0) {
             return;
         }
         if (--riderBackDashSpikeDelayTicks == 0) {
@@ -2215,7 +2197,6 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
             horizontalZ *= 0.90D;
         }
         this.setDeltaMovement(horizontalX, yVel, horizontalZ);
-        this.hasImpulse = true;
         riderBackDashVec = riderBackDashVec.multiply(
                 RIDER_BACK_DASH_RECOVERY_DRAG,
                 RIDER_BACK_DASH_VERTICAL_DRAG,
@@ -2248,7 +2229,6 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
             horizontalZ *= 0.88D;
         }
         this.setDeltaMovement(horizontalX, yVel, horizontalZ);
-        this.hasImpulse = true;
         riderSideDodgeVec = riderSideDodgeVec.multiply(
                 RIDER_SIDE_DODGE_RECOVERY_DRAG,
                 RIDER_SIDE_DODGE_VERTICAL_DRAG,
@@ -2329,7 +2309,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     private void tickRiderForwardDashDamage() {
         if (riderForwardDashDamageApplied || riderGroundNudge.getElapsedTicks() < RIDER_FORWARD_DASH_DAMAGE_TICK
-                || level().isClientSide || !this.isVehicle()) {
+                || level().isClientSide() || !this.isVehicle()) {
             return;
         }
         riderForwardDashDamageApplied = true;
@@ -2351,7 +2331,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (isBaby()) {
             return;
         }
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return;
         }
         this.getSoundHandler().playMovingEntitySound(ModSounds.VOLITANS_DASH_FORWARD.get(), 1.6f, 1.0f, RIDER_DASH_SOUND_TICKS);
@@ -2361,7 +2341,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (isBaby()) {
             return;
         }
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return;
         }
         this.getSoundHandler().playMovingEntitySound(ModSounds.VOLITANS_DASH_BACKWARDS.get(), 1.6f, 1.0f, RIDER_DASH_SOUND_TICKS);
@@ -2371,14 +2351,14 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (isBaby()) {
             return;
         }
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             return;
         }
         this.getSoundHandler().playMovingEntitySound(ModSounds.VOLITANS_DODGE.get(), 1.6f, 1.0f, RIDER_DODGE_SOUND_TICKS);
     }
 
     private void fireBackwardDashSpikes() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
 
@@ -2434,12 +2414,12 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     // remove this and voli ain't pitching right
     private void tickPitchingLogic() {
         prevFlightPitchRad = flightPitchRad;
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             flightPitchRad = this.entityData.get(DATA_FLIGHT_PITCH);
             return;
         }
 
-        boolean inWater = this.isInWaterOrBubble();
+        boolean inWater = this.isInWater();
         if (!isFlying() && !isLanding() && !inWater) {
             flightPitchRad = 0f;
             smoothedPlayerPitchRad = 0f;
@@ -2515,7 +2495,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     @Override
     protected boolean canUseBarrelRoll() {
         return isFlying()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !areRiderControlsLocked()
                 && !isGroundMobilityActive()
                 && !isRiderForwardDashing()
@@ -2527,7 +2507,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected boolean shouldEaseAirAutoAlign() {
-        if (!isFlying() || isInWaterOrBubble() || areRiderControlsLocked()) {
+        if (!isFlying() || isInWater() || areRiderControlsLocked()) {
             return false;
         }
 
@@ -2537,7 +2517,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     @Override
     protected boolean isActivelyBarrelRolling() {
         return isFlying()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !areRiderControlsLocked()
                 && !isGroundMobilityActive()
                 && !isRiderForwardDashing()
@@ -2666,7 +2646,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
             return false;
         }
 
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return false;
         }
 
@@ -2711,7 +2691,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     public void playEatMovingSound() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         float pitch = isBaby() ? 1.6f : 1.0f;
@@ -2755,7 +2735,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         if (!basicAllowed) {
             return false;
         }
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return isDeepEnoughForUnderwaterSleep();
         }
         return true;
@@ -2786,7 +2766,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
                 && !isSleepSuppressed()
                 && getTarget() == null
                 && canSeekSleepDepthNow()
-                && isInWaterOrBubble()
+                && isInWater()
                 && !isDeepEnoughForUnderwaterSleep();
     }
 
@@ -2810,7 +2790,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
         int x = Mth.floor(positionX);
         int z = Mth.floor(positionZ);
         int startY = Mth.floor(fromY);
-        int maxY = Math.min(level().getMaxBuildHeight() - 1, startY + WATER_SURFACE_SLEEP_SCAN_BLOCKS);
+        int maxY = Math.min(level().getMaxY() - 1, startY + WATER_SURFACE_SLEEP_SCAN_BLOCKS);
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, startY, z);
 
         for (int y = startY; y <= maxY; y++) {
@@ -2825,22 +2805,22 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected boolean useSleepSitDownTimer() {
-        return !isInWaterOrBubble();
+        return !isInWater();
     }
 
     @Override
     protected boolean requireSeatedBeforeFallAsleep() {
-        return !isInWaterOrBubble();
+        return !isInWater();
     }
 
     @Override
     protected boolean sleepForceSitDownOnEnter() {
-        return !isInWaterOrBubble();
+        return !isInWater();
     }
 
     @Override
     protected boolean useSleepSitUpAfterWake() {
-        return !isInWaterOrBubble();
+        return !isInWater();
     }
 
     @Override
@@ -2875,12 +2855,12 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected boolean isAlreadySeatedForSleep() {
-        return isInWaterOrBubble() || getSitProgress() >= maxSitTicks() || isOrderedToSit() || getCommand() == 1;
+        return isInWater() || getSitProgress() >= maxSitTicks() || isOrderedToSit() || getCommand() == 1;
     }
 
     @Override
     protected boolean shouldStaySeatedAfterWake(int sleepCommandSnapshot) {
-        return !isInWaterOrBubble() && sleepCommandSnapshot == 1;
+        return !isInWater() && sleepCommandSnapshot == 1;
     }
 
     @Override
@@ -2903,8 +2883,8 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     protected void onSleepUnlockCommand(int desired) {
         if (desired >= 0 && desired != getCommand()) {
             setCommand(desired);
-            setOrderedToSit(desired == 1 && !isInWaterOrBubble());
-        } else if (isInWaterOrBubble()) {
+            setOrderedToSit(desired == 1 && !isInWater());
+        } else if (isInWater()) {
             setOrderedToSit(false);
         }
         getNavigation().stop();
@@ -2927,7 +2907,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onSleepSitDownAnimation() {
-        if (!isInWaterOrBubble()) {
+        if (!isInWater()) {
             animationHandler.triggerSitDownAnimation();
             setOrderedToSit(true);
         }
@@ -2935,7 +2915,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onSleepFallAsleepAnimation() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             AnimationHelper.triggerRestAnimation(this, "fall_asleep_underwater");
         } else {
             AnimationHelper.triggerRestAnimation(this, AnimationHelper.FALL_ASLEEP);
@@ -2944,14 +2924,14 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onSleepLoopAnimation() {
-        if (!isInWaterOrBubble()) {
+        if (!isInWater()) {
             setOrderedToSit(true);
         }
     }
 
     @Override
     protected void onSleepWakeUpAnimation() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             AnimationHelper.triggerRestAnimation(this, "wake_up_underwater");
             setOrderedToSit(false);
         } else {
@@ -2962,7 +2942,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onSleepSitUpAnimation() {
-        if (!isInWaterOrBubble()) {
+        if (!isInWater()) {
             animationHandler.triggerSitUpAnimation();
             setOrderedToSit(false);
         }
@@ -2970,7 +2950,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onSleepExitSeated() {
-        if (!isInWaterOrBubble()) {
+        if (!isInWater()) {
             setOrderedToSit(true);
             setSitProgress(maxSitTicks());
         } else {
@@ -2980,17 +2960,17 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     @Override
     protected void onSleepExitStarted() {
-        if (!isInWaterOrBubble()) {
+        if (!isInWater()) {
             setOrderedToSit(true);
         }
     }
 
     private void updateSittingProgress() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
 
-        if (this.isInWaterOrBubble()) {
+        if (this.isInWater()) {
             clearSitTransitionFlags();
             if (getSitProgress() != 0f || getPrevSitProgress() != 0f) {
                 clearSitProgress();

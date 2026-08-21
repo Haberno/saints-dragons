@@ -1,124 +1,110 @@
 package com.leon.saintsdragons.common.recipe;
 
-import com.google.gson.JsonObject;
-import com.leon.saintsdragons.common.registry.ModItems;
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import com.leon.saintsdragons.common.registry.ModRecipes;
-import net.minecraft.core.RegistryAccess;
-import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.GsonHelper;
-import net.minecraft.world.Container;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.world.item.crafting.PlacementInfo;
 import net.minecraft.world.item.crafting.Recipe;
+import net.minecraft.world.item.crafting.RecipeBookCategories;
+import net.minecraft.world.item.crafting.RecipeBookCategory;
 import net.minecraft.world.item.crafting.RecipeSerializer;
 import net.minecraft.world.item.crafting.RecipeType;
-import net.minecraft.world.item.crafting.ShapedRecipe;
+import net.minecraft.world.item.crafting.SingleRecipeInput;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 public record DraconicCrucibleSmeltingRecipe(
-        Identifier id,
         Ingredient ingredient,
         ItemStack result,
         int requiredHeatLevel,
         int processingTime,
         int priority
-) implements Recipe<Container> {
+) implements Recipe<SingleRecipeInput> {
     @Override
-    public boolean matches(@NotNull Container container, @NotNull Level level) {
-        return container.getContainerSize() > 0 && this.ingredient.test(container.getItem(0));
+    public boolean matches(@NotNull SingleRecipeInput input, @NotNull Level level) {
+        return this.ingredient.test(input.item());
     }
 
     @Override
-    public @NotNull ItemStack assemble(@NotNull Container container, @NotNull RegistryAccess registryAccess) {
+    public @NotNull ItemStack assemble(@NotNull SingleRecipeInput input,
+                                       @NotNull HolderLookup.Provider registries) {
         return this.result.copy();
     }
 
     @Override
-    public boolean canCraftInDimensions(int width, int height) {
-        return width * height >= 1;
-    }
-
-    @Override
-    public @NotNull ItemStack getResultItem(@NotNull RegistryAccess registryAccess) {
-        return this.result;
-    }
-
-    @Override
-    public @NotNull Identifier getId() {
-        return this.id;
-    }
-
-    @Override
-    public @NotNull RecipeSerializer<?> getSerializer() {
+    public @NotNull RecipeSerializer<? extends Recipe<SingleRecipeInput>> getSerializer() {
         return ModRecipes.DRACONIC_CRUCIBLE_SMELTING_SERIALIZER.get();
     }
 
     @Override
-    public @NotNull RecipeType<?> getType() {
+    public @NotNull RecipeType<? extends Recipe<SingleRecipeInput>> getType() {
         return ModRecipes.DRACONIC_CRUCIBLE_SMELTING_TYPE.get();
     }
 
     @Override
-    public @NotNull ItemStack getToastSymbol() {
-        return new ItemStack(ModItems.DRACONIC_CRUCIBLE.get());
+    public @NotNull PlacementInfo placementInfo() {
+        return PlacementInfo.create(this.ingredient);
+    }
+
+    @Override
+    public @NotNull RecipeBookCategory recipeBookCategory() {
+        return RecipeBookCategories.FURNACE_MISC;
+    }
+
+    public ItemStack result() {
+        return this.result.copy();
+    }
+
+    private void toNetwork(RegistryFriendlyByteBuf buffer) {
+        Ingredient.CONTENTS_STREAM_CODEC.encode(buffer, this.ingredient);
+        ItemStack.STREAM_CODEC.encode(buffer, this.result);
+        buffer.writeVarInt(this.requiredHeatLevel);
+        buffer.writeVarInt(this.processingTime);
+        buffer.writeInt(this.priority);
+    }
+
+    private static DraconicCrucibleSmeltingRecipe fromNetwork(RegistryFriendlyByteBuf buffer) {
+        return new DraconicCrucibleSmeltingRecipe(
+                Ingredient.CONTENTS_STREAM_CODEC.decode(buffer),
+                ItemStack.STREAM_CODEC.decode(buffer),
+                buffer.readVarInt(),
+                buffer.readVarInt(),
+                buffer.readInt()
+        );
     }
 
     public static final class Serializer implements RecipeSerializer<DraconicCrucibleSmeltingRecipe> {
-        @Override
-        public @NotNull DraconicCrucibleSmeltingRecipe fromJson(@NotNull Identifier id,
-                                                                 @NotNull JsonObject json) {
-            Ingredient ingredient = Ingredient.fromJson(GsonHelper.getNonNull(json, "ingredient"));
-            ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
-            int requiredHeatLevel = readHeatLevel(json);
-            int processingTime = readProcessingTime(json);
-            int priority = readPriority(json);
-            return new DraconicCrucibleSmeltingRecipe(
-                    id, ingredient, result, requiredHeatLevel, processingTime, priority);
-        }
+        private static final MapCodec<DraconicCrucibleSmeltingRecipe> CODEC = RecordCodecBuilder.mapCodec(instance ->
+                instance.group(
+                        Ingredient.CODEC.fieldOf("ingredient").forGetter(DraconicCrucibleSmeltingRecipe::ingredient),
+                        ItemStack.STRICT_CODEC.fieldOf("result").forGetter(recipe -> recipe.result),
+                        Codec.intRange(1, 3).optionalFieldOf("required_heat_level", 1)
+                                .forGetter(DraconicCrucibleSmeltingRecipe::requiredHeatLevel),
+                        Codec.intRange(1, Integer.MAX_VALUE).optionalFieldOf("processing_time", 200)
+                                .forGetter(DraconicCrucibleSmeltingRecipe::processingTime),
+                        Codec.INT.optionalFieldOf("priority", 0)
+                                .forGetter(DraconicCrucibleSmeltingRecipe::priority)
+                ).apply(instance, DraconicCrucibleSmeltingRecipe::new));
+        private static final StreamCodec<RegistryFriendlyByteBuf, DraconicCrucibleSmeltingRecipe> STREAM_CODEC =
+                StreamCodec.ofMember(
+                        DraconicCrucibleSmeltingRecipe::toNetwork,
+                        DraconicCrucibleSmeltingRecipe::fromNetwork
+                );
 
         @Override
-        public @Nullable DraconicCrucibleSmeltingRecipe fromNetwork(@NotNull Identifier id,
-                                                                    @NotNull FriendlyByteBuf buffer) {
-            Ingredient ingredient = Ingredient.fromNetwork(buffer);
-            ItemStack result = buffer.readItem();
-            int requiredHeatLevel = buffer.readVarInt();
-            int processingTime = buffer.readVarInt();
-            int priority = buffer.readInt();
-            return new DraconicCrucibleSmeltingRecipe(
-                    id, ingredient, result, requiredHeatLevel, processingTime, priority);
+        public @NotNull MapCodec<DraconicCrucibleSmeltingRecipe> codec() {
+            return CODEC;
         }
 
         @Override
-        public void toNetwork(@NotNull FriendlyByteBuf buffer,
-                              @NotNull DraconicCrucibleSmeltingRecipe recipe) {
-            recipe.ingredient.toNetwork(buffer);
-            buffer.writeItem(recipe.result);
-            buffer.writeVarInt(recipe.requiredHeatLevel);
-            buffer.writeVarInt(recipe.processingTime);
-            buffer.writeInt(recipe.priority);
+        public @NotNull StreamCodec<RegistryFriendlyByteBuf, DraconicCrucibleSmeltingRecipe> streamCodec() {
+            return STREAM_CODEC;
         }
-    }
-
-    static int readHeatLevel(JsonObject json) {
-        int level = GsonHelper.getAsInt(json, "required_heat_level", 1);
-        if (level < 1 || level > 3) {
-            throw new IllegalArgumentException("required_heat_level must be between 1 and 3");
-        }
-        return level;
-    }
-
-    static int readProcessingTime(JsonObject json) {
-        int processingTime = GsonHelper.getAsInt(json, "processing_time", 200);
-        if (processingTime <= 0) {
-            throw new IllegalArgumentException("processing_time must be greater than zero");
-        }
-        return processingTime;
-    }
-
-    static int readPriority(JsonObject json) {
-        return GsonHelper.getAsInt(json, "priority", 0);
     }
 }

@@ -6,7 +6,7 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonDestructionManager;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonElementalImmunity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -21,6 +21,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.HitResult;
@@ -74,9 +76,9 @@ public class IgnivorusFlameEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_SCALE, 1.0F);
-        this.entityData.define(DATA_LIFETIME, 20);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_SCALE, 1.0F);
+        builder.define(DATA_LIFETIME, 20);
     }
 
     public void setScale(float scale) {
@@ -105,7 +107,7 @@ public class IgnivorusFlameEntity extends Entity {
         super.tick();
         this.age++;
 
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             if (spawnPos == null) {
                 spawnPos = position();
             }
@@ -170,15 +172,15 @@ public class IgnivorusFlameEntity extends Entity {
                 closestDistance = distance;
             }
         }
-        if (closestTarget != null) {
+        if (closestTarget != null && level() instanceof ServerLevel serverLevel) {
             hasHitEntity = true;
 
             DamageSource damageSource = owner != null
                     ? level().damageSources().mobAttack(owner)
                     : level().damageSources().generic();
-            closestTarget.hurt(damageSource, damage);
+            closestTarget.hurtServer(serverLevel, damageSource, damage);
             if (!closestTarget.fireImmune()) {
-                closestTarget.setSecondsOnFire(3);
+                closestTarget.igniteForSeconds(3.0F);
             }
 
             return true;
@@ -197,23 +199,24 @@ public class IgnivorusFlameEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        this.age = tag.getInt("Age");
-        this.maxAge = tag.getInt("MaxAge");
-        this.damage = tag.getFloat("Damage");
-        this.hasHitEntity = tag.getBoolean("HasHitEntity");
-        this.hasHitBlock = tag.getBoolean("HasHitBlock");
-        this.igniteBlockChance = tag.contains("IgniteBlockChance") ? tag.getDouble("IgniteBlockChance") : 1.0D;
-        if (tag.contains("SpawnX")) {
-            this.spawnPos = new Vec3(tag.getDouble("SpawnX"), tag.getDouble("SpawnY"), tag.getDouble("SpawnZ"));
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        this.age = tag.getIntOr("Age", 0);
+        this.maxAge = tag.getIntOr("MaxAge", 0);
+        this.damage = tag.getFloatOr("Damage", 0.0F);
+        this.hasHitEntity = tag.getBooleanOr("HasHitEntity", false);
+        this.hasHitBlock = tag.getBooleanOr("HasHitBlock", false);
+        this.igniteBlockChance = tag.getDoubleOr("IgniteBlockChance", 1.0D);
+        double spawnX = tag.getDoubleOr("SpawnX", Double.NaN);
+        if (Double.isFinite(spawnX)) {
+            this.spawnPos = new Vec3(spawnX,
+                    tag.getDoubleOr("SpawnY", 0.0D),
+                    tag.getDoubleOr("SpawnZ", 0.0D));
         }
-        if (tag.hasUUID("Owner")) {
-            this.ownerUUID = tag.getUUID("Owner");
-        }
+        this.ownerUUID = tag.read("Owner", UUIDUtil.CODEC).orElse(null);
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Age", this.age);
         tag.putInt("MaxAge", this.maxAge);
         tag.putFloat("Damage", this.damage);
@@ -226,17 +229,17 @@ public class IgnivorusFlameEntity extends Entity {
             tag.putDouble("SpawnZ", this.spawnPos.z);
         }
         if (this.ownerUUID != null) {
-            tag.putUUID("Owner", this.ownerUUID);
+            tag.store("Owner", UUIDUtil.CODEC, this.ownerUUID);
         }
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
     public boolean shouldRenderAtSqrDistance(double distance) {
         return distance < 65536.0;
+    }
+
+    @Override
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 }

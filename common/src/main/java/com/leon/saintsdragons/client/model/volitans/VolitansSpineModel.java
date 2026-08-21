@@ -4,22 +4,23 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.effect.volitans.VolitansSpineEntity;
 import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class VolitansSpineModel extends GeoModel<VolitansSpineEntity> {
     private static final Identifier MODEL =
-            SaintsDragonsCommon.rl("geo/entity/volitans_spine.geo.json");
+            SaintsDragonsCommon.rl("geckolib/models/entity/volitans_spine.geo.json");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/volitans/volitans_spine.png");
     private static final Identifier ANIMATION =
-            SaintsDragonsCommon.rl("animations/entity/volitans_spine.animation.json");
+            SaintsDragonsCommon.rl("geckolib/animations/entity/volitans_spine.animation.json");
 
     @Override
-    public Identifier getModelResource(VolitansSpineEntity animatable) {
+    public Identifier getModelResource(GeoRenderState renderState) {
         return MODEL;
     }
 
     @Override
-    public Identifier getTextureResource(VolitansSpineEntity animatable) {
+    public Identifier getTextureResource(GeoRenderState renderState) {
         return TEXTURE;
     }
 

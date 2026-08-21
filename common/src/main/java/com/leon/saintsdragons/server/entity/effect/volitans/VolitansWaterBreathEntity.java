@@ -6,7 +6,7 @@ import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonElementalImmunity;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonUtilities;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -22,6 +22,8 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.LevelEvent;
 import net.minecraft.world.phys.AABB;
@@ -71,8 +73,8 @@ public class VolitansWaterBreathEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_POISON_MODE, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_POISON_MODE, false);
     }
 
     @Override
@@ -80,7 +82,7 @@ public class VolitansWaterBreathEntity extends Entity {
         super.tick();
         age++;
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             if (age >= maxAge) {
                 discard();
                 return;
@@ -141,6 +143,9 @@ public class VolitansWaterBreathEntity extends Entity {
     }
 
     private boolean hitEntity() {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return false;
+        }
         Vec3 start = position();
         Vec3 end = start.add(getDeltaMovement());
         AABB box = new AABB(start, end).inflate(0.8D);
@@ -165,7 +170,7 @@ public class VolitansWaterBreathEntity extends Entity {
             DamageSource source = attacker != null
                     ? level().damageSources().mobAttack(attacker)
                     : level().damageSources().generic();
-            target.hurt(source, damage);
+            target.hurtServer(serverLevel, source, damage);
             if (poisonActive && poisonDurationTicks > 0 && poisonAmplifier >= 0) {
                 target.addEffect(new MobEffectInstance(MobEffects.POISON, poisonDurationTicks, poisonAmplifier));
             }
@@ -177,7 +182,6 @@ public class VolitansWaterBreathEntity extends Entity {
             if (pushStrength > 0.001F && pushDir.lengthSqr() > 1.0E-6) {
                 pushDir = pushDir.normalize().scale(pushStrength);
                 target.push(pushDir.x, 0.04D, pushDir.z);
-                target.hasImpulse = true;
             }
             return true;
         }
@@ -220,21 +224,19 @@ public class VolitansWaterBreathEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        age = tag.getInt("Age");
-        maxAge = tag.getInt("MaxAge");
-        damage = tag.getFloat("Damage");
-        pushStrength = tag.getFloat("PushStrength");
-        poisonDurationTicks = tag.getInt("PoisonDuration");
-        poisonAmplifier = tag.getInt("PoisonAmplifier");
-        this.entityData.set(DATA_POISON_MODE, tag.getBoolean("PoisonMode"));
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        age = tag.getIntOr("Age", 0);
+        maxAge = tag.getIntOr("MaxAge", 12);
+        damage = tag.getFloatOr("Damage", 0.0F);
+        pushStrength = tag.getFloatOr("PushStrength", 0.0F);
+        poisonDurationTicks = tag.getIntOr("PoisonDuration", 80);
+        poisonAmplifier = tag.getIntOr("PoisonAmplifier", 0);
+        this.entityData.set(DATA_POISON_MODE, tag.getBooleanOr("PoisonMode", false));
+        ownerUUID = tag.read("Owner", UUIDUtil.CODEC).orElse(null);
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Age", age);
         tag.putInt("MaxAge", maxAge);
         tag.putFloat("Damage", damage);
@@ -243,12 +245,12 @@ public class VolitansWaterBreathEntity extends Entity {
         tag.putInt("PoisonAmplifier", poisonAmplifier);
         tag.putBoolean("PoisonMode", this.entityData.get(DATA_POISON_MODE));
         if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
+            tag.store("Owner", UUIDUtil.CODEC, ownerUUID);
         }
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 }

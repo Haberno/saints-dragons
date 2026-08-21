@@ -6,6 +6,7 @@ import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.base.DragonGender;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
@@ -25,6 +26,7 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.StateDefinition;
 import net.minecraft.world.level.block.state.properties.BlockStateProperties;
+import net.minecraft.world.level.block.state.properties.EnumProperty;
 import net.minecraft.world.level.block.state.properties.IntegerProperty;
 import net.minecraft.world.level.gameevent.GameEvent;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +54,7 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(@NotNull Level level,
                                                                   @NotNull BlockState state,
                                                                   @NotNull BlockEntityType<T> blockEntityType) {
-        return level.isClientSide ? null : createTickerHelper(
+        return level.isClientSide() ? null : createTickerHelper(
                 blockEntityType,
                 getEggBlockEntityType().get(),
                 this::serverTick
@@ -71,7 +73,8 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
     }
 
     @Override
-    public int getAnalogOutputSignal(BlockState state, @NotNull Level level, @NotNull BlockPos pos) {
+    public int getAnalogOutputSignal(BlockState state, @NotNull Level level, @NotNull BlockPos pos,
+                                     @NotNull Direction direction) {
         return state.getValue(HATCH);
     }
 
@@ -87,7 +90,7 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
                             @Nullable LivingEntity placer,
                             @NotNull ItemStack stack) {
         super.setPlacedBy(level, pos, state, placer, stack);
-        if (!level.isClientSide && placer instanceof Player player && level.getBlockEntity(pos) instanceof AbstractDragonEggBlockEntity eggEntity) {
+        if (!level.isClientSide() && placer instanceof Player player && level.getBlockEntity(pos) instanceof AbstractDragonEggBlockEntity eggEntity) {
             eggEntity.setHatchAdvancementOwnerUUID(player.getUUID());
         }
     }
@@ -202,7 +205,7 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
             if (eggEntity != null) {
                 if (eggEntity.getOwnerUUID() != null) {
                     baby.setOwnerUUID(eggEntity.getOwnerUUID());
-                    baby.setTame(true);
+                    baby.setTame(true, true);
                 }
                 if (eggEntity.getBabyGender() != null) {
                     baby.setGender(eggEntity.getBabyGender());
@@ -236,7 +239,7 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
             return;
         }
 
-        var advancement = level.getServer().getAdvancements().getAdvancement(advancementId);
+        var advancement = level.getServer().getAdvancements().get(advancementId);
         if (advancement == null) {
             return;
         }

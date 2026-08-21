@@ -4,7 +4,7 @@ import com.leon.saintsdragons.common.item.tools.SwordAbilityTargeting;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import net.minecraft.core.particles.BlockParticleOption;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -18,6 +18,9 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -50,7 +53,6 @@ public class GroundCrackEntity extends Entity {
     public GroundCrackEntity(EntityType<? extends GroundCrackEntity> type, Level level) {
         super(type, level);
         this.noPhysics = true;
-        this.noCulling = true;
     }
 
     public GroundCrackEntity(Level level, Vec3 position, float yaw) {
@@ -73,10 +75,10 @@ public class GroundCrackEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        entityData.define(DATA_STYLE, STEGONAUT_STYLE);
-        entityData.define(DATA_DURATION, STEGONAUT_DURATION);
-        entityData.define(DATA_VISUAL_RADIUS, 7.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_STYLE, STEGONAUT_STYLE);
+        builder.define(DATA_DURATION, STEGONAUT_DURATION);
+        builder.define(DATA_VISUAL_RADIUS, 7.0F);
     }
 
     public boolean isDragonlordFissure() {
@@ -226,63 +228,61 @@ public class GroundCrackEntity extends Entity {
                 continue;
             }
 
-            if (target.hurt(server.damageSources().playerAttack(owner), damage)) {
+            if (target.hurtServer(server, server.damageSources().playerAttack(owner), damage)) {
                 nextDamageTicks.put(targetId, age + FISSURE_DAMAGE_INTERVAL);
             }
         }
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        age = tag.getInt("Age");
-        setYRot(tag.getFloat("Yaw"));
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        age = tag.getIntOr("Age", 0);
+        setYRot(tag.getFloatOr("Yaw", 0.0F));
         this.yRotO = getYRot();
-        entityData.set(DATA_STYLE, tag.getInt("Style"));
-        entityData.set(DATA_DURATION, tag.contains("Duration") ? Math.max(1, tag.getInt("Duration")) : STEGONAUT_DURATION);
-        entityData.set(DATA_VISUAL_RADIUS, tag.contains("VisualRadius") ? tag.getFloat("VisualRadius") : 7.0F);
-        if (tag.hasUUID("Owner")) {
-            ownerUuid = tag.getUUID("Owner");
-        }
-        damageRadius = tag.getFloat("DamageRadius");
-        damage = tag.getFloat("Damage");
+        entityData.set(DATA_STYLE, tag.getIntOr("Style", STEGONAUT_STYLE));
+        entityData.set(DATA_DURATION, Math.max(1, tag.getIntOr("Duration", STEGONAUT_DURATION)));
+        entityData.set(DATA_VISUAL_RADIUS, tag.getFloatOr("VisualRadius", 7.0F));
+        ownerUuid = tag.read("Owner", UUIDUtil.CODEC).orElse(null);
+        damageRadius = tag.getFloatOr("DamageRadius", 0.0F);
+        damage = tag.getFloatOr("Damage", 0.0F);
         nextDamageTicks.clear();
-        int cooldownCount = tag.getInt("CooldownCount");
+        int cooldownCount = tag.getIntOr("CooldownCount", 0);
         for (int i = 0; i < cooldownCount; i++) {
             String key = "CooldownTarget" + i;
-            if (tag.hasUUID(key)) {
-                nextDamageTicks.put(tag.getUUID(key), tag.getInt("CooldownTick" + i));
-            }
+            int cooldownTick = tag.getIntOr("CooldownTick" + i, 0);
+            tag.read(key, UUIDUtil.CODEC)
+                    .ifPresent(uuid -> nextDamageTicks.put(uuid, cooldownTick));
         }
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Age", age);
         tag.putFloat("Yaw", getYRot());
         tag.putInt("Style", entityData.get(DATA_STYLE));
         tag.putInt("Duration", entityData.get(DATA_DURATION));
         tag.putFloat("VisualRadius", entityData.get(DATA_VISUAL_RADIUS));
         if (ownerUuid != null) {
-            tag.putUUID("Owner", ownerUuid);
+            tag.store("Owner", UUIDUtil.CODEC, ownerUuid);
         }
         tag.putFloat("DamageRadius", damageRadius);
         tag.putFloat("Damage", damage);
         tag.putInt("CooldownCount", nextDamageTicks.size());
         int index = 0;
         for (Map.Entry<UUID, Integer> cooldown : nextDamageTicks.entrySet()) {
-            tag.putUUID("CooldownTarget" + index, cooldown.getKey());
+            tag.store("CooldownTarget" + index, UUIDUtil.CODEC, cooldown.getKey());
             tag.putInt("CooldownTick" + index, cooldown.getValue());
             index++;
         }
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+    public boolean shouldRenderAtSqrDistance(double distance) {
+        return distance < 16384.0D;
     }
 
     @Override
-    public boolean shouldRenderAtSqrDistance(double distance) {
-        return distance < 16384.0D;
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 }

@@ -12,7 +12,7 @@ import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
 public final class SwarmWaveBarOverlay {
-    private static final Identifier TEXTURE = new Identifier(
+    private static final Identifier TEXTURE = Identifier.fromNamespaceAndPath(
             SaintsDragonsCommon.MOD_ID,
             "textures/gui/draconian_swarm/draconian_swarm_wave_bar.png"
     );
@@ -73,8 +73,6 @@ public final class SwarmWaveBarOverlay {
                 : Component.translatable("gui.saintsdragons.draconian_swarm");
         int titleWidth = minecraft.font.width(title);
 
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
         graphics.drawString(minecraft.font, title, (screenWidth - titleWidth) / 2, y, 0xFFFFFFFF, true);
 
         int barY = y + 12;
@@ -83,6 +81,5 @@ public final class SwarmWaveBarOverlay {
         if (fillWidth > 0) {
             graphics.blit(TEXTURE, x, barY, 0, FILL_V, fillWidth, BAR_HEIGHT, BAR_WIDTH, TEXTURE_HEIGHT);
         }
-        RenderSystem.disableBlend();
     }
 }

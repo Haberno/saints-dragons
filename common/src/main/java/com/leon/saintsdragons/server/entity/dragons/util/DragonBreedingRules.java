@@ -16,7 +16,7 @@ public final class DragonBreedingRules {
         if (isEnabled()) {
             return true;
         }
-        if (player != null && !player.level().isClientSide) {
+        if (player != null && !player.level().isClientSide()) {
             player.displayClientMessage(Component.translatable("entity.saintsdragons.dragon.breeding_disabled"), true);
         }
         return false;

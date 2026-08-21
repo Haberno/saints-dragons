@@ -4,7 +4,6 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.recipe.DraconicCrucibleShapedRecipe;
 import com.leon.saintsdragons.common.recipe.DraconicCrucibleSmeltingRecipe;
 import com.leon.saintsdragons.common.registry.ModItems;
-import com.leon.saintsdragons.common.registry.ModRecipes;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.RecipeTypes;
@@ -12,10 +11,8 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
-import net.minecraft.client.Minecraft;
 import net.minecraft.resources.Identifier;
 
-import java.util.List;
 
 @JeiPlugin
 public final class SaintsDragonsJeiPlugin implements IModPlugin {
@@ -44,16 +41,8 @@ public final class SaintsDragonsJeiPlugin implements IModPlugin {
 
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
-        var level = Minecraft.getInstance().level;
-        if (level == null) {
-            return;
-        }
-        registration.addRecipes(CRUCIBLE_CRAFTING,
-                List.copyOf(level.getRecipeManager().getAllRecipesFor(
-                        ModRecipes.DRACONIC_CRUCIBLE_SHAPED_TYPE.get())));
-        registration.addRecipes(CRUCIBLE_SMELTING,
-                List.copyOf(level.getRecipeManager().getAllRecipesFor(
-                        ModRecipes.DRACONIC_CRUCIBLE_SMELTING_TYPE.get())));
+        // Custom recipes are no longer synchronized as full recipe objects in 1.21.11.
+        // Re-register these from JEI's recipe-data hook once its new API is stabilized.
     }
 
     @Override

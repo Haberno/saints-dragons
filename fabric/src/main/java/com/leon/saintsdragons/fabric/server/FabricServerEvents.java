@@ -33,9 +33,9 @@ public final class FabricServerEvents {
                         IvyTheDragonMerchant.followOwnerAcrossDimension(player, sourceLevel));
 
         ServerPlayerEvents.AFTER_RESPAWN.register((oldPlayer, newPlayer, alive) -> {
-            var sourceLevel = oldPlayer.serverLevel();
-            if (sourceLevel.dimension() != newPlayer.serverLevel().dimension()) {
-                newPlayer.server.execute(() ->
+            var sourceLevel = oldPlayer.level();
+            if (sourceLevel.dimension() != newPlayer.level().dimension()) {
+                newPlayer.level().getServer().execute(() ->
                         IvyTheDragonMerchant.followOwnerAcrossDimension(newPlayer, sourceLevel));
             }
         });
@@ -48,7 +48,7 @@ public final class FabricServerEvents {
                         && !DragonlordArmorSetBonus.blocksDamage(player, source)));
 
         AttackEntityCallback.EVENT.register((player, world, hand, entity, hitResult) -> {
-            if (world.isClientSide) {
+            if (world.isClientSide()) {
                 return InteractionResult.PASS;
             }
             if (!(entity instanceof DragonEntity dragon) || !dragon.isBaby()) {
@@ -57,8 +57,8 @@ public final class FabricServerEvents {
             if (!(player instanceof ServerPlayer serverPlayer)) {
                 return InteractionResult.PASS;
             }
-            var advancement = serverPlayer.server.getAdvancements()
-                .getAdvancement(SaintsDragonsCommon.rl("why"));
+            var advancement = serverPlayer.level().getServer().getAdvancements()
+                .get(SaintsDragonsCommon.rl("why"));
             if (advancement != null) {
                 serverPlayer.getAdvancements().award(advancement, "hit_baby");
             }

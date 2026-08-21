@@ -14,6 +14,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import org.joml.Matrix4f;
@@ -90,9 +91,6 @@ public class CodexDragonRenderer {
             "nulljaw", portraitDefinition("nulljaw", NULLJAW_SCALE, NULLJAW_OFFSET_X, NULLJAW_OFFSET_Y,
                     NULLJAW_BABY_SCALE_ADJUSTMENT, NULLJAW_BABY_OFFSET_X, NULLJAW_BABY_OFFSET_Y)
     );
-    private final CodexStaticPortraitRenderer staticPortraitRenderer = new CodexStaticPortraitRenderer();
-    private final Map<UUID, CodexStaticPortraitRenderer.Portrait> staticPortraits = new HashMap<>();
-
     public void drawDragonPortrait(GuiGraphics guiGraphics, Minecraft minecraft, CodexDragonEntry selected,
                                    int leftPos, int topPos, int mouseX, int mouseY) {
         if (minecraft == null || minecraft.level == null || selected == null || selected.entityId() == null) {
@@ -101,7 +99,6 @@ public class CodexDragonRenderer {
 
         DragonEntity dragon = findDragonEntity(minecraft, selected.entityId());
         if (dragon == null) {
-            drawStaticPortrait(guiGraphics, minecraft, selected, leftPos, topPos, mouseX, mouseY);
             return;
         }
 
@@ -120,9 +117,12 @@ public class CodexDragonRenderer {
         try {
             InventoryScreen.renderEntityInInventoryFollowsMouse(
                     guiGraphics,
-                    centerX,
-                    centerY,
+                    boxX,
+                    boxY,
+                    boxX + CodexLayout.DRAGON_RENDER_BOX_SIZE,
+                    boxY + CodexLayout.DRAGON_RENDER_BOX_SIZE,
                     size,
+                    0.0F,
                     (float) (centerX - mouseX),
                     (float) (centerY - CodexLayout.DRAGON_RENDER_BOX_SIZE - mouseY),
                     dragon
@@ -208,52 +208,7 @@ public class CodexDragonRenderer {
 
     private void drawStaticPortrait(GuiGraphics guiGraphics, Minecraft minecraft, CodexDragonEntry selected,
                                     int leftPos, int topPos, int mouseX, int mouseY) {
-        PortraitDefinition definition = PORTRAIT_DEFINITIONS.get(selected.dragonType());
-        if (definition == null) {
-            return;
-        }
-
-        Identifier model = definition.model(selected.isBaby());
-        Identifier texture = selected.isBaby()
-                ? dragonTexture(selected.dragonType(), "baby_" + selected.dragonType(),
-                        DragonGender.fromId(selected.genderId()) == DragonGender.FEMALE)
-                : resolveAdultTexture(selected, definition);
-        CodexStaticPortraitRenderer.Portrait portrait = staticPortraits.compute(selected.entityId(), (dragonId, current) ->
-                current != null && current.matches(model, texture)
-                        ? current
-                        : new CodexStaticPortraitRenderer.Portrait(dragonId, model, texture));
-        int boxX = leftPos + CodexLayout.DRAGON_RENDER_BOX_X;
-        int boxY = topPos + CodexLayout.DRAGON_RENDER_BOX_Y;
-        int centerX = boxX + CodexLayout.DRAGON_RENDER_BOX_SIZE / 2 + definition.offsetX(selected.isBaby());
-        int centerY = boxY + CodexLayout.DRAGON_RENDER_BOX_SIZE + definition.offsetY(selected.isBaby());
-        float yaw = (float) Math.atan((centerX - mouseX) / 40.0F);
-        float pitch = (float) Math.atan((centerY - CodexLayout.DRAGON_RENDER_BOX_SIZE - mouseY) / 40.0F);
-        PoseStack poseStack = guiGraphics.pose();
-
-        guiGraphics.enableScissor(boxX, boxY,
-                boxX + CodexLayout.DRAGON_RENDER_BOX_SIZE,
-                boxY + CodexLayout.DRAGON_RENDER_BOX_SIZE);
-        poseStack.pushPose();
-        try {
-            poseStack.translate(centerX, centerY, 50.0D);
-            int scale = definition.scale(selected.isBaby());
-            poseStack.mulPoseMatrix(new Matrix4f().scaling(scale, scale, -scale));
-            poseStack.mulPose(new Quaternionf()
-                    .rotateZ((float) Math.PI)
-                    .rotateX(pitch * 20.0F * ((float) Math.PI / 180.0F))
-                    .rotateY(-yaw * 20.0F * ((float) Math.PI / 180.0F)));
-
-            Lighting.setupForEntityInInventory();
-            MultiBufferSource.BufferSource buffers = minecraft.renderBuffers().bufferSource();
-            RenderType renderType = RenderType.entityCutoutNoCull(texture);
-            staticPortraitRenderer.render(poseStack, portrait, buffers, renderType,
-                    buffers.getBuffer(renderType), LightTexture.FULL_BRIGHT);
-            guiGraphics.flush();
-        } finally {
-            poseStack.popPose();
-            Lighting.setupFor3DItems();
-            guiGraphics.disableScissor();
-        }
+        // Offline portraits require the new deferred GUI submission pipeline.
     }
 
     private Identifier resolveAdultTexture(CodexDragonEntry selected, PortraitDefinition definition) {
@@ -293,8 +248,8 @@ public class CodexDragonRenderer {
                                                          int babyScaleAdjustment, int babyOffsetX, int babyOffsetY) {
         return new PortraitDefinition(
                 SaintsDragonsCommon.rl(dragonType),
-                SaintsDragonsCommon.rl("geo/entity/" + dragonType + "_baked.geo.json"),
-                SaintsDragonsCommon.rl("geo/entity/baby_" + dragonType + "_baked.geo.json"),
+                SaintsDragonsCommon.rl("geckolib/models/entity/" + dragonType + "_baked.geo.json"),
+                SaintsDragonsCommon.rl("geckolib/models/entity/baby_" + dragonType + "_baked.geo.json"),
                 scale,
                 offsetX,
                 offsetY,
@@ -311,7 +266,7 @@ public class CodexDragonRenderer {
 
     private Identifier parseVariantId(String id) {
         try {
-            return new Identifier(id);
+            return Identifier.parse(id);
         } catch (Exception ignored) {
             return com.leon.saintsdragons.server.entity.variant.SaintsDragonVariantRegistry.DEFAULT_VARIANT_ID;
         }

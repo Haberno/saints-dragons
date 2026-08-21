@@ -50,7 +50,7 @@ public class VarasuchusTailAttackAbility extends DragonAbility<Varasuchus> {
     @Override
     public boolean tryAbility() {
         Varasuchus dragon = getUser();
-        return !dragon.isPhaseTwoActive() && !dragon.isSwimming() && !dragon.isInWaterOrBubble();
+        return !dragon.isPhaseTwoActive() && !dragon.isSwimming() && !dragon.isInWater();
     }
 
     @Override
@@ -64,7 +64,7 @@ public class VarasuchusTailAttackAbility extends DragonAbility<Varasuchus> {
             dragon.lockRiderControls(CONTROL_LOCK_TICKS);
             String animName = useLeftTail ? "tail_attack_left" : "tail_attack_right";
             dragon.triggerAnim(VarasuchusAnimationHandler.FAST_ACTION_CONTROLLER, animName);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.VARASUCHUS_TAIL_ATTACK.get(), 1.0f, 1.0f, TAIL_ATTACK_SOUND_TICKS);
             }
             appliedHit = false;

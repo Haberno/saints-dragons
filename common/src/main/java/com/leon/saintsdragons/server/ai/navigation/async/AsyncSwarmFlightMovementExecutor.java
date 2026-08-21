@@ -47,7 +47,6 @@ class AsyncSwarmFlightMovementExecutor {
         );
 
         this.mob.setDeltaMovement(this.smoothedVelocity);
-        this.mob.hasImpulse = true;
         updateRotation();
     }
 
@@ -60,7 +59,6 @@ class AsyncSwarmFlightMovementExecutor {
 
         this.smoothedVelocity = this.smoothedVelocity.scale(IDLE_DRAG);
         this.mob.setDeltaMovement(this.smoothedVelocity);
-        this.mob.hasImpulse = true;
     }
 
     void zeroVelocity() {

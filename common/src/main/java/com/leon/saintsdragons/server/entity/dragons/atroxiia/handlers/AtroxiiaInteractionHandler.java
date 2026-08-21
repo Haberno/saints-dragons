@@ -30,7 +30,7 @@ public final class AtroxiiaInteractionHandler extends AbstractDragonInteractionH
 
     @Override
     protected String getCommandStatusMessageKey(int command) {
-        if (command == 1 && dragon.isInWaterOrBubble()) {
+        if (command == 1 && dragon.isInWater()) {
             return "entity.saintsdragons.all.command_1_staying";
         }
         return super.getCommandStatusMessageKey(command);
@@ -45,7 +45,7 @@ public final class AtroxiiaInteractionHandler extends AbstractDragonInteractionH
             return handleFeeding(player, heldItem);
         }
 
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
         DragonAttributeConfig config = DragonAttributeConfigLoader.getInstance()
                 .getConfig(DragonAttributeConfigLoader.ATROXIIA_ID);
         boolean legacyTaming = config.extraBoolean("legacy_taming", false);
@@ -114,7 +114,7 @@ public final class AtroxiiaInteractionHandler extends AbstractDragonInteractionH
             }
         }
 
-        return InteractionResult.sidedSuccess(client);
+        return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private void awardTamingAdvancement(Player player) {
@@ -122,8 +122,8 @@ public final class AtroxiiaInteractionHandler extends AbstractDragonInteractionH
             return;
         }
 
-        var advancement = serverPlayer.server.getAdvancements()
-                .getAdvancement(SaintsDragonsCommon.rl("tame_atroxiia"));
+        var advancement = serverPlayer.level().getServer().getAdvancements()
+                .get(SaintsDragonsCommon.rl("tame_atroxiia"));
         if (advancement != null) {
             serverPlayer.getAdvancements().award(advancement, "tame_atroxiia");
         }
@@ -193,7 +193,7 @@ public final class AtroxiiaInteractionHandler extends AbstractDragonInteractionH
             return InteractionResult.CONSUME;
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             boolean heartyMeal = heldItem.is(ModItems.HEARTY_DRAGON_MEAL.get());
             boolean wasHungry = dragon.isHungry();
             consumeHeldItem(player, heldItem);
@@ -220,6 +220,6 @@ public final class AtroxiiaInteractionHandler extends AbstractDragonInteractionH
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 }

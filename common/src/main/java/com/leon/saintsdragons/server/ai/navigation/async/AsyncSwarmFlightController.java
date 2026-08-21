@@ -38,7 +38,7 @@ public class AsyncSwarmFlightController {
     }
 
     public void serverTick() {
-        if (this.mob.level().isClientSide) {
+        if (this.mob.level().isClientSide()) {
             return;
         }
 
@@ -73,7 +73,7 @@ public class AsyncSwarmFlightController {
     }
 
     public void setWaypoint(Vec3 waypoint, double speed) {
-        if (waypoint == null || this.mob.level().isClientSide) {
+        if (waypoint == null || this.mob.level().isClientSide()) {
             return;
         }
         if (this.waypoint != null && this.waypoint.distanceToSqr(waypoint) < 1.0D && this.state != State.FAILED) {
@@ -88,7 +88,7 @@ public class AsyncSwarmFlightController {
     }
 
     public void setDirectWaypoint(Vec3 waypoint, double speed) {
-        if (waypoint == null || this.mob.level().isClientSide) {
+        if (waypoint == null || this.mob.level().isClientSide()) {
             return;
         }
 
@@ -130,7 +130,7 @@ public class AsyncSwarmFlightController {
     }
 
     private void requestPath(Vec3 target) {
-        if (target == null || this.mob.level().isClientSide) {
+        if (target == null || this.mob.level().isClientSide()) {
             return;
         }
         if (this.activePathRequest != null) {

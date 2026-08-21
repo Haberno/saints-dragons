@@ -2,6 +2,8 @@ package com.leon.saintsdragons.common.item;
 
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
@@ -12,6 +14,7 @@ import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 
@@ -31,13 +34,13 @@ public final class IvyOctopusPlushieItem extends Item {
     public @NotNull InteractionResult use(@NotNull Level level, @NotNull Player player,
                                                            @NotNull InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return InteractionResult.FAIL;
         }
-        if (player.getCooldowns().isOnCooldown(this)) {
+        if (player.getCooldowns().isOnCooldown(stack)) {
             return InteractionResult.FAIL;
         }
 
@@ -58,14 +61,15 @@ public final class IvyOctopusPlushieItem extends Item {
         }
 
         bindTo(stack, ivy, serverPlayer);
-        player.getCooldowns().addCooldown(this, USE_COOLDOWN_TICKS);
+        player.getCooldowns().addCooldown(stack, USE_COOLDOWN_TICKS);
         return InteractionResult.SUCCESS;
     }
 
     public static void bindTo(ItemStack stack, IvyTheDragonMerchant ivy, ServerPlayer owner) {
-        CompoundTag tag = stack.getOrCreateTag();
-        tag.putUUID(BOUND_IVY_UUID_TAG, ivy.getUUID());
-        tag.putUUID(BOUND_OWNER_UUID_TAG, owner.getUUID());
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        tag.store(BOUND_IVY_UUID_TAG, UUIDUtil.CODEC, ivy.getUUID());
+        tag.store(BOUND_OWNER_UUID_TAG, UUIDUtil.CODEC, owner.getUUID());
+        CustomData.set(DataComponents.CUSTOM_DATA, stack, tag);
     }
 
     public static boolean canRepresent(ItemStack stack, IvyTheDragonMerchant ivy, ServerPlayer owner) {
@@ -82,27 +86,27 @@ public final class IvyOctopusPlushieItem extends Item {
 
     @Nullable
     private static UUID getBoundIvyUuid(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.hasUUID(BOUND_IVY_UUID_TAG) ? tag.getUUID(BOUND_IVY_UUID_TAG) : null;
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return tag.read(BOUND_IVY_UUID_TAG, UUIDUtil.CODEC).orElse(null);
     }
 
     @Nullable
     private static UUID getBoundOwnerUuid(ItemStack stack) {
-        CompoundTag tag = stack.getTag();
-        return tag != null && tag.hasUUID(BOUND_OWNER_UUID_TAG) ? tag.getUUID(BOUND_OWNER_UUID_TAG) : null;
+        CompoundTag tag = stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY).copyTag();
+        return tag.read(BOUND_OWNER_UUID_TAG, UUIDUtil.CODEC).orElse(null);
     }
 
     private static IvyTheDragonMerchant findLoadedIvy(ServerPlayer player, @Nullable UUID boundIvyUuid) {
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) {
             return null;
         }
-        IvyTheDragonMerchant sameDimension = findLoadedIvy(player.serverLevel(), player, boundIvyUuid);
+        IvyTheDragonMerchant sameDimension = findLoadedIvy(player.level(), player, boundIvyUuid);
         if (sameDimension != null) {
             return sameDimension;
         }
         for (ServerLevel level : server.getAllLevels()) {
-            if (level == player.serverLevel()) {
+            if (level == player.level()) {
                 continue;
             }
             IvyTheDragonMerchant ivy = findLoadedIvy(level, player, boundIvyUuid);

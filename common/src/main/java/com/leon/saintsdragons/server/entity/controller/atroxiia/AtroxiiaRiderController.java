@@ -27,7 +27,7 @@ public record AtroxiiaRiderController(Atroxiia dragon) {
     }
 
     public Vec3 getRiddenInput(Player player, @SuppressWarnings("unused") Vec3 deltaIn) {
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             float reverseScale = player.zza < 0.0F ? 0.5F : 1.0F;
             return new Vec3(player.xxa * 0.6F, 0.0D, player.zza * reverseScale);
         }
@@ -39,7 +39,7 @@ public record AtroxiiaRiderController(Atroxiia dragon) {
     }
 
     public float getRiddenSpeed(Player player) {
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             return (float) (dragon.isAccelerating() ? SPRINT_SWIM_SPEED : SWIM_SPEED);
         }
         double speed = dragon.isAccelerating() ? Atroxiia.RIDER_RUN_SPEED : Atroxiia.RIDER_WALK_SPEED;
@@ -94,7 +94,6 @@ public record AtroxiiaRiderController(Atroxiia dragon) {
 
         dragon.setDeltaMovement(blended);
         dragon.move(MoverType.SELF, blended);
-        dragon.hasImpulse = true;
     }
 
     public double getPassengersRidingOffset() {

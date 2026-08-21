@@ -33,9 +33,9 @@ public class VarasuchusPhaseShiftAbility extends DragonAbility<Varasuchus> {
     private boolean phaseToggleApplied;
 
     public VarasuchusPhaseShiftAbility(DragonAbilityType<Varasuchus, VarasuchusPhaseShiftAbility> type, Varasuchus user) {
-        super(type, user, user.isInWaterOrBubble() ? TRACK_UNDERWATER : TRACK_GROUND, 0);
+        super(type, user, user.isInWater() ? TRACK_UNDERWATER : TRACK_GROUND, 0);
         this.enteringPhaseTwo = !user.isPhaseTwoActive();
-        this.underwaterTransition = user.isInWaterOrBubble();
+        this.underwaterTransition = user.isInWater();
         this.phaseToggleApplied = false;
     }
 
@@ -69,11 +69,11 @@ public class VarasuchusPhaseShiftAbility extends DragonAbility<Varasuchus> {
         String trigger = resolveAnimationTrigger();
         dragon.triggerAnim(VarasuchusAnimationHandler.MOVEMENT_CONTROLLER, trigger);
 
-        if (enteringPhaseTwo && !dragon.level().isClientSide) {
+        if (enteringPhaseTwo && !dragon.level().isClientSide()) {
             dragon.startPhaseShiftScreenShake(transitionTicks, 1.5F);
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (newPhase) {
                 dragon.getSoundHandler().playMovingEntitySound(
                         underwaterTransition ? ModSounds.VARASUCHUS_PHASE2_UNDERWATER.get() : ModSounds.VARASUCHUS_PHASE2.get(),

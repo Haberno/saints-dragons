@@ -1,82 +1,52 @@
 package com.leon.saintsdragons.common.item;
 
-import com.google.common.collect.ImmutableMultimap;
-import com.google.common.collect.Multimap;
-import net.minecraft.world.entity.EquipmentSlot;
-import net.minecraft.world.entity.ai.attributes.Attribute;
+import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.entity.EquipmentSlotGroup;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-
-import java.util.UUID;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.equipment.ArmorType;
 
 public final class ConfiguredItemAttributes {
-    public static Multimap<Attribute, AttributeModifier> weapon(
-            Multimap<Attribute, AttributeModifier> base,
-            EquipmentSlot slot,
-            double attackDamage,
-            double attackSpeed
-    ) {
-        if (slot != EquipmentSlot.MAINHAND) {
-            return base;
-        }
-
-        UUID damageUuid = modifierUuid(base, Attributes.ATTACK_DAMAGE, "attack damage");
-        UUID speedUuid = modifierUuid(base, Attributes.ATTACK_SPEED, "attack speed");
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        base.entries().stream()
-                .filter(entry -> entry.getKey() != Attributes.ATTACK_DAMAGE && entry.getKey() != Attributes.ATTACK_SPEED)
-                .forEach(entry -> builder.put(entry.getKey(), entry.getValue()));
-        builder.put(Attributes.ATTACK_DAMAGE, new AttributeModifier(
-                damageUuid,
-                "Configured weapon damage",
-                attackDamage - 1.0D,
-                AttributeModifier.Operation.ADDITION
-        ));
-        builder.put(Attributes.ATTACK_SPEED, new AttributeModifier(
-                speedUuid,
-                "Configured weapon speed",
-                attackSpeed - 4.0D,
-                AttributeModifier.Operation.ADDITION
-        ));
-        return builder.build();
+    public static ItemAttributeModifiers weapon(double attackDamage, double attackSpeed) {
+        return ItemAttributeModifiers.builder()
+                .add(Attributes.ATTACK_DAMAGE,
+                        new AttributeModifier(Item.BASE_ATTACK_DAMAGE_ID, attackDamage - 1.0D,
+                                AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
+                .add(Attributes.ATTACK_SPEED,
+                        new AttributeModifier(Item.BASE_ATTACK_SPEED_ID, attackSpeed - 4.0D,
+                                AttributeModifier.Operation.ADD_VALUE),
+                        EquipmentSlotGroup.MAINHAND)
+                .build();
     }
 
-    public static Multimap<Attribute, AttributeModifier> armor(
-            Multimap<Attribute, AttributeModifier> base,
-            double armor,
-            double toughness,
-            double knockbackResistance
-    ) {
-        UUID slotUuid = base.get(Attributes.ARMOR).stream()
-                .findFirst()
-                .map(AttributeModifier::getId)
-                .orElseThrow(() -> new IllegalStateException("Armor item is missing its slot modifier"));
-
-        ImmutableMultimap.Builder<Attribute, AttributeModifier> builder = ImmutableMultimap.builder();
-        base.entries().stream()
-                .filter(entry -> entry.getKey() != Attributes.ARMOR
-                        && entry.getKey() != Attributes.ARMOR_TOUGHNESS
-                        && entry.getKey() != Attributes.KNOCKBACK_RESISTANCE)
-                .forEach(entry -> builder.put(entry.getKey(), entry.getValue()));
-        builder.put(Attributes.ARMOR, new AttributeModifier(
-                slotUuid, "Configured armor", armor, AttributeModifier.Operation.ADDITION));
-        builder.put(Attributes.ARMOR_TOUGHNESS, new AttributeModifier(
-                slotUuid, "Configured armor toughness", toughness, AttributeModifier.Operation.ADDITION));
+    public static ItemAttributeModifiers armor(ArmorType type, double armor, double toughness,
+                                               double knockbackResistance) {
+        EquipmentSlotGroup slot = EquipmentSlotGroup.bySlot(type.getSlot());
+        String slotName = type.getName();
+        ItemAttributeModifiers.Builder builder = ItemAttributeModifiers.builder()
+                .add(Attributes.ARMOR,
+                        modifier("configured_armor_" + slotName, armor, AttributeModifier.Operation.ADD_VALUE),
+                        slot)
+                .add(Attributes.ARMOR_TOUGHNESS,
+                        modifier("configured_armor_toughness_" + slotName, toughness,
+                                AttributeModifier.Operation.ADD_VALUE),
+                        slot);
         if (knockbackResistance != 0.0D) {
-            builder.put(Attributes.KNOCKBACK_RESISTANCE, new AttributeModifier(
-                    slotUuid, "Configured armor knockback resistance", knockbackResistance,
-                    AttributeModifier.Operation.ADDITION));
+            builder.add(Attributes.KNOCKBACK_RESISTANCE,
+                    modifier("configured_knockback_resistance_" + slotName, knockbackResistance,
+                            AttributeModifier.Operation.ADD_VALUE),
+                    slot);
         }
         return builder.build();
     }
 
-    private static UUID modifierUuid(Multimap<Attribute, AttributeModifier> base,
-                                     Attribute attribute,
-                                     String description) {
-        return base.get(attribute).stream()
-                .findFirst()
-                .map(AttributeModifier::getId)
-                .orElseThrow(() -> new IllegalStateException("Weapon is missing its " + description + " modifier"));
+    public static AttributeModifier modifier(String path, double amount, AttributeModifier.Operation operation) {
+        Identifier id = SaintsDragonsCommon.rl(path);
+        return new AttributeModifier(id, amount, operation);
     }
 
     private ConfiguredItemAttributes() {

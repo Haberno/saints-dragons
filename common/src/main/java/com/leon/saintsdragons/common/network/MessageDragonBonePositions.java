@@ -88,7 +88,7 @@ public record MessageDragonBonePositions(
         }
 
         // Find the entity in the server world
-        Entity entity = player.serverLevel().getEntity(msg.entityId());
+        Entity entity = player.level().getEntity(msg.entityId());
         if (entity instanceof com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus ignivorus) {
             // Allow nearby clients tracking the dragon to provide locator updates so multipart
             // hitboxes stay accurate even when the dragon is not being ridden.

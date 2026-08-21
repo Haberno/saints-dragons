@@ -6,10 +6,10 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 
 public class VolitansBreathMeterIndicator {
-    private static final Identifier WATER_GAUGE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_water_gauge.png");
-    private static final Identifier POISON_GAUGE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_poison_gauge.png");
-    private static final Identifier GAUGE_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay.png");
-    private static final Identifier GAUGE_OVERLAY_RED = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay_red.png");
+    private static final Identifier WATER_GAUGE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_water_gauge.png");
+    private static final Identifier POISON_GAUGE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_poison_gauge.png");
+    private static final Identifier GAUGE_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay.png");
+    private static final Identifier GAUGE_OVERLAY_RED = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay_red.png");
 
     private static final int BAR_WIDTH = 182;
     private static final int BAR_HEIGHT = 30;
@@ -66,8 +66,6 @@ public class VolitansBreathMeterIndicator {
         float smoothFill = lerp(previousAnimatedFill, animatedFill, clampedPartial);
         float smoothRedFlash = lerp(previousRedFlashAlpha, redFlashAlpha, clampedPartial);
 
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
 
         int x = (screenWidth - BAR_WIDTH) / 2;
         int y = screenHeight - 45;
@@ -81,12 +79,9 @@ public class VolitansBreathMeterIndicator {
         guiGraphics.blit(GAUGE_OVERLAY, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
 
         if (smoothRedFlash > 0.01F) {
-            RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, smoothRedFlash);
             guiGraphics.blit(GAUGE_OVERLAY_RED, x, y, 0, 0, BAR_WIDTH, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         }
 
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
-        RenderSystem.disableBlend();
     }
 
     private float getSelectedEnergy() {

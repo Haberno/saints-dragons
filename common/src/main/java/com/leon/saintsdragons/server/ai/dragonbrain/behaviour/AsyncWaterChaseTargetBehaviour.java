@@ -63,7 +63,7 @@ public class AsyncWaterChaseTargetBehaviour<T extends RideableDragonBase> extend
                     && !dragon.isVehicle()
                     && !dragon.isAerial()
                     && target != null
-                    && !target.isInWaterOrBubble()
+                    && !target.isInWater()
                     && dragon.isTargetValid(target);
         }
         return isWaterCombatContext(context);
@@ -120,7 +120,7 @@ public class AsyncWaterChaseTargetBehaviour<T extends RideableDragonBase> extend
     private boolean isWaterCombatContext(DragonBrainContext<T> context) {
         T dragon = context.dragon();
         LivingEntity target = context.memories().get(DragonMemories.ATTACK_TARGET).orElse(null);
-        return dragon.isInWaterOrBubble()
+        return dragon.isInWater()
                 && !dragon.isVehicle()
                 && target != null
                 && dragon.isTargetValid(target);
@@ -130,7 +130,7 @@ public class AsyncWaterChaseTargetBehaviour<T extends RideableDragonBase> extend
     private Vec3 findCombatShoreExitDirection(T dragon,
                                               LivingEntity target,
                                               AsyncSwimController controller) {
-        if (!dragon.isInWaterOrBubble() || target.isInWaterOrBubble()) {
+        if (!dragon.isInWater() || target.isInWater()) {
             return null;
         }
 
@@ -250,7 +250,7 @@ public class AsyncWaterChaseTargetBehaviour<T extends RideableDragonBase> extend
         dragon.getNavigation().stop();
         controller.pause();
 
-        boolean inWater = dragon.isInWaterOrBubble();
+        boolean inWater = dragon.isInWater();
         if (!inWater) {
             shoreExitMadeLandContact = true;
         }
@@ -302,7 +302,6 @@ public class AsyncWaterChaseTargetBehaviour<T extends RideableDragonBase> extend
                 verticalVelocity,
                 velocity.z + direction.z * correction
         );
-        dragon.hasImpulse = true;
     }
 
     private void resetShoreExit() {

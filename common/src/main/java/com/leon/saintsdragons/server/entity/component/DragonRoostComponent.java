@@ -4,6 +4,7 @@ import com.leon.saintsdragons.server.ai.dragonbrain.DragonMemories;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Marker;
@@ -57,7 +58,7 @@ public final class DragonRoostComponent {
     }
 
     public void tick() {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
 
@@ -240,7 +241,12 @@ public final class DragonRoostComponent {
 
     @Nullable
     private StructureStart getRoostAt(ServerLevel level, BlockPos position) {
-        StructureStart roost = level.structureManager().getStructureWithPieceAt(position, roostStructure);
+        Structure structure = level.registryAccess().lookupOrThrow(Registries.STRUCTURE)
+                .getValue(roostStructure);
+        if (structure == null) {
+            return null;
+        }
+        StructureStart roost = level.structureManager().getStructureWithPieceAt(position, structure);
         return roost != null && roost.isValid() ? roost : null;
     }
 
@@ -282,7 +288,7 @@ public final class DragonRoostComponent {
         boolean settled = insideRoost
                 && dragon.getSleepPreferences().canSleepDuringConditions(dragon.level())
                 && dragon.onGround()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && dragon.getTarget() == null
                 && dragon.getActiveAbility() == null;
         sleepSettleTicks = settled

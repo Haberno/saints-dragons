@@ -46,7 +46,7 @@ public class RaevyxSummonStormAbility extends DragonAbility<Raevyx> {
     @Override
     public void tickUsing() {
         // Only shake while the loop animation is running
-        if (screenShakeActive && !getUser().level().isClientSide) {
+        if (screenShakeActive && !getUser().level().isClientSide()) {
             getUser().triggerScreenShake(1.5F);
         }
 
@@ -92,21 +92,21 @@ public class RaevyxSummonStormAbility extends DragonAbility<Raevyx> {
 
             if (isGroundCast) {
                 getUser().triggerAnim(RaevyxAnimationHandler.ACTION_CONTROLLER, "summon_storm");
-                if (!getUser().level().isClientSide) {
+                if (!getUser().level().isClientSide()) {
                     getUser().getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_SUMMON_STORM.get(), 1.6f, 1.0f, GROUND_SOUND_TICKS);
                 }
                 screenShakeActive = false;
                 groundExtraShakeTriggered = false;
             } else {
                 getUser().triggerAnim(AnimationHelper.FLIGHT_CONTROLLER, "summon_storm_air");
-                if (!getUser().level().isClientSide) {
+                if (!getUser().level().isClientSide()) {
                     getUser().getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_SUMMON_STORM_AIR.get(), 1.6f, 1.0f, AIR_SOUND_TICKS);
                 }
                 screenShakeActive = false;
                 groundExtraShakeTriggered = false;
             }
         } else if (section.sectionType == AbilitySectionType.ACTIVE) {
-            if (!getLevel().isClientSide) {
+            if (!getLevel().isClientSide()) {
                 int superchargeTicks = getConfiguredSuperchargeTicks();
                 int stormDurationTicks = getConfiguredStormDurationTicks();
                 getUser().startSupercharge(superchargeTicks);

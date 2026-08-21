@@ -21,12 +21,18 @@ import javax.annotation.Nullable;
 import java.util.function.Supplier;
 
 public class AtroxiiaEggBlock extends AbstractTimedDragonEggBlock<AtroxiiaEggBlockEntity> {
+    public static final com.mojang.serialization.MapCodec<AtroxiiaEggBlock> CODEC = simpleCodec(AtroxiiaEggBlock::new);
     private static final int DEFAULT_HATCH_TICKS = 24000; // 20 minutes
     private static final VoxelShape EGG_SHAPE = box(5.0D, 0.0D, 5.0D, 11.0D, 8.0D, 11.0D);
 
     public AtroxiiaEggBlock(Properties properties) {
         super(properties);
         registerDefaultState(stateDefinition.any().setValue(HATCH, 0));
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<AtroxiiaEggBlock> codec() {
+        return CODEC;
     }
 
     @Nullable
@@ -63,7 +69,7 @@ public class AtroxiiaEggBlock extends AbstractTimedDragonEggBlock<AtroxiiaEggBlo
 
     @Override
     protected DragonEntity createBaby(ServerLevel level) {
-        return ModEntities.ATROXIIA.get().create(level);
+        return ModEntities.ATROXIIA.get().create(level, net.minecraft.world.entity.EntitySpawnReason.BREEDING);
     }
 
     @Override

@@ -89,7 +89,7 @@ public class VolitansBurrowAbility extends DragonAbility<Volitans> {
         if (dragon == null || !dragon.isAlive() || dragon.isDying() || dragon.isBaby()) {
             return false;
         }
-        if (dragon.isFlying() || dragon.isInWaterOrBubble() || dragon.isUnderWater()) {
+        if (dragon.isFlying() || dragon.isInWater() || dragon.isUnderWater()) {
             return false;
         }
         if (dragon.getControllingPassenger() instanceof Player rider) {
@@ -191,7 +191,7 @@ public class VolitansBurrowAbility extends DragonAbility<Volitans> {
         }
 
         // Water cancels burrow phase and exits cleanly without burst damage.
-        if (dragon.isInWaterOrBubble() || dragon.isUnderWater()) {
+        if (dragon.isInWater() || dragon.isUnderWater()) {
             requestExit(false);
         }
         if (exitRequested) {
@@ -225,7 +225,7 @@ public class VolitansBurrowAbility extends DragonAbility<Volitans> {
     }
 
     private void applyExitBurst(Volitans dragon) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         spawnExitBurstVisuals(dragon);
@@ -385,7 +385,6 @@ public class VolitansBurrowAbility extends DragonAbility<Volitans> {
                     + random.nextDouble() * (EXIT_FALLING_BLOCK_UP_SPEED_MAX - EXIT_FALLING_BLOCK_UP_SPEED_MIN);
             block.setNoGravity(false);
             block.setDeltaMovement(Math.cos(angle) * speed, upSpeed, Math.sin(angle) * speed);
-            block.hasImpulse = true;
             server.addFreshEntity(block);
         }
     }
@@ -534,7 +533,7 @@ public class VolitansBurrowAbility extends DragonAbility<Volitans> {
     }
 
     private void playEnterBurrowSound(Volitans dragon) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         float pitch = 0.96f + dragon.getRandom().nextFloat() * 0.08f;
@@ -547,7 +546,7 @@ public class VolitansBurrowAbility extends DragonAbility<Volitans> {
     }
 
     private void playExitBurrowSound(Volitans dragon) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         float pitch = 0.96f + dragon.getRandom().nextFloat() * 0.08f;

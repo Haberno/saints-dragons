@@ -302,7 +302,7 @@ final class IvyCompanionController {
         }
 
         private boolean isInDeepWater() {
-            return ivy.isInWaterOrBubble() && !ivy.isInShallowWaterForWading();
+            return ivy.isInWater() && !ivy.isInShallowWaterForWading();
         }
 
     }
@@ -357,11 +357,11 @@ final class IvyCompanionController {
                 if (controller != null) {
                     controller.stop();
                 }
-                ivy.startRiding(vehicle, true);
+                ivy.startRiding(vehicle, true, false);
                 return;
             }
 
-            if (ivy.isInWaterOrBubble() && !ivy.isInShallowWaterForWading()) {
+            if (ivy.isInWater() && !ivy.isInShallowWaterForWading()) {
                 ivy.getNavigation().stop();
                 AsyncSwimController controller = ivy.getAsyncSwimController();
                 if (controller != null
@@ -504,7 +504,7 @@ final class IvyCompanionController {
             if (isAtLadderApproach(start)) {
                 ivy.getNavigation().stop();
                 centerOnLadder(start);
-                ivy.moveTo(ivy.getX(), start.getY(), ivy.getZ(), ivy.getYRot(), ivy.getXRot());
+                ivy.setPos(ivy.getX(), start.getY(), ivy.getZ());
                 ivy.setDeltaMovement(0.0D, 0.0D, 0.0D);
                 ivy.fallDistance = 0.0F;
                 phase = Phase.CLIMB;
@@ -527,7 +527,7 @@ final class IvyCompanionController {
             if (!isLadder(currentLadder)) {
                 currentLadder = plan.startLadder();
                 if (Math.abs(ivy.getY() - currentLadder.getY()) > 0.35D) {
-                    ivy.moveTo(ivy.getX(), currentLadder.getY(), ivy.getZ(), ivy.getYRot(), ivy.getXRot());
+                    ivy.setPos(ivy.getX(), currentLadder.getY(), ivy.getZ());
                 }
             }
             centerOnLadder(currentLadder);
@@ -554,7 +554,6 @@ final class IvyCompanionController {
                         centerOnLadder(plan.exitLadder());
                         faceLadder(plan.exitLadder());
                         ivy.setDeltaMovement(0.0D, 0.0D, 0.0D);
-                        ivy.hasImpulse = true;
                         return;
                     }
                     targetY = plan.exitLadder().getY();
@@ -564,7 +563,7 @@ final class IvyCompanionController {
                     }
                 }
                 ivy.setDeltaMovement(0.0D, 0.0D, 0.0D);
-                ivy.moveTo(ivy.getX(), targetY, ivy.getZ(), ivy.getYRot(), ivy.getXRot());
+                ivy.setPos(ivy.getX(), targetY, ivy.getZ());
                 ivy.setNoGravity(false);
                 ivy.setShiftKeyDown(false);
                 ivy.setClimbingLadder(false);
@@ -575,7 +574,6 @@ final class IvyCompanionController {
 
             double climb = Math.copySign(LADDER_CLIMB_SPEED, deltaY);
             ivy.setDeltaMovement(0.0D, climb, 0.0D);
-            ivy.hasImpulse = true;
         }
 
         private void tickExit() {
@@ -586,18 +584,17 @@ final class IvyCompanionController {
                 Vec3 horizontal = new Vec3(toExit.x, 0.0D, toExit.z).normalize().scale(LADDER_EXIT_SPEED);
                 double vertical = Mth.clamp(toExit.y * 0.25D, -0.12D, 0.18D);
                 ivy.setDeltaMovement(horizontal.x, vertical, horizontal.z);
-                ivy.hasImpulse = true;
                 exitTicks--;
             } else {
                 ivy.getNavigation().stop();
-                ivy.moveTo(exitCenter.x, exitCenter.y, exitCenter.z, ivy.getYRot(), ivy.getXRot());
+                ivy.setPos(exitCenter.x, exitCenter.y, exitCenter.z);
                 ivy.setDeltaMovement(0.0D, Math.min(ivy.getDeltaMovement().y, 0.0D), 0.0D);
                 phase = Phase.DONE;
             }
         }
 
         private void centerOnLadder(BlockPos ladderPos) {
-            ivy.moveTo(ladderPos.getX() + 0.5D, ivy.getY(), ladderPos.getZ() + 0.5D, ivy.getYRot(), ivy.getXRot());
+            ivy.setPos(ladderPos.getX() + 0.5D, ivy.getY(), ladderPos.getZ() + 0.5D);
         }
 
         private void faceLadder(BlockPos ladderPos) {
@@ -613,8 +610,8 @@ final class IvyCompanionController {
         @Nullable
         private LadderPlan findLadderPlan(LivingEntity owner) {
             Level level = ivy.level();
-            int minY = Math.max(level.getMinBuildHeight(), Math.min(Mth.floor(ivy.getY()), Mth.floor(owner.getY())) - LADDER_VERTICAL_MARGIN);
-            int maxY = Math.min(level.getMaxBuildHeight() - 1, Math.max(Mth.floor(ivy.getY()), Mth.floor(owner.getY())) + LADDER_VERTICAL_MARGIN);
+            int minY = Math.max(level.getMinY(), Math.min(Mth.floor(ivy.getY()), Mth.floor(owner.getY())) - LADDER_VERTICAL_MARGIN);
+            int maxY = Math.min(level.getMaxY() - 1, Math.max(Mth.floor(ivy.getY()), Mth.floor(owner.getY())) + LADDER_VERTICAL_MARGIN);
             BlockPos ownerPos = owner.blockPosition();
             BlockPos ivyPos = ivy.blockPosition();
             LadderPlan best = null;

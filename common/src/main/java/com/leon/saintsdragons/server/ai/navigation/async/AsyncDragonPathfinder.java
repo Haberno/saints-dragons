@@ -25,7 +25,6 @@ import java.util.function.Consumer;
 import java.util.function.Predicate;
 import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
-import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.util.Mth;
@@ -94,7 +93,7 @@ public final class AsyncDragonPathfinder {
     }
 
     public static Future<?> calculateGroundPathAsync(Mob dragon, Vec3 target, Consumer<Path> callback) {
-        MinecraftServer server = dragon.getServer();
+        MinecraftServer server = dragon.level().getServer();
         if (server != null && !server.isSameThread()) {
             return rejectOffThreadRequest(server, dragon, "ground path request", callback);
         }
@@ -123,14 +122,14 @@ public final class AsyncDragonPathfinder {
                                                       boolean avoidWater,
                                                       int detourAllowance,
                                                       Consumer<Path> callback) {
-        MinecraftServer server = dragon.getServer();
+        MinecraftServer server = dragon.level().getServer();
         if (server == null) {
             return CompletableFuture.completedFuture(null);
         }
         if (!server.isSameThread()) {
             return rejectOffThreadRequest(server, dragon, "ground path request", callback);
         }
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -188,13 +187,13 @@ public final class AsyncDragonPathfinder {
             int verticalMargin = Math.max(8, Mth.ceil(dragon.getBbHeight()) + maxDropDown + 2);
             BlockPos minNode = new BlockPos(
                     Math.min(startNode.getX(), planningTargetNode.getX()) - horizontalMargin,
-                    Math.max(serverLevel.getMinBuildHeight(),
+                    Math.max(serverLevel.getMinY(),
                             Math.min(startNode.getY(), planningTargetNode.getY()) - verticalMargin),
                     Math.min(startNode.getZ(), planningTargetNode.getZ()) - horizontalMargin
             );
             BlockPos maxNode = new BlockPos(
                     Math.max(startNode.getX(), planningTargetNode.getX()) + horizontalMargin,
-                    Math.min(serverLevel.getMaxBuildHeight() - 1,
+                    Math.min(serverLevel.getMaxY() - 1,
                             Math.max(startNode.getY(), planningTargetNode.getY()) + verticalMargin),
                     Math.max(startNode.getZ(), planningTargetNode.getZ()) + horizontalMargin
             );
@@ -207,12 +206,12 @@ public final class AsyncDragonPathfinder {
             boolean canPassThroughTrees = dragon instanceof DragonEntity dragonEntity
                     && DragonDestructionManager.canApplyPassiveTreeDestruction(serverLevel, dragonEntity);
             float configuredWaterMalus = dragon.getPathfindingMalus(PathType.WATER);
-            boolean waterEntryAllowed = dragon.isInWaterOrBubble()
+            boolean waterEntryAllowed = dragon.isInWater()
                     || dragon.getNavigation() instanceof PathNavigateGround navigation
                     && navigation.isWaterEntryAllowed();
             boolean allowWater = !avoidWater
                     && waterEntryAllowed
-                    && (configuredWaterMalus >= 0.0F || dragon.isInWaterOrBubble());
+                    && (configuredWaterMalus >= 0.0F || dragon.isInWater());
             Map<PathType, Float> pathMalus = new EnumMap<>(PathType.class);
             for (PathType pathType : PathType.values()) {
                 pathMalus.put(pathType, dragon.getPathfindingMalus(pathType));
@@ -266,14 +265,14 @@ public final class AsyncDragonPathfinder {
                                                                Vec3 target,
                                                                Predicate<BlockState> ignoredBlocks,
                                                                Consumer<Path> callback) {
-        MinecraftServer server = dragon.getServer();
+        MinecraftServer server = dragon.level().getServer();
         if (server == null) {
             return CompletableFuture.completedFuture(null);
         }
         if (!server.isSameThread()) {
             return rejectOffThreadRequest(server, dragon, "air path request", callback);
         }
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -304,13 +303,13 @@ public final class AsyncDragonPathfinder {
             int verticalMargin = Math.max(8, Mth.ceil(dragon.getBbHeight()) + 4);
             BlockPos minNode = new BlockPos(
                     Math.min(startPos.getX(), planningTargetPos.getX()) - horizontalMargin,
-                    Math.max(serverLevel.getMinBuildHeight(),
+                    Math.max(serverLevel.getMinY(),
                             Math.min(startPos.getY(), planningTargetPos.getY()) - verticalMargin),
                     Math.min(startPos.getZ(), planningTargetPos.getZ()) - horizontalMargin
             );
             BlockPos maxNode = new BlockPos(
                     Math.max(startPos.getX(), planningTargetPos.getX()) + horizontalMargin,
-                    Math.min(serverLevel.getMaxBuildHeight() - 1,
+                    Math.min(serverLevel.getMaxY() - 1,
                             Math.max(startPos.getY(), planningTargetPos.getY()) + verticalMargin),
                     Math.max(startPos.getZ(), planningTargetPos.getZ()) + horizontalMargin
             );
@@ -352,14 +351,14 @@ public final class AsyncDragonPathfinder {
     }
 
     public static Future<?> calculateSwimPathAsync(Mob dragon, Vec3 target, Consumer<List<Vec3>> callback) {
-        MinecraftServer server = dragon.getServer();
+        MinecraftServer server = dragon.level().getServer();
         if (server == null) {
             return CompletableFuture.completedFuture(null);
         }
         if (!server.isSameThread()) {
             return rejectOffThreadRequest(server, dragon, "swim path request", callback);
         }
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return CompletableFuture.completedFuture(null);
         }
 
@@ -495,7 +494,6 @@ public final class AsyncDragonPathfinder {
         if (request.isCancelled()) {
             return request;
         }
-        int requestTick = server.getTickCount();
         try {
             Future<?> worker = EXECUTOR.submit(() -> {
                 if (request.isCancelled()) {
@@ -522,14 +520,14 @@ public final class AsyncDragonPathfinder {
                 }
                 T resolvedResult = result;
                 try {
-                    server.tell(new TickTask(requestTick, () -> applyResult(
+                    server.execute(() -> applyResult(
                             request,
                             server,
                             dragon,
                             operation,
                             callback,
                             resolvedResult
-                    )));
+                    ));
                 } catch (RejectedExecutionException exception) {
                     request.complete();
                 }
@@ -538,14 +536,14 @@ public final class AsyncDragonPathfinder {
         } catch (RejectedExecutionException exception) {
             LOGGER.warn("Rejected {} because the bounded path queue is full", operation);
             try {
-                server.tell(new TickTask(requestTick, () -> applyResult(
+                server.execute(() -> applyResult(
                         request,
                         server,
                         dragon,
                         operation,
                         callback,
                         null
-                )));
+                ));
             } catch (RejectedExecutionException schedulingException) {
                 request.complete();
             }
@@ -569,16 +567,15 @@ public final class AsyncDragonPathfinder {
         if (request.isCancelled()) {
             return request;
         }
-        int requestTick = server.getTickCount();
         try {
-            server.tell(new TickTask(requestTick, () -> applyResult(
+            server.execute(() -> applyResult(
                     request,
                     server,
                     dragon,
                     "path completion",
                     callback,
                     result
-            )));
+            ));
         } catch (RejectedExecutionException exception) {
             request.complete();
         }
@@ -821,8 +818,8 @@ public final class AsyncDragonPathfinder {
             int minZ = Math.min(startPos.getZ(), goalPos.getZ()) - HORIZONTAL_PADDING;
             int maxZ = Math.max(startPos.getZ(), goalPos.getZ()) + HORIZONTAL_PADDING;
 
-            minY = Math.max(minY, dragon.level().getMinBuildHeight());
-            maxY = Math.min(maxY, dragon.level().getMaxBuildHeight() - 1);
+            minY = Math.max(minY, dragon.level().getMinY());
+            maxY = Math.min(maxY, dragon.level().getMaxY() - 1);
 
             if (maxX - minX > MAX_HORIZONTAL_SPAN) {
                 int center = Mth.floor((startPos.getX() + goalPos.getX()) * 0.5D);
@@ -836,8 +833,8 @@ public final class AsyncDragonPathfinder {
             }
             if (maxY - minY > MAX_VERTICAL_SPAN) {
                 int center = Mth.floor((startPos.getY() + goalPos.getY()) * 0.5D);
-                minY = Math.max(dragon.level().getMinBuildHeight(), center - MAX_VERTICAL_SPAN / 2);
-                maxY = Math.min(dragon.level().getMaxBuildHeight() - 1, center + MAX_VERTICAL_SPAN / 2);
+                minY = Math.max(dragon.level().getMinY(), center - MAX_VERTICAL_SPAN / 2);
+                maxY = Math.min(dragon.level().getMaxY() - 1, center + MAX_VERTICAL_SPAN / 2);
             }
 
             int sizeX = maxX - minX + 1;

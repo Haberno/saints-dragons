@@ -14,12 +14,14 @@ import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import com.leon.saintsdragons.server.loot.DragonLootTables;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -46,7 +48,7 @@ public final class DragonGroomingComponent {
     }
 
     public boolean tryBrush(Player player, ItemStack brushStack) {
-        if (dragon.level().isClientSide || !dragon.isAlive() || !dragon.isTame()) {
+        if (dragon.level().isClientSide() || !dragon.isAlive() || !dragon.isTame()) {
             return false;
         }
 
@@ -88,7 +90,7 @@ public final class DragonGroomingComponent {
     }
 
     public boolean tryPluck(Player player, ItemStack pluckerStack) {
-        if (dragon.level().isClientSide || !dragon.isAlive()) {
+        if (dragon.level().isClientSide() || !dragon.isAlive()) {
             return false;
         }
         if (!dragon.isTame()) {
@@ -135,7 +137,7 @@ public final class DragonGroomingComponent {
 
         ItemStack scaleStack = new ItemStack(scaleItem, PLUCK_SCALE_COUNT);
         if (!player.addItem(scaleStack)) {
-            dragon.spawnAtLocation(scaleStack);
+            dragon.spawnAtLocation((ServerLevel) dragon.level(), scaleStack);
         }
 
         pluckedThisCycle = true;
@@ -181,21 +183,21 @@ public final class DragonGroomingComponent {
     }
 
     private static void damageBrush(Player player, ItemStack brushStack) {
-        brushStack.hurtAndBreak(1, player, ignored -> {});
+        brushStack.hurtAndBreak(1, player, InteractionHand.MAIN_HAND);
     }
 
     private static void damagePlucker(Player player, ItemStack pluckerStack) {
-        pluckerStack.hurtAndBreak(1, player, ignored -> {});
+        pluckerStack.hurtAndBreak(1, player, InteractionHand.MAIN_HAND);
     }
 
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         tag.putInt("ScaleRegrowthTicks", getScaleRegrowthTicks());
         tag.putBoolean("PluckedThisCycle", pluckedThisCycle);
     }
 
-    public void loadFromNBT(CompoundTag tag) {
-        scaleRegrowthTicks = Math.max(0, tag.getInt("ScaleRegrowthTicks"));
-        pluckedThisCycle = scaleRegrowthTicks > 0 && tag.getBoolean("PluckedThisCycle");
+    public void loadFromNBT(ValueInput tag) {
+        scaleRegrowthTicks = Math.max(0, tag.getIntOr("ScaleRegrowthTicks", 0));
+        pluckedThisCycle = scaleRegrowthTicks > 0 && tag.getBooleanOr("PluckedThisCycle", false);
     }
 
     private static Identifier getGroomingLoot(DragonEntity dragon) {

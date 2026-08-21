@@ -16,10 +16,12 @@ import com.leon.saintsdragons.client.ui.codex.CodexTab;
 import com.leon.saintsdragons.client.ui.codex.CodexTabPanel;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.ImageButton;
+import net.minecraft.client.gui.components.WidgetSprites;
 import net.minecraft.client.gui.components.Tooltip;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.input.MouseButtonInfo;
@@ -129,12 +131,7 @@ public class DraconicCodexScreen extends Screen {
                 topPos + REFRESH_ICON_OFFSET_Y,
                 REFRESH_ICON_WIDTH,
                 REFRESH_ICON_HEIGHT,
-                0,
-                0,
-                0,
-                REFRESH_ICON,
-                REFRESH_ICON_TEXTURE_WIDTH,
-                REFRESH_ICON_TEXTURE_HEIGHT,
+                new WidgetSprites(REFRESH_ICON),
                 button -> requestCodexRefresh(true),
                 Component.translatable("saintsdragons.gui.draconic_codex.refresh_entry")
         ));
@@ -191,7 +188,11 @@ public class DraconicCodexScreen extends Screen {
         dragonRenderer.drawDragonPortrait(guiGraphics, this.minecraft, getSelectedEntry(), leftPos, topPos, mouseX, mouseY);
     }
 
-    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+    @Override
+    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
+        double mouseX = event.x();
+        double mouseY = event.y();
+        int button = event.button();
         if (button == 0) {
             if (activeTab == CodexTab.ECOLOGY && handleEcologyLinkClick(mouseX, mouseY)) {
                 return true;
@@ -222,7 +223,7 @@ public class DraconicCodexScreen extends Screen {
             }
         }
 
-        return super.mouseClicked(mouseX, mouseY, button);
+        return super.mouseClicked(event, doubleClick);
     }
 
     private boolean handleEcologyLinkClick(double mouseX, double mouseY) {
@@ -252,26 +253,26 @@ public class DraconicCodexScreen extends Screen {
     }
 
     @Override
-    public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
+    public boolean mouseScrolled(double mouseX, double mouseY, double horizontal, double vertical) {
         if (activeTab == CodexTab.ECOLOGY) {
-            if (ecologyPanel.handleLinkScroll(mouseX, mouseY, delta)) {
+            if (ecologyPanel.handleLinkScroll(mouseX, mouseY, vertical)) {
                 return true;
             }
         }
         if (activeTab == CodexTab.ALLY) {
             if (allyList.size() > CodexLayout.MAX_VISIBLE_ALLIES) {
-                if (delta < 0 && allyScrollOffset < allyList.size() - CodexLayout.MAX_VISIBLE_ALLIES) {
+                if (vertical < 0 && allyScrollOffset < allyList.size() - CodexLayout.MAX_VISIBLE_ALLIES) {
                     allyScrollOffset++;
-                } else if (delta > 0 && allyScrollOffset > 0) {
+                } else if (vertical > 0 && allyScrollOffset > 0) {
                     allyScrollOffset--;
                 }
                 return true;
             }
         }
         if (dragonEntries.size() > CodexLayout.MAX_VISIBLE_DRAGONS) {
-            if (delta < 0 && listScrollOffset < dragonEntries.size() - CodexLayout.MAX_VISIBLE_DRAGONS) {
+            if (vertical < 0 && listScrollOffset < dragonEntries.size() - CodexLayout.MAX_VISIBLE_DRAGONS) {
                 listScrollOffset++;
-            } else if (delta > 0 && listScrollOffset > 0) {
+            } else if (vertical > 0 && listScrollOffset > 0) {
                 listScrollOffset--;
             }
             return true;

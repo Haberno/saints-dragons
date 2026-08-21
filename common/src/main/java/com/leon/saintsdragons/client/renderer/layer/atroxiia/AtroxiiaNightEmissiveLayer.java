@@ -1,6 +1,7 @@
 package com.leon.saintsdragons.client.renderer.layer.atroxiia;
 
 import com.leon.saintsdragons.client.renderer.layer.NightEmissiveLayer;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.atroxiia.Atroxiia;
 import net.minecraft.resources.Identifier;
@@ -10,7 +11,7 @@ public class AtroxiiaNightEmissiveLayer extends NightEmissiveLayer<Atroxiia> {
     private static final Identifier EMISSIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/atroxiia/atroxiia_emissive.png");
 
-    public AtroxiiaNightEmissiveLayer(GeoRenderer<Atroxiia> renderer) {
+    public AtroxiiaNightEmissiveLayer(GeoRenderer<Atroxiia, Void, SaintsDragonsLivingEntityRenderState> renderer) {
         super(renderer);
     }
 

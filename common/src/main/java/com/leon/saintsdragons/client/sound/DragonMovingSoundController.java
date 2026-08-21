@@ -40,17 +40,17 @@ public final class DragonMovingSoundController {
             return;
         }
 
-        Identifier Identifier = Identifier.tryParse(soundId);
-        if (Identifier == null) {
+        Identifier identifier = Identifier.tryParse(soundId);
+        if (identifier == null) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Failed to parse sound ID for entity {}: {}", entityId, soundId);
             }
             return;
         }
-        SoundEvent sound = BuiltInRegistries.SOUND_EVENT.get(Identifier);
+        SoundEvent sound = BuiltInRegistries.SOUND_EVENT.getValue(identifier);
         if (sound == null) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Sound event not found in registry for entity {}: {}", entityId, Identifier);
+                LOGGER.debug("Sound event not found in registry for entity {}: {}", entityId, identifier);
             }
             return;
         }

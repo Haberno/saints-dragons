@@ -6,8 +6,6 @@ import com.leon.saintsdragons.server.entity.dragons.util.DragonGriefingRules;
 import com.leon.saintsdragons.server.entity.dragons.cindervane.Cindervane;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -22,6 +20,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.HitResult;
@@ -62,8 +62,8 @@ public class CindervaneMagmaBlockEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_BLOCK_STATE, Blocks.MAGMA_BLOCK.defaultBlockState());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_BLOCK_STATE, Blocks.MAGMA_BLOCK.defaultBlockState());
     }
 
 
@@ -87,12 +87,12 @@ public class CindervaneMagmaBlockEntity extends Entity {
         if (!this.isNoGravity()) {
             this.setDeltaMovement(this.getDeltaMovement().add(0.0D, -0.04D, 0.0D));
         }
-        if (!level().isClientSide && checkImpactCollision()) {
+        if (!level().isClientSide() && checkImpactCollision()) {
             explode();
             return;
         }
         this.move(MoverType.SELF, this.getDeltaMovement());
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             this.setDeltaMovement(this.getDeltaMovement().scale(0.98D));
 
             if (livedTicks > lifetimeTicks) {
@@ -132,7 +132,8 @@ public class CindervaneMagmaBlockEntity extends Entity {
                 start,
                 end,
                 getBoundingBox().expandTowards(getDeltaMovement()).inflate(0.75D),
-                this::canImpactEntity);
+                this::canImpactEntity,
+                ProjectileUtil.DEFAULT_ENTITY_HIT_RESULT_MARGIN);
         if (entityHit != null) {
             setPos(entityHit.getLocation());
             return true;
@@ -180,7 +181,7 @@ public class CindervaneMagmaBlockEntity extends Entity {
         server.sendParticles(ParticleTypes.CAMPFIRE_COSY_SMOKE, impact.x, impact.y + 0.25D, impact.z, 16,
                 0.9D, 0.25D, 0.9D, 0.08D);
         spawnFlameBurst(server, impact);
-        server.playSound(null, blockPosition(), SoundEvents.GENERIC_EXPLODE, getSoundSource(), 0.7F, 1.1F);
+        server.playSound(null, blockPosition(), SoundEvents.GENERIC_EXPLODE.value(), getSoundSource(), 0.7F, 1.1F);
 
         AABB area = new AABB(impact.x - impactRadius, impact.y - impactRadius, impact.z - impactRadius,
                 impact.x + impactRadius, impact.y + impactRadius, impact.z + impactRadius);
@@ -191,8 +192,8 @@ public class CindervaneMagmaBlockEntity extends Entity {
                         && !DragonElementalImmunity.isFireImmune(target));
 
         for (net.minecraft.world.entity.LivingEntity target : hits) {
-            target.hurt(server.damageSources().explosion(this, owner != null ? owner : this), impactDamage);
-            target.setSecondsOnFire(4);
+            target.hurtServer(server, server.damageSources().explosion(this, owner != null ? owner : this), impactDamage);
+            target.igniteForSeconds(4.0F);
         }
 
         igniteArea(server, BlockPos.containing(impact));
@@ -239,36 +240,29 @@ public class CindervaneMagmaBlockEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        this.livedTicks = tag.getInt("Lived");
-        this.lifetimeTicks = tag.getInt("Lifetime");
-        this.impactRadius = tag.getDouble("ImpactRadius");
-        this.impactDamage = tag.getFloat("ImpactDamage");
-        if (tag.contains("BlockState", CompoundTag.TAG_COMPOUND) && level() instanceof ServerLevel server) {
-            BlockState state = NbtUtils.readBlockState(server.holderLookup(net.minecraft.core.registries.Registries.BLOCK), tag.getCompound("BlockState"));
-            setBlockState(state.isAir() ? Blocks.MAGMA_BLOCK.defaultBlockState() : state);
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        this.livedTicks = tag.getIntOr("Lived", 0);
+        this.lifetimeTicks = tag.getIntOr("Lifetime", 0);
+        this.impactRadius = tag.getDoubleOr("ImpactRadius", 0.0D);
+        this.impactDamage = tag.getFloatOr("ImpactDamage", 0.0F);
+        tag.read("BlockState", BlockState.CODEC)
+                .ifPresent(state -> setBlockState(state.isAir() ? Blocks.MAGMA_BLOCK.defaultBlockState() : state));
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Lived", livedTicks);
         tag.putInt("Lifetime", lifetimeTicks);
         tag.putDouble("ImpactRadius", impactRadius);
         tag.putFloat("ImpactDamage", impactDamage);
-        tag.put("BlockState", NbtUtils.writeBlockState(getBlockState()));
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+        tag.store("BlockState", BlockState.CODEC, getBlockState());
     }
 
     @Override
     public void recreateFromPacket(@NotNull ClientboundAddEntityPacket packet) {
         super.recreateFromPacket(packet);
         // Restore velocity from packet
-        this.setDeltaMovement(packet.getXa(), packet.getYa(), packet.getZa());
+        this.setDeltaMovement(packet.getMovement());
     }
 
     @Override
@@ -292,26 +286,16 @@ public class CindervaneMagmaBlockEntity extends Entity {
     }
 
     @Override
-    public boolean hurt(net.minecraft.world.damagesource.DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, net.minecraft.world.damagesource.DamageSource source, float amount) {
         if (source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY)) {
-            return super.hurt(source, amount);
+            discard();
+            return true;
         }
         return false;
     }
 
-    @Override
     public double getPassengersRidingOffset() {
         return -0.2D;
-    }
-
-    @Override
-    public boolean isInvulnerableTo(net.minecraft.world.damagesource.DamageSource source) {
-        return !source.is(net.minecraft.tags.DamageTypeTags.BYPASSES_INVULNERABILITY);
-    }
-
-    @Override
-    public float getEyeHeight(@NotNull Pose pose) {
-        return 0.5F;
     }
 
     @Override

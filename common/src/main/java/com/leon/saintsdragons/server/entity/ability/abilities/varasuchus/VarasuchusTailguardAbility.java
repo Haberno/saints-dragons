@@ -164,7 +164,7 @@ public class VarasuchusTailguardAbility extends DragonAbility<Varasuchus> {
 
     private void applyParryHit() {
         Varasuchus dragon = getUser();
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
 

@@ -1,28 +1,19 @@
 package com.leon.saintsdragons.client.renderer.ignivorus;
 
 import com.leon.saintsdragons.client.model.ignivorus.IgnivorusMagmaPillarModel;
+import com.leon.saintsdragons.client.renderer.SaintsDragonsEntityGeoRenderer;
 import com.leon.saintsdragons.server.entity.effect.ignivorus.IgnivorusMagmaPillarEntity;
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
-public class IgnivorusMagmaPillarRenderer extends GeoEntityRenderer<IgnivorusMagmaPillarEntity> {
-
+public class IgnivorusMagmaPillarRenderer extends SaintsDragonsEntityGeoRenderer<IgnivorusMagmaPillarEntity> {
     public IgnivorusMagmaPillarRenderer(EntityRendererProvider.Context context) {
         super(context, new IgnivorusMagmaPillarModel());
         this.shadowRadius = 1.0F;
     }
 
     @Override
-    protected float getDeathMaxRotation(@NotNull IgnivorusMagmaPillarEntity entity) {
+    protected float getDeathMaxRotation(GeoRenderState renderState) {
         return 0.0F;
-    }
-
-    @Override
-    public void render(@NotNull IgnivorusMagmaPillarEntity entity, float entityYaw, float partialTick,
-                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
-        super.render(entity, entity.getYHeadRot(), partialTick, poseStack, bufferSource, packedLight);
     }
 }

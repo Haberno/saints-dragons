@@ -4,7 +4,7 @@ import com.leon.saintsdragons.common.particle.raevyx.RaevyxLightningStormData;
 import com.leon.saintsdragons.common.particle.raevyx.RaevyxLightningChainData;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonElementalImmunity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -16,6 +16,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.*;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -65,17 +67,12 @@ public class RaevyxLightningChainEntity extends Entity {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
-    }
-
-    @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DAMAGE, 0F);
-        this.entityData.define(SIZE, 1.0F);
-        this.entityData.define(LIFESPAN, 0);
-        this.entityData.define(DELAY, 0);
-        this.entityData.define(IS_CHAIN, false);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DAMAGE, 0F);
+        builder.define(SIZE, 1.0F);
+        builder.define(LIFESPAN, 0);
+        builder.define(DELAY, 0);
+        builder.define(IS_CHAIN, false);
     }
 
     public int getLifespan() {
@@ -99,7 +96,7 @@ public class RaevyxLightningChainEntity extends Entity {
     }
 
     public void setSize(float size) {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             this.entityData.set(SIZE, Mth.clamp(size, 0.5F, 3.0F));
         }
     }
@@ -159,7 +156,7 @@ public class RaevyxLightningChainEntity extends Entity {
         setLifespan(this.getLifespan() + 1);
         int adjustedLifespan = this.getLifespan() - this.getDelay();
 
-        if (this.level().isClientSide) {
+        if (this.level().isClientSide()) {
             // Client-side particle effects
             if (adjustedLifespan == 1) {
                 spawnLightningParticles();
@@ -214,6 +211,9 @@ public class RaevyxLightningChainEntity extends Entity {
     }
 
     private void dealDamage() {
+        if (!(this.level() instanceof ServerLevel serverLevel)) {
+            return;
+        }
         AABB damageBox = this.getBoundingBox().inflate(getSize() * 2.0);
         
         for (LivingEntity entity : this.level().getEntitiesOfClass(LivingEntity.class, damageBox)) {
@@ -227,7 +227,7 @@ public class RaevyxLightningChainEntity extends Entity {
                         this.damageSources().mobAttack(caster) : 
                         this.damageSources().magic();
                     
-                    entity.hurt(damageSource, getDamage());
+                    entity.hurtServer(serverLevel, damageSource, getDamage());
                     spawnImpactEffects(entity.position().add(0, entity.getBbHeight() / 2, 0));
                 }
             }
@@ -303,7 +303,7 @@ public class RaevyxLightningChainEntity extends Entity {
     }
 
     @Override
-    protected void addAdditionalSaveData(@Nonnull CompoundTag compound) {
+    protected void addAdditionalSaveData(@Nonnull ValueOutput compound) {
         compound.putInt("lifespan", this.getLifespan());
         compound.putInt("delay", this.getDelay());
         compound.putFloat("damage", this.getDamage());
@@ -313,7 +313,7 @@ public class RaevyxLightningChainEntity extends Entity {
         compound.putInt("maxChains", this.maxChains);
         
         if (this.ownerUUID != null) {
-            compound.putUUID("Owner", this.ownerUUID);
+            compound.store("Owner", UUIDUtil.CODEC, this.ownerUUID);
         }
         
         if (startPos != null) {
@@ -330,33 +330,37 @@ public class RaevyxLightningChainEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@Nonnull CompoundTag compound) {
-        this.setLifespan(compound.getInt("lifespan"));
-        this.setDelay(compound.getInt("delay"));
-        this.setDamage(compound.getFloat("damage"));
-        this.setSize(compound.getFloat("size"));
-        this.setIsChain(compound.getBoolean("isChain"));
-        this.chainCount = compound.getInt("chainCount");
-        this.maxChains = compound.getInt("maxChains");
-        
-        if (compound.hasUUID("Owner")) {
-            this.ownerUUID = compound.getUUID("Owner");
-        }
-        
-        if (compound.contains("startX")) {
+    protected void readAdditionalSaveData(@Nonnull ValueInput compound) {
+        this.setLifespan(compound.getIntOr("lifespan", 0));
+        this.setDelay(compound.getIntOr("delay", 0));
+        this.setDamage(compound.getFloatOr("damage", 0.0F));
+        this.setSize(compound.getFloatOr("size", 1.0F));
+        this.setIsChain(compound.getBooleanOr("isChain", false));
+        this.chainCount = compound.getIntOr("chainCount", 0);
+        this.maxChains = compound.getIntOr("maxChains", 3);
+        this.ownerUUID = compound.read("Owner", UUIDUtil.CODEC).orElse(null);
+
+        double startX = compound.getDoubleOr("startX", Double.NaN);
+        if (Double.isFinite(startX)) {
             this.startPos = new Vec3(
-                compound.getDouble("startX"),
-                compound.getDouble("startY"),
-                compound.getDouble("startZ")
+                startX,
+                compound.getDoubleOr("startY", 0.0D),
+                compound.getDoubleOr("startZ", 0.0D)
             );
         }
-        
-        if (compound.contains("endX")) {
+
+        double endX = compound.getDoubleOr("endX", Double.NaN);
+        if (Double.isFinite(endX)) {
             this.endPos = new Vec3(
-                compound.getDouble("endX"),
-                compound.getDouble("endY"),
-                compound.getDouble("endZ")
+                endX,
+                compound.getDoubleOr("endY", 0.0D),
+                compound.getDoubleOr("endZ", 0.0D)
             );
         }
+    }
+
+    @Override
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 }

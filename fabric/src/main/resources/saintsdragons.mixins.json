@@ -8,23 +8,14 @@
     "AirDismountInputMixin",
     "CameraMixin",
     "CameraRollMixin",
-    "GameRendererMixin",
-    "RiderMixin",
-    "BloodTempestAfterimagePlayerRendererMixin",
-    "BloodTempestAfterimageLivingRendererMixin",
-    "BloodTempestAfterimageModelMixin",
-    "BloodTempestAfterimageItemRendererMixin",
-    "LivingEntityRendererMixin",
     "InventoryScreenMixin",
     "EntityRendererMixin",
     "EntityTurnMixin",
-    "EntityRenderDispatcherMixin",
     "GuiMixin"
   ],
   "mixins": [
     "NameTagItemMixin",
     "LivingEntityMixin",
-    "PathfinderMobMixin",
     "PlayerMixin",
     "RedStoneWireBlockMixin"
   ],

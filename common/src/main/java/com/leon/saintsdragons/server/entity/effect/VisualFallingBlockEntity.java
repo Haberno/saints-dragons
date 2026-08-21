@@ -1,8 +1,5 @@
 package com.leon.saintsdragons.server.entity.effect;
 
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -15,6 +12,10 @@ import net.minecraft.world.entity.MoverType;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +42,8 @@ public class VisualFallingBlockEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(BLOCK_STATE, Blocks.AIR.defaultBlockState());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(BLOCK_STATE, Blocks.AIR.defaultBlockState());
     }
 
     public BlockState getBlockState() {
@@ -70,15 +71,15 @@ public class VisualFallingBlockEntity extends Entity {
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
-        tag.put("BlockState", NbtUtils.writeBlockState(getBlockState()));
+    protected void addAdditionalSaveData(ValueOutput tag) {
+        tag.store("BlockState", BlockState.CODEC, getBlockState());
         tag.putInt("Lifetime", this.lifetime);
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
-        this.setBlockState(NbtUtils.readBlockState(this.level().holderLookup(Registries.BLOCK), tag.getCompound("BlockState")));
-        this.lifetime = tag.getInt("Lifetime");
+    protected void readAdditionalSaveData(ValueInput tag) {
+        tag.read("BlockState", BlockState.CODEC).ifPresent(this::setBlockState);
+        this.lifetime = tag.getIntOr("Lifetime", 40);
     }
 
     @Override
@@ -92,12 +93,12 @@ public class VisualFallingBlockEntity extends Entity {
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+    public void recreateFromPacket(@NotNull ClientboundAddEntityPacket packet) {
+        super.recreateFromPacket(packet);
     }
 
     @Override
-    public void recreateFromPacket(@NotNull ClientboundAddEntityPacket packet) {
-        super.recreateFromPacket(packet);
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 }

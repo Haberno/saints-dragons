@@ -23,7 +23,7 @@ public class ScreenShakeComponent {
 
     public void tick() {
         SynchedEntityData entityData = entity.getEntityData();
-        if (entity.level().isClientSide) {
+        if (entity.level().isClientSide()) {
             previousAmount = amount;
             amount = entityData.get(syncedAmountAccessor);
             return;
@@ -71,7 +71,7 @@ public class ScreenShakeComponent {
 
     public void trigger(float intensity) {
         float clamped = Math.max(0.0F, intensity);
-        if (clamped <= 0.0F || entity.level().isClientSide) {
+        if (clamped <= 0.0F || entity.level().isClientSide()) {
             return;
         }
         amount = Math.max(amount, clamped);
@@ -83,7 +83,7 @@ public class ScreenShakeComponent {
             trigger(intensity);
             return;
         }
-        if (entity.level().isClientSide) {
+        if (entity.level().isClientSide()) {
             return;
         }
         holdIntensity = Math.max(holdIntensity, Math.max(0.0F, intensity));
@@ -93,7 +93,7 @@ public class ScreenShakeComponent {
     }
 
     public void force(float targetAmount) {
-        if (entity.level().isClientSide) {
+        if (entity.level().isClientSide()) {
             return;
         }
         amount = Math.max(0.0F, targetAmount);
@@ -104,7 +104,7 @@ public class ScreenShakeComponent {
     }
 
     public void clear() {
-        if (entity.level().isClientSide) {
+        if (entity.level().isClientSide()) {
             return;
         }
         holdTicks = 0;

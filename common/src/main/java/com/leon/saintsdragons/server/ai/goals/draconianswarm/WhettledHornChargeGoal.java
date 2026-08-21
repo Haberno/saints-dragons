@@ -131,7 +131,8 @@ public class WhettledHornChargeGoal extends Goal {
         }
         LivingEntity victim = hits.contains(target) ? target : hits.get(0);
         float damage = (float) this.whettled.getLungeDamage();
-        if (victim.hurt(this.whettled.damageSources().mobAttack(this.whettled), damage)) {
+        if (victim.hurtServer((net.minecraft.server.level.ServerLevel) this.whettled.level(),
+                this.whettled.damageSources().mobAttack(this.whettled), damage)) {
             if (!this.animationTriggered) {
                 this.animationTriggered = true;
                 this.whettled.performSwoopAnimation();

@@ -37,7 +37,7 @@ public final class StegonautLushCaveSpawner {
     }
 
     public static void tick(ServerLevel level) {
-        Identifier dimensionId = level.dimension().location();
+        Identifier dimensionId = level.dimension().identifier();
         int counter = tickCounters.getOrDefault(dimensionId, 0) + 1;
         tickCounters.put(dimensionId, counter);
         if (counter < CHECK_INTERVAL) {
@@ -106,8 +106,8 @@ public final class StegonautLushCaveSpawner {
     }
 
     private static BlockPos findSpawnPos(ServerLevel level, BlockPos center, RandomSource random) {
-        int minY = level.getMinBuildHeight() + 1;
-        int maxY = level.getMaxBuildHeight() - 2;
+        int minY = level.getMinY() + 1;
+        int maxY = level.getMaxY() - 2;
         int startY = Mth.clamp(center.getY() + VERTICAL_SEARCH_UP, minY, maxY);
         int endY = Mth.clamp(center.getY() - VERTICAL_SEARCH_DOWN, minY, maxY);
 
@@ -168,7 +168,7 @@ public final class StegonautLushCaveSpawner {
     }
 
     private static boolean spawnOne(ServerLevel level, BlockPos pos, EntitySpawnReason spawnType) {
-        Stegonaut stegonaut = ModEntities.STEGONAUT.get().create(level);
+        Stegonaut stegonaut = ModEntities.STEGONAUT.get().create(level, EntitySpawnReason.NATURAL);
         if (stegonaut == null) {
             return false;
         }
@@ -177,7 +177,7 @@ public final class StegonautLushCaveSpawner {
         if (!level.noCollision(stegonaut, stegonaut.getBoundingBox())) {
             return false;
         }
-        stegonaut.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), spawnType, null, null);
+        stegonaut.finalizeSpawn(level, level.getCurrentDifficultyAt(pos), spawnType, null);
         if (!level.noCollision(stegonaut, stegonaut.getBoundingBox())) {
             return false;
         }
@@ -202,7 +202,7 @@ public final class StegonautLushCaveSpawner {
     }
 
     private static boolean canFitStegonautAt(ServerLevel level, BlockPos pos) {
-        Stegonaut probe = ModEntities.STEGONAUT.get().create(level);
+        Stegonaut probe = ModEntities.STEGONAUT.get().create(level, EntitySpawnReason.NATURAL);
         if (probe == null) {
             return false;
         }

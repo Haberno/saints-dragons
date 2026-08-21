@@ -1,8 +1,12 @@
 package com.leon.saintsdragons.common.item;
 
 import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -14,12 +18,11 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.alchemy.Potion;
-import net.minecraft.world.item.alchemy.Potions;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
-import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 public class FixedPotionItem extends PotionItem {
@@ -31,8 +34,10 @@ public class FixedPotionItem extends PotionItem {
     }
 
     private ItemStack ensurePotion(ItemStack stack) {
-        if (PotionUtils.getPotion(stack) == Potions.EMPTY) {
-            PotionUtils.setPotion(stack, this.potion.get());
+        PotionContents contents = stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
+        if (contents.potion().isEmpty()) {
+            Holder<Potion> holder = BuiltInRegistries.POTION.wrapAsHolder(this.potion.get());
+            stack.set(DataComponents.POTION_CONTENTS, contents.withPotion(holder));
         }
         return stack;
     }
@@ -40,11 +45,6 @@ public class FixedPotionItem extends PotionItem {
     @Override
     public ItemStack getDefaultInstance() {
         return ensurePotion(super.getDefaultInstance());
-    }
-
-    @Override
-    public String getDescriptionId(ItemStack stack) {
-        return this.getDescriptionId();
     }
 
     @Override
@@ -60,10 +60,11 @@ public class FixedPotionItem extends PotionItem {
             CriteriaTriggers.CONSUME_ITEM.trigger(serverPlayer, stack);
         }
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             for (MobEffectInstance effectInstance : this.potion.get().getEffects()) {
-                if (effectInstance.getEffect().isInstantenous()) {
-                    effectInstance.getEffect().applyInstantenousEffect(
+                if (effectInstance.getEffect().value().isInstantenous()) {
+                    effectInstance.getEffect().value().applyInstantenousEffect(
+                            (ServerLevel) level,
                             null,
                             null,
                             livingEntity,
@@ -89,7 +90,8 @@ public class FixedPotionItem extends PotionItem {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, @Nullable Level level, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        PotionUtils.addPotionTooltip(this.potion.get().getEffects(), tooltipComponents, 1.0F);
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display,
+                                Consumer<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        PotionContents.addPotionTooltip(this.potion.get().getEffects(), tooltipComponents, 1.0F, context.tickRate());
     }
 }

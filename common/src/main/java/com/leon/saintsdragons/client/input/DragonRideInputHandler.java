@@ -27,11 +27,13 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
+import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import net.minecraft.world.entity.Entity;
 import java.util.function.Consumer;
 
 public final class DragonRideInputHandler {
-    private static final String KEY_CATEGORY = "key.categories.saintsdragons";
+    public static final KeyMapping.Category KEY_CATEGORY = KeyMapping.Category.register(
+            SaintsDragonsCommon.rl("dragon_controls"));
     public static final KeyMapping DRAGON_ASCEND = new KeyMapping(
             "key.saintsdragons.ascend",
             InputConstants.Type.KEYSYM,
@@ -188,7 +190,7 @@ public final class DragonRideInputHandler {
         }
         boolean jumpDown = mc.options.keyJump.isDown();
         boolean groundDragon = dragon instanceof RideableGroundDragon;
-        boolean groundDragonSwimming = groundDragon && dragon.isInWaterOrBubble();
+        boolean groundDragonSwimming = groundDragon && dragon.isInWater();
         boolean ascendDown = DRAGON_ASCEND.isDown() || ((!groundDragon || groundDragonSwimming) && jumpDown);
         boolean descendDown = DRAGON_DESCEND.isDown() || mc.options.keyShift.isDown();
         boolean accelerateDown = DRAGON_ACCELERATE.isDown() || mc.options.keySprint.isDown();
@@ -228,14 +230,14 @@ public final class DragonRideInputHandler {
                     (dragon instanceof Raevyx
                     || dragon instanceof Cindervane
                     || dragon instanceof Ignivorus)
-                    && dragon.isInWaterOrBubble()
+                    && dragon.isInWater()
                     && !dragon.isUnderWater()
                     && !alreadyFlying;
             boolean fallRecoveryBypass =
                     dragon instanceof RideableFlyingDragon
                     && !alreadyFlying
                     && !dragon.onGround()
-                    && !dragon.isInWaterOrBubble()
+                    && !dragon.isInWater()
                     && !dragon.isInLava()
                     && (dragon.fallDistance >= 1.0F || dragon.getDeltaMovement().y <= -0.02D);
             if ((!alreadyFlying && canTakeoffNow) || breachWaterBypass || fallRecoveryBypass) {

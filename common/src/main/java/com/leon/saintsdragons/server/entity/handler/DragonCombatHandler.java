@@ -7,14 +7,17 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.ability.DragonAbility;
 import com.leon.saintsdragons.server.entity.ability.DragonAbilityType;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import com.mojang.serialization.Codec;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class DragonCombatHandler {
+    private static final Codec<Map<String, Integer>> COOLDOWNS_CODEC =
+            Codec.unboundedMap(Codec.STRING, Codec.INT);
     private final DragonEntity dragon;
     
     private DragonAbility<?> activeAbility;
@@ -23,33 +26,33 @@ public class DragonCombatHandler {
     private boolean processingAbility = false;
     private final Map<DragonAbilityType<?, ?>, Integer> abilityCooldowns = new HashMap<>();
     private final Map<DragonAbilityType<?, ?>, Boolean> overlayAbilityCache = new HashMap<>();
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         tag.putInt("GlobalAbilityCooldown", Math.max(0, globalCooldown));
-        CompoundTag cd = new CompoundTag();
+        Map<String, Integer> cooldowns = new HashMap<>();
         for (Map.Entry<DragonAbilityType<?, ?>, Integer> e : abilityCooldowns.entrySet()) {
             String name = com.leon.saintsdragons.common.registry.AbilityRegistry.getName(e.getKey());
             if (name != null && !name.isEmpty()) {
-                cd.putInt(name, Math.max(0, e.getValue()));
+                cooldowns.put(name, Math.max(0, e.getValue()));
             }
         }
-        if (!cd.isEmpty()) {
-            tag.put("AbilityCooldowns", cd);
+        if (!cooldowns.isEmpty()) {
+            tag.store("AbilityCooldowns", COOLDOWNS_CODEC, cooldowns);
         }
     }
 
-    public void loadFromNBT(CompoundTag tag) {
-        this.globalCooldown = Math.max(0, tag.getInt("GlobalAbilityCooldown"));
+    public void loadFromNBT(ValueInput tag) {
+        this.globalCooldown = Math.max(0, tag.getIntOr("GlobalAbilityCooldown", 0));
         this.abilityCooldowns.clear();
-        if (tag.contains("AbilityCooldowns", Tag.TAG_COMPOUND)) {
-            CompoundTag cd = tag.getCompound("AbilityCooldowns");
-            for (String key : cd.getAllKeys()) {
+        tag.read("AbilityCooldowns", COOLDOWNS_CODEC).ifPresent(cooldowns -> {
+            for (Map.Entry<String, Integer> entry : cooldowns.entrySet()) {
+                String key = entry.getKey();
                 var type = AbilityRegistry.get(key);
                 if (type != null) {
-                    int val = Math.max(0, cd.getInt(key));
+                    int val = Math.max(0, entry.getValue());
                     if (val > 0) this.abilityCooldowns.put(type, val);
                 }
             }
-        }
+        });
     }
 
     public DragonCombatHandler(DragonEntity dragon) {
@@ -116,7 +119,7 @@ public class DragonCombatHandler {
     }
 
     public boolean tryUseAbility(DragonAbilityType<?, ?> abilityType) {
-        if (abilityType == null || dragon.level().isClientSide) {
+        if (abilityType == null || dragon.level().isClientSide()) {
             return false;
         }
         if (dragon instanceof Volitans volitans
@@ -184,7 +187,7 @@ public class DragonCombatHandler {
     }
 
     public void forceUseAbility(DragonAbilityType<?, ?> abilityType) {
-        if (abilityType == null || dragon.level().isClientSide) {
+        if (abilityType == null || dragon.level().isClientSide()) {
             return;
         }
         if (!canUseAiAbilityAgainstCurrentTarget(abilityType) && !isInternalStateAbility(abilityType)) {
@@ -324,7 +327,7 @@ public class DragonCombatHandler {
     }
 
     public void tick() {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         if (globalCooldown > 0) {

@@ -5,10 +5,12 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,13 +20,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
-public final class DragonChestLootReloadListener extends SimpleJsonResourceReloadListener {
+public final class DragonChestLootReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON = new GsonBuilder().create();
     private static final DragonChestLootReloadListener INSTANCE = new DragonChestLootReloadListener();
     private static volatile ResourceManager loadedManager;
 
     private DragonChestLootReloadListener() {
-        super(GSON, "dragon_chest_loot");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("dragon_chest_loot"));
     }
 
     public static DragonChestLootReloadListener getInstance() {
@@ -78,7 +80,7 @@ public final class DragonChestLootReloadListener extends SimpleJsonResourceReloa
     private static Identifier fileToReloadId(Identifier file) {
         String path = file.getPath();
         path = path.substring("dragon_chest_loot/".length(), path.length() - ".json".length());
-        return new Identifier(file.getNamespace(), path);
+        return Identifier.fromNamespaceAndPath(file.getNamespace(), path);
     }
 
     private static boolean requestsReplace(Map.Entry<Identifier, JsonElement> entry) {

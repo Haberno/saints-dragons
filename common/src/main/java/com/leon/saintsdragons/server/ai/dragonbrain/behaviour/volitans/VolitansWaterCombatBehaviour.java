@@ -42,7 +42,7 @@ public class VolitansWaterCombatBehaviour extends DragonBehaviour<Volitans> {
         if (!canFightTarget(target)) {
             return false;
         }
-        return dragon.isInWaterOrBubble() || dragon.isUnderWater();
+        return dragon.isInWater() || dragon.isUnderWater();
     }
 
     @Override
@@ -58,7 +58,7 @@ public class VolitansWaterCombatBehaviour extends DragonBehaviour<Volitans> {
         if (!canFightTarget(target)) {
             return false;
         }
-        return dragon.isInWaterOrBubble() || dragon.isUnderWater();
+        return dragon.isInWater() || dragon.isUnderWater();
     }
 
     @Override
@@ -97,7 +97,7 @@ public class VolitansWaterCombatBehaviour extends DragonBehaviour<Volitans> {
         }
 
         // Finish climbing out before committing to a ranged attack against a dry target.
-        if (!target.isInWaterOrBubble() && gap > GORE_RANGE) {
+        if (!target.isInWater() && gap > GORE_RANGE) {
             return;
         }
 
@@ -131,7 +131,7 @@ public class VolitansWaterCombatBehaviour extends DragonBehaviour<Volitans> {
         if (dragon.isVehicle() || dragon.isOrderedToSit() || dragon.isBaby()) {
             return false;
         }
-        if (!(dragon.isInWaterOrBubble() || dragon.isUnderWater())) {
+        if (!(dragon.isInWater() || dragon.isUnderWater())) {
             return false;
         }
         return dragon.distanceToSqr(target) <= getMaxAggroDistanceSqr();

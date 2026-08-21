@@ -34,7 +34,7 @@ public interface DragonMovementCapable {
         if (!(this instanceof RideableDragonBase dragon)
                 || dragon.getLocomotionMode() != DragonLocomotionMode.GROUND
                 || isAerial()
-                || dragon.isInWaterOrBubble()
+                || dragon.isInWater()
                 || dragon.isInLava()) {
             return false;
         }

@@ -146,7 +146,7 @@ final class IvySwimGoal extends Goal {
             horizontalLook = horizontalLook.normalize();
         }
 
-        double targetY = owner.isInWaterOrBubble()
+        double targetY = owner.isInWater()
                 ? owner.getY() + owner.getEyeHeight() * 0.35D
                 : owner.getY() + 0.2D;
         if (shouldSurfaceForAir()) {
@@ -170,7 +170,7 @@ final class IvySwimGoal extends Goal {
 
     private boolean canSwimNow() {
         return ivy.isAlive()
-                && ivy.isInWaterOrBubble()
+                && ivy.isInWater()
                 && !ivy.isInShallowWaterForWading()
                 && !ivy.isVehicle()
                 && !ivy.isDownedOrArising()

@@ -4,6 +4,7 @@ import com.leon.saintsdragons.server.entity.base.RideableFlyingDragon;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Input;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -22,21 +23,22 @@ public abstract class AirDismountInputMixin {
             method = "tick",
             at = @At(
                     value = "INVOKE",
-                    target = "Lnet/minecraft/network/protocol/game/ServerboundPlayerInputPacket;<init>(FFZZ)V"
+                    target = "Lnet/minecraft/network/protocol/game/ServerboundPlayerInputPacket;<init>(Lnet/minecraft/world/entity/player/Input;)V"
             ),
-            index = 3
+            index = 0
     )
-    private boolean saintsdragons$blockAirDismountPacket(boolean shiftKeyDown) {
-        if (!shiftKeyDown) {
-            return false;
+    private Input saintsdragons$blockAirDismountPacket(Input input) {
+        if (!input.shift()) {
+            return input;
         }
         LocalPlayer player = (LocalPlayer) (Object) this;
         Entity vehicle = player.getVehicle();
         if (vehicle instanceof RideableFlyingDragon dragon && saintsdragons$shouldBlockDismount(player, dragon)) {
             saintsdragons$sendBlockedMessage(player);
-            return false;
+            return new Input(input.forward(), input.backward(), input.left(), input.right(), input.jump(), false,
+                    input.sprint());
         }
-        return true;
+        return input;
     }
 
     @Unique

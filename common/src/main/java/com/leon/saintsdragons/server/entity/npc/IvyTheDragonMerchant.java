@@ -22,15 +22,16 @@ import com.leon.saintsdragons.server.ai.navigation.async.AsyncSwimController;
 import com.leon.saintsdragons.server.ai.navigation.PathNavigateGround;
 import com.leon.saintsdragons.server.menu.IvyInventoryMenu;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
+import com.mojang.serialization.Codec;
 import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -41,6 +42,7 @@ import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.damagesource.CombatRules;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EntityReference;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.ExperienceOrb;
@@ -79,6 +81,7 @@ import net.minecraft.world.effect.MobEffectCategory;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.Container;
+import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.item.ItemStack;
@@ -92,9 +95,14 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.stats.Stats;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.component.DamageResistant;
+import net.minecraft.world.item.equipment.ArmorType;
+import net.minecraft.world.item.equipment.Equippable;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import com.google.common.collect.Multimap;
 import java.util.ArrayList;
@@ -117,9 +125,12 @@ import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.state.AnimationTest;
 import software.bernie.geckolib.animation.object.PlayState;
 import software.bernie.geckolib.animation.RawAnimation;
-import software.bernie.geckolib.core.keyframe.event.ParticleKeyframeEvent;
-import software.bernie.geckolib.core.keyframe.event.SoundKeyframeEvent;
+import software.bernie.geckolib.animation.state.KeyFrameEvent;
+import software.bernie.geckolib.cache.animation.keyframeevent.ParticleKeyframeData;
+import software.bernie.geckolib.cache.animation.keyframeevent.SoundKeyframeData;
 import software.bernie.geckolib.util.GeckoLibUtil;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import javax.annotation.Nullable;
 
 public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity, OwnableEntity, DancingEntity {
@@ -141,8 +152,8 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             SynchedEntityData.defineId(IvyTheDragonMerchant.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_TAME =
             SynchedEntityData.defineId(IvyTheDragonMerchant.class, EntityDataSerializers.BOOLEAN);
-    private static final EntityDataAccessor<Optional<UUID>> DATA_OWNER_UUID =
-            SynchedEntityData.defineId(IvyTheDragonMerchant.class, EntityDataSerializers.OPTIONAL_UUID);
+    private static final EntityDataAccessor<String> DATA_OWNER_UUID =
+            SynchedEntityData.defineId(IvyTheDragonMerchant.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<Integer> DATA_COMMAND =
             SynchedEntityData.defineId(IvyTheDragonMerchant.class, EntityDataSerializers.INT);
     private static final EntityDataAccessor<String> DATA_IDLE_CHATTER =
@@ -432,7 +443,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     public static void followOwnerAcrossDimension(ServerPlayer owner, ServerLevel sourceLevel) {
-        if (owner.serverLevel() == sourceLevel) {
+        if (owner.level() == sourceLevel) {
             return;
         }
 
@@ -456,7 +467,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         if (!isAlive() || !isTame() || !isOwnedBy(player)) {
             return false;
         }
-        ServerLevel destinationLevel = player.serverLevel();
+        ServerLevel destinationLevel = player.level();
         Vec3 destinationPosition = player.position();
 
         ServerLevel sourceLevel = level() instanceof ServerLevel serverLevel ? serverLevel : null;
@@ -474,11 +485,6 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         setDeltaMovement(Vec3.ZERO);
         fallDistance = 0.0F;
 
-        CompoundTag savedData = null;
-        if (changingDimensions) {
-            savedData = new CompoundTag();
-            saveWithoutId(savedData);
-        }
         if (sourceLevel != null) {
             sourceLevel.sendParticles(ParticleTypes.PORTAL, sourcePosition.x, sourcePosition.y + 1.0D, sourcePosition.z,
                     32, 0.45D, 0.75D, 0.45D, 0.08D);
@@ -488,11 +494,11 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
 
         if (changingDimensions) {
             if (!teleportTo(destinationLevel, destinationPosition.x, destinationPosition.y, destinationPosition.z,
-                    Set.<Relative>of(), getYRot(), getXRot())) {
+                    Set.<Relative>of(), getYRot(), getXRot(), true)) {
                 return false;
             }
         } else {
-            moveTo(destinationPosition.x, destinationPosition.y, destinationPosition.z, getYRot(), getXRot());
+            setPos(destinationPosition.x, destinationPosition.y, destinationPosition.z);
             setYHeadRot(getYRot());
         }
 
@@ -503,9 +509,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                 return false;
             }
             movedIvy = transferredIvy;
-            movedIvy.load(savedData);
-            movedIvy.moveTo(destinationPosition.x, destinationPosition.y, destinationPosition.z,
-                    movedIvy.getYRot(), movedIvy.getXRot());
+            movedIvy.setPos(destinationPosition.x, destinationPosition.y, destinationPosition.z);
         }
         movedIvy.setDeltaMovement(Vec3.ZERO);
         movedIvy.fallDistance = 0.0F;
@@ -517,13 +521,23 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     @Nullable
-    @Override
     public UUID getOwnerUUID() {
-        return this.entityData.get(DATA_OWNER_UUID).orElse(null);
+        String value = this.entityData.get(DATA_OWNER_UUID);
+        try {
+            return value.isBlank() ? null : UUID.fromString(value);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     public void setOwnerUUID(@Nullable UUID ownerUuid) {
-        this.entityData.set(DATA_OWNER_UUID, Optional.ofNullable(ownerUuid));
+        this.entityData.set(DATA_OWNER_UUID, ownerUuid == null ? "" : ownerUuid.toString());
+    }
+
+    @Override
+    public EntityReference<LivingEntity> getOwnerReference() {
+        UUID ownerUuid = getOwnerUUID();
+        return ownerUuid == null ? null : EntityReference.of(ownerUuid);
     }
 
     @Nullable
@@ -541,31 +555,31 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_RUNNING, false);
-        this.entityData.define(DATA_TAME, false);
-        this.entityData.define(DATA_OWNER_UUID, Optional.empty());
-        this.entityData.define(DATA_COMMAND, CompanionCommand.WANDER.id);
-        this.entityData.define(DATA_IDLE_CHATTER, "");
-        this.entityData.define(DATA_IDLE_CHATTER_NAME, "");
-        this.entityData.define(DATA_TRADE_ANIM_STATE, TradeAnimState.NONE.id);
-        this.entityData.define(DATA_IDLE_VARIANT_ACTIVE, false);
-        this.entityData.define(DATA_CLIMBING_LADDER, false);
-        this.entityData.define(DATA_DANCING, false);
-        this.entityData.define(DATA_BOXING_STANCE, false);
-        this.entityData.define(DATA_BOXING_BACKING_UP, false);
-        this.entityData.define(DATA_BOXING_FAST, false);
-        this.entityData.define(DATA_BOXING_ACTION_TICKS, 0);
-        this.entityData.define(DATA_BOXING_ANIMATION, "");
-        this.entityData.define(DATA_BOXING_EXITING, false);
-        this.entityData.define(DATA_BOXING_RECOVERY_ACTION, RECOVERY_NONE);
-        this.entityData.define(DATA_BOXING_SWORD_STYLE, false);
-        this.entityData.define(DATA_HIDE_COMBAT_SWORD, false);
-        this.entityData.define(DATA_PASSIVE_USE_ACTION, PASSIVE_USE_NONE);
-        this.entityData.define(DATA_DOWNED, false);
-        this.entityData.define(DATA_DEATH_ANIMATION, 0);
-        this.entityData.define(DATA_DOWNED_ARISE_TICKS, 0);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_RUNNING, false);
+        builder.define(DATA_TAME, false);
+        builder.define(DATA_OWNER_UUID, "");
+        builder.define(DATA_COMMAND, CompanionCommand.WANDER.id);
+        builder.define(DATA_IDLE_CHATTER, "");
+        builder.define(DATA_IDLE_CHATTER_NAME, "");
+        builder.define(DATA_TRADE_ANIM_STATE, TradeAnimState.NONE.id);
+        builder.define(DATA_IDLE_VARIANT_ACTIVE, false);
+        builder.define(DATA_CLIMBING_LADDER, false);
+        builder.define(DATA_DANCING, false);
+        builder.define(DATA_BOXING_STANCE, false);
+        builder.define(DATA_BOXING_BACKING_UP, false);
+        builder.define(DATA_BOXING_FAST, false);
+        builder.define(DATA_BOXING_ACTION_TICKS, 0);
+        builder.define(DATA_BOXING_ANIMATION, "");
+        builder.define(DATA_BOXING_EXITING, false);
+        builder.define(DATA_BOXING_RECOVERY_ACTION, RECOVERY_NONE);
+        builder.define(DATA_BOXING_SWORD_STYLE, false);
+        builder.define(DATA_HIDE_COMBAT_SWORD, false);
+        builder.define(DATA_PASSIVE_USE_ACTION, PASSIVE_USE_NONE);
+        builder.define(DATA_DOWNED, false);
+        builder.define(DATA_DEATH_ANIMATION, 0);
+        builder.define(DATA_DOWNED_ARISE_TICKS, 0);
     }
 
     public static AttributeSupplier.Builder createAttributes() {
@@ -594,7 +608,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             @Override
             public boolean canUse() {
                 return IvyTheDragonMerchant.this.getTarget() == null
-                        && (!IvyTheDragonMerchant.this.isInWaterOrBubble()
+                        && (!IvyTheDragonMerchant.this.isInWater()
                         || IvyTheDragonMerchant.this.isInShallowWaterForWading())
                         && (!IvyTheDragonMerchant.this.isTame()
                         || IvyTheDragonMerchant.this.getCompanionCommand() == CompanionCommand.WANDER)
@@ -606,7 +620,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             @Override
             public boolean canContinueToUse() {
                 return IvyTheDragonMerchant.this.getTarget() == null
-                        && (!IvyTheDragonMerchant.this.isInWaterOrBubble()
+                        && (!IvyTheDragonMerchant.this.isInWater()
                         || IvyTheDragonMerchant.this.isInShallowWaterForWading())
                         && (!IvyTheDragonMerchant.this.isTame()
                         || IvyTheDragonMerchant.this.getCompanionCommand() == CompanionCommand.WANDER)
@@ -665,7 +679,6 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     protected @NotNull PathNavigation createNavigation(@NotNull Level level) {
         PathNavigateGround navigation = new PathNavigateGround(this, level);
         navigation.setCanOpenDoors(true);
-        navigation.setCanPassDoors(true);
         return navigation;
     }
 
@@ -679,7 +692,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     boolean isInShallowWaterForWading() {
-        if (!isInWaterOrBubble() || isUnderWater()) {
+        if (!isInWater() || isUnderWater()) {
             return false;
         }
         BlockPos feet = BlockPos.containing(getX(), getBoundingBox().minY, getZ());
@@ -690,7 +703,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     boolean isCombatBlockedByWater() {
-        return isUnderWater() || (isInWaterOrBubble() && !isInShallowWaterForWading());
+        return isUnderWater() || (isInWater() && !isInShallowWaterForWading());
     }
 
     boolean isCombatBlockedByCommand() {
@@ -715,7 +728,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             return 0;
         }
         int startY = start.getY();
-        int worldBottom = level().getMinBuildHeight();
+        int worldBottom = level().getMinY();
         while (cursor.getY() > worldBottom && level().getFluidState(cursor).is(FluidTags.WATER)) {
             cursor = cursor.below();
         }
@@ -724,7 +737,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
 
     private int getFluidDepthUp(BlockPos start) {
         BlockPos cursor = start;
-        int worldTop = level().getMaxBuildHeight();
+        int worldTop = level().getMaxY();
         while (cursor.getY() < worldTop && level().getFluidState(cursor).is(FluidTags.WATER)) {
             cursor = cursor.above();
         }
@@ -855,25 +868,18 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             return (float) getAttributeValue(Attributes.ATTACK_DAMAGE);
         }
 
-        double damage = 1.0D;
-        Multimap<net.minecraft.world.entity.ai.attributes.Attribute, AttributeModifier> modifiers =
-                sword.getAttributeModifiers(EquipmentSlot.MAINHAND);
-        for (AttributeModifier modifier : modifiers.get(Attributes.ATTACK_DAMAGE)) {
-            if (modifier.getOperation() == AttributeModifier.Operation.ADDITION) {
-                damage += modifier.getAmount();
-            } else if (modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_BASE) {
-                damage += 1.0D * modifier.getAmount();
-            } else if (modifier.getOperation() == AttributeModifier.Operation.MULTIPLY_TOTAL) {
-                damage *= 1.0D + modifier.getAmount();
-            }
+        double damage = sword.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS, ItemAttributeModifiers.EMPTY)
+                .compute(Attributes.ATTACK_DAMAGE, 1.0D, EquipmentSlot.MAINHAND);
+        if (level() instanceof ServerLevel serverLevel) {
+            damage = EnchantmentHelper.modifyDamage(serverLevel, sword, target,
+                    damageSources().mobAttack(this), (float) damage);
         }
-        damage += EnchantmentHelper.getDamageBonus(sword, target.getMobType());
         return (float) Math.max(0.0D, damage);
     }
 
     int getEquippedSwordKnockbackBonus() {
         ItemStack sword = getEquippedSword();
-        return sword.isEmpty() ? 0 : EnchantmentHelper.getItemEnchantmentLevel(Enchantments.KNOCKBACK, sword);
+        return sword.isEmpty() ? 0 : getItemEnchantmentLevel(Enchantments.KNOCKBACK, sword);
     }
 
     void applyEquippedSwordPostHit(LivingEntity target) {
@@ -882,9 +888,9 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             return;
         }
 
-        int fireAspect = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, sword);
+        int fireAspect = getItemEnchantmentLevel(Enchantments.FIRE_ASPECT, sword);
         if (fireAspect > 0) {
-            target.setSecondsOnFire(fireAspect * 4);
+            target.igniteForSeconds(fireAspect * 4.0F);
         }
         sword.getItem().hurtEnemy(sword, target, this);
     }
@@ -893,7 +899,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         if (!(level() instanceof ServerLevel server) || target.isAlive() || !(target instanceof Mob mob)) {
             return;
         }
-        int xp = mob.getExperienceReward();
+        int xp = mob.getExperienceReward(server, this);
         if (xp <= 0) {
             return;
         }
@@ -966,11 +972,21 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             ItemStack stack = ivyInventory.getItem(slot);
             if (!stack.isEmpty()
                     && stack.isDamaged()
-                    && EnchantmentHelper.getItemEnchantmentLevel(Enchantments.MENDING, stack) > 0) {
+                    && getItemEnchantmentLevel(Enchantments.MENDING, stack) > 0) {
                 stacks.add(stack);
             }
         }
         return stacks.isEmpty() ? ItemStack.EMPTY : stacks.get(getRandom().nextInt(stacks.size()));
+    }
+
+    private int getItemEnchantmentLevel(ResourceKey<Enchantment> enchantment, ItemStack stack) {
+        if (!(level() instanceof ServerLevel serverLevel)) {
+            return 0;
+        }
+        return serverLevel.registryAccess().lookupOrThrow(Registries.ENCHANTMENT)
+                .get(enchantment)
+                .map(holder -> EnchantmentHelper.getItemEnchantmentLevel(holder, stack))
+                .orElse(0);
     }
 
     boolean isBoxingSwordStyle() {
@@ -989,7 +1005,6 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         return this.entityData.get(DATA_HIDE_COMBAT_SWORD);
     }
 
-    @Override
     public @NotNull Iterable<ItemStack> getArmorSlots() {
         List<ItemStack> armor = new ArrayList<>(4);
         armor.add(ivyInventory.getItem(IvyInventoryMenu.BOOTS_SLOT));
@@ -1036,8 +1051,10 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     public int getArmorValue() {
         int armor = 0;
         for (ItemStack stack : getArmorSlots()) {
-            if (stack.getItem() instanceof ArmorItem armorItem) {
-                armor += armorItem.getDefense();
+            Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+            if (equippable != null) {
+                armor += (int) Math.round(stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+                        ItemAttributeModifiers.EMPTY).compute(Attributes.ARMOR, 0.0D, equippable.slot()));
             }
         }
         return armor;
@@ -1046,8 +1063,10 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     private float getEquippedArmorToughness() {
         float toughness = 0.0F;
         for (ItemStack stack : getArmorSlots()) {
-            if (stack.getItem() instanceof ArmorItem armorItem) {
-                toughness += armorItem.getToughness();
+            Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+            if (equippable != null) {
+                toughness += (float) stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+                        ItemAttributeModifiers.EMPTY).compute(Attributes.ARMOR_TOUGHNESS, 0.0D, equippable.slot());
             }
         }
         return toughness;
@@ -1057,7 +1076,8 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     protected float getDamageAfterArmorAbsorb(@NotNull DamageSource source, float amount) {
         if (!source.is(DamageTypeTags.BYPASSES_ARMOR)) {
             hurtArmor(source, amount);
-            amount = CombatRules.getDamageAfterAbsorb(amount, getArmorValue(), getEquippedArmorToughness());
+            amount = CombatRules.getDamageAfterAbsorb(
+                    this, amount, source, getArmorValue(), getEquippedArmorToughness());
         }
         return amount;
     }
@@ -1079,9 +1099,11 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
 
     private void hurtArmorStack(DamageSource source, int slot, EquipmentSlot equipmentSlot, float amount) {
         ItemStack stack = ivyInventory.getItem(slot);
-        boolean fireResistant = source.is(DamageTypeTags.IS_FIRE) && stack.getItem().isFireResistant();
-        if (!fireResistant && stack.getItem() instanceof ArmorItem) {
-            stack.hurtAndBreak((int) amount, this, ivy -> ivy.broadcastBreakEvent(equipmentSlot));
+        DamageResistant resistance = stack.get(DataComponents.DAMAGE_RESISTANT);
+        boolean damageResistant = resistance != null && resistance.isResistantTo(source);
+        Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+        if (!damageResistant && equippable != null && equippable.damageOnHurt()) {
+            stack.hurtAndBreak((int) amount, this, equipmentSlot);
         }
     }
 
@@ -1118,13 +1140,15 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     public @NotNull MerchantOffers getOffers() {
         if (offers == null) {
             offers = new MerchantOffers();
-            updateTrades();
+            if (level() instanceof ServerLevel serverLevel) {
+                updateTrades(serverLevel);
+            }
         }
         return offers;
     }
 
     @Override
-    protected void updateTrades() {
+    protected void updateTrades(@NotNull ServerLevel level) {
         MerchantOffers offers = getOffers();
         if (!offers.isEmpty()) {
             return;
@@ -1152,25 +1176,25 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         if (stack.is(ModItems.IVY_THE_MERCHANT_SPAWN_EGG.get())) {
             return super.mobInteract(player, hand);
         }
-        if (stack.is(Items.NAME_TAG) && stack.hasCustomHoverName()) {
-            if (!level().isClientSide) {
+        if (stack.is(Items.NAME_TAG) && stack.has(DataComponents.CUSTOM_NAME)) {
+            if (!level().isClientSide()) {
                 refuseRenameAttempt();
             }
-            return InteractionResult.sidedSuccess(level().isClientSide);
+            return level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (!isAlive()) {
             return InteractionResult.PASS;
         }
         if (isDowned()) {
-            if (!level().isClientSide && player instanceof ServerPlayer serverPlayer && isOwnedBy(player)) {
+            if (!level().isClientSide() && player instanceof ServerPlayer serverPlayer && isOwnedBy(player)) {
                 handleDownedReviveInteraction(serverPlayer);
             }
-            return InteractionResult.sidedSuccess(level().isClientSide);
+            return level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (isBaby()) {
             return super.mobInteract(player, hand);
         }
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return InteractionResult.CONSUME;
         }
         clearInvalidDialogueBlockingTarget();
@@ -1309,7 +1333,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                 && !isIdleVariantActive()
                 && !isInDialogue()
                 && !getBoxingCombat().isActive()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !isClimbingLadder()
                 && getTarget() == null;
     }
@@ -1377,12 +1401,12 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         controllers.add(movementController, downedController, passiveUseController, instantController);
     }
 
-    private void handleSoundKeyframe(SoundKeyframeEvent<IvyTheDragonMerchant> event) {
-        soundHandler.handleAnimationSound(event.getKeyframeData(), event.controller());
+    private void handleSoundKeyframe(KeyFrameEvent<IvyTheDragonMerchant, SoundKeyframeData> event) {
+        soundHandler.handleAnimationSound(event.keyframeData(), event.controller());
     }
 
-    private void handleParticleKeyframe(ParticleKeyframeEvent<IvyTheDragonMerchant> event) {
-        String effect = event.getKeyframeData().getEffect();
+    private void handleParticleKeyframe(KeyFrameEvent<IvyTheDragonMerchant, ParticleKeyframeData> event) {
+        String effect = event.keyframeData().getEffect();
         if (!isBoxingRecovering()) {
             return;
         }
@@ -1393,10 +1417,10 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
     }
 
-    private <T extends GeoEntity> PlayState animationPredicate(AnimationTest<T> state) {
+    private PlayState animationPredicate(AnimationTest<IvyTheDragonMerchant> state) {
         if (deathTime > 0 || getDeathAnimation() != 0 || !isAlive()) {
             if (state.controller().isPlayingTriggeredAnimation()) {
-                state.controller().forceAnimationReset();
+                state.controller().reset();
             }
             return PlayState.STOP;
         }
@@ -1413,7 +1437,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         if (isRidingCompanionVehicle()) {
             clearMovementTriggerIfNeeded(state);
             AnimationHelper.setAndContinue(state, MOUNTING);
-            state.controller().transitionLength(2);
+            state.controller().setTransitionTicks(2);
             return PlayState.CONTINUE;
         }
         TradeAnimState tradeState = getTradeAnimState();
@@ -1431,7 +1455,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
 
         if (wasMovementStopped || wasDownedOrArisingAnimation) {
-            state.controller().forceAnimationReset();
+            state.controller().reset();
             wasMovementStopped = false;
             wasDownedOrArisingAnimation = false;
         }
@@ -1442,7 +1466,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
 
         if (getBoxingCombat().isActive()) {
-            state.controller().transitionLength(1);
+            state.controller().setTransitionTicks(1);
         }
 
         if (getBoxingCombat().applyMovementAnimation(state)) {
@@ -1451,7 +1475,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
 
         if (wasBoxingAnimation) {
-            state.controller().forceAnimationReset();
+            state.controller().reset();
             wasBoxingAnimation = false;
         }
 
@@ -1460,37 +1484,37 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         return PlayState.CONTINUE;
     }
 
-    private void clearMovementTriggerIfNeeded(AnimationTest<?> state) {
+    private void clearMovementTriggerIfNeeded(AnimationTest<IvyTheDragonMerchant> state) {
         if (state.controller().isPlayingTriggeredAnimation()) {
-            state.controller().forceAnimationReset();
+            state.controller().reset();
         }
     }
 
-    private <T extends GeoEntity> PlayState downedAnimationPredicate(AnimationTest<T> state) {
+    private PlayState downedAnimationPredicate(AnimationTest<IvyTheDragonMerchant> state) {
         if (deathTime > 0 || getDeathAnimation() != 0 || !isAlive()) {
             if (getDeathAnimation() == 1 || (getDeathAnimation() == 0 && isTame())) {
                 AnimationHelper.setAndContinue(state, DIE);
-                state.controller().transitionLength(1);
+                state.controller().setTransitionTicks(1);
                 return PlayState.CONTINUE;
             }
             return PlayState.STOP;
         }
         if (isDowned()) {
             AnimationHelper.setAndContinue(state, ABOUT_TO_DIE);
-            state.controller().transitionLength(1);
+            state.controller().setTransitionTicks(1);
             return PlayState.CONTINUE;
         }
         if (getDownedAriseTicks() > 0) {
             AnimationHelper.setAndContinue(state, ARISE);
-            state.controller().transitionLength(1);
+            state.controller().setTransitionTicks(1);
             return PlayState.CONTINUE;
         }
         return PlayState.STOP;
     }
 
-    private <T extends GeoEntity> PlayState instantAnimationPredicate(AnimationTest<T> state) {
+    private PlayState instantAnimationPredicate(AnimationTest<IvyTheDragonMerchant> state) {
         if (deathTime > 0 && (getDeathAnimation() == 2 || !isTame())) {
-            state.controller().transitionLength(1);
+            state.controller().setTransitionTicks(1);
             AnimationHelper.setAndContinue(state, ACTUALLY_DIE);
             return PlayState.CONTINUE;
         }
@@ -1498,12 +1522,12 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         if (isDowned()) {
             return hurtDowned(source, amount);
         }
         if (source.getEntity() instanceof Player player) {
-            boolean hurt = super.hurt(source, amount);
+            boolean hurt = super.hurtServer(level, source, amount);
             if (hurt && isTame() && isOwnedBy(player) && isAlive()) {
                 speakOwnerHurtChatter(player);
             }
@@ -1518,7 +1542,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             return hurt;
         }
         if (source.getEntity() instanceof LivingEntity attacker && isCombatFriendly(attacker)) {
-            boolean hurt = super.hurt(source, amount);
+            boolean hurt = super.hurtServer(level, source, amount);
             if (getTarget() == attacker) {
                 setTarget(null);
             }
@@ -1534,10 +1558,9 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         }
         boolean holdGround = source.getEntity() instanceof Player && getBoxingCombat().shouldHoldGroundAgainstKnockback();
         Vec3 preHitMotion = holdGround ? getDeltaMovement() : Vec3.ZERO;
-        boolean hurt = super.hurt(source, amount);
+        boolean hurt = super.hurtServer(level, source, amount);
         if (hurt && holdGround) {
             setDeltaMovement(preHitMotion);
-            hasImpulse = true;
         }
         if (isDownedOrArising() || !isAlive()) {
             return hurt;
@@ -1547,8 +1570,8 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     @Override
-    protected void actuallyHurt(@NotNull DamageSource source, float amount) {
-        super.actuallyHurt(source, amount);
+    protected void actuallyHurt(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        super.actuallyHurt(level, source, amount);
         if (getHealth() <= 0.0F) {
             if (!tryUseInventoryTotem(source)) {
                 if (canEnterDownedState(source)) {
@@ -1618,7 +1641,6 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         setIdleVariantActive(false);
         setRunning(false);
         setDeltaMovement(0.0D, Math.min(getDeltaMovement().y, 0.0D), 0.0D);
-        hasImpulse = true;
     }
 
     private void holdDownedStill() {
@@ -1628,11 +1650,10 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         setIdleVariantActive(false);
         setRunning(false);
         setDeltaMovement(0.0D, Math.min(getDeltaMovement().y, 0.0D), 0.0D);
-        hasImpulse = true;
     }
 
     private void clearDownedMobAggro() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         for (Mob mob : level().getEntitiesOfClass(Mob.class,
@@ -1707,7 +1728,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     private void finishDownedDeath(DamageSource source) {
-        if (level().isClientSide || finishingDownedDeath) {
+        if (level().isClientSide() || finishingDownedDeath) {
             return;
         }
         finishingDownedDeath = true;
@@ -1720,7 +1741,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     private void reviveFromDowned() {
-        if (level().isClientSide || !isDowned()) {
+        if (level().isClientSide() || !isDowned()) {
             return;
         }
         setDowned(false);
@@ -1733,7 +1754,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         clearChatter();
         setDownedAriseTicks(DOWNED_ARISE_TICKS);
         setHealth(Math.max(6.0F, getMaxHealth() * 0.35F));
-        removeEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        removeEffect(MobEffects.SLOWNESS);
         setNoAi(true);
         getNavigation().stop();
         setTarget(null);
@@ -1857,11 +1878,6 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                 || super.isAlliedTo(entity);
     }
 
-    @Override
-    public boolean isAlliedTo(@NotNull Entity entity) {
-        return isCombatFriendly(entity);
-    }
-
     private boolean isBlockedHostileDamage(DamageSource source) {
         return !isBoxingRecovering()
                 && (source.getEntity() instanceof Zombie
@@ -1875,7 +1891,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     @Override
     public void setTradingPlayer(@Nullable Player player) {
         super.setTradingPlayer(player);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             boolean trading = player != null;
             if (trading && !lastTradingState) {
                 startTradingSequence();
@@ -1891,7 +1907,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     protected void stopTrading() {
         Player previousTradingPlayer = getTradingPlayer();
         super.stopTrading();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             stopTradingSequence();
             lastTradingState = false;
             scheduleDialogueResumeAfterTrade(previousTradingPlayer);
@@ -1900,15 +1916,15 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
 
     @Override
     public void tick() {
-        if (!level().isClientSide && !isTame() && this.houseHome == null) {
+        if (!level().isClientSide() && !isTame() && this.houseHome == null) {
             setHouseHome(this.blockPosition());
         }
-        if (!level().isClientSide && !isDowned()) {
+        if (!level().isClientSide() && !isDowned()) {
             tickWaterClutchBeforeMovement();
         }
         super.tick();
         updateRotationDeviation();
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             if (!isBoxingRecovering()) {
                 this.clientRecoveryItemVisible = false;
             }
@@ -1959,7 +1975,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
 
     boolean hasHarmfulEffect() {
         return getActiveEffects().stream()
-                .anyMatch(effect -> effect.getEffect().getCategory() == MobEffectCategory.HARMFUL);
+                .anyMatch(effect -> effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL);
     }
 
     boolean needsRecoveryFood() {
@@ -1993,7 +2009,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             consumeOneInventoryItem(slot, new ItemStack(Items.BUCKET));
         }
         for (var effect : new ArrayList<>(getActiveEffects())) {
-            if (effect.getEffect().getCategory() == MobEffectCategory.HARMFUL) {
+            if (effect.getEffect().value().getCategory() == MobEffectCategory.HARMFUL) {
                 removeEffect(effect.getEffect());
             }
         }
@@ -2083,7 +2099,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                 && isAlive()
                 && waterClutchCooldown <= 0
                 && !onGround()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !isInLava()
                 && fallDistance >= WATER_CLUTCH_MIN_FALL_DISTANCE
                 && getDeltaMovement().y <= WATER_CLUTCH_MIN_FALL_SPEED;
@@ -2198,7 +2214,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     private static boolean isCookedRecoveryFood(ItemStack stack) {
-        if (stack.isEmpty() || !stack.isEdible()) {
+        if (stack.isEmpty() || !stack.has(DataComponents.FOOD)) {
             return false;
         }
         Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
@@ -2227,7 +2243,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                 ivyInventory.setChanged();
                 return;
             }
-            if (ItemStack.isSameItemSameTags(stack, remainder) && stack.getCount() < stack.getMaxStackSize()) {
+            if (ItemStack.isSameItemSameComponents(stack, remainder) && stack.getCount() < stack.getMaxStackSize()) {
                 int moved = Math.min(remainder.getCount(), stack.getMaxStackSize() - stack.getCount());
                 stack.grow(moved);
                 remainder.shrink(moved);
@@ -2237,7 +2253,9 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                 }
             }
         }
-        spawnAtLocation(remainder);
+        if (level() instanceof ServerLevel serverLevel) {
+            spawnAtLocation(serverLevel, remainder);
+        }
     }
 
     void lockBoxingBodyToYaw(float yaw, float turnSpeed) {
@@ -2273,15 +2291,15 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putBoolean(TAME_TAG, isTame());
-        tag.put(IVY_INVENTORY_TAG, saveIvyInventory());
+        ContainerHelper.saveAllItems(tag.child(IVY_INVENTORY_TAG), ivyInventory.getItems());
         tag.putInt(IVY_TRADE_DATA_VERSION_TAG, IVY_TRADE_DATA_VERSION);
         tag.putLong(NEXT_TRADE_RESTOCK_GAME_TIME_TAG, this.nextRestockGameTime);
         UUID ownerUuid = getOwnerUUID();
         if (ownerUuid != null) {
-            tag.putUUID(OWNER_UUID_TAG, ownerUuid);
+            tag.store(OWNER_UUID_TAG, UUIDUtil.CODEC, ownerUuid);
         }
         tag.putInt(COMMAND_TAG, getCommand());
         tag.putBoolean(DOWNED_TAG, isDowned());
@@ -2297,10 +2315,10 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         knownDialoguePlayers.addAll(rememberedDialogueImpressions.keySet());
         knownDialoguePlayers.addAll(rememberedDialogueFlags.keySet());
         knownDialoguePlayers.addAll(rememberedDialogueResumePoints.keySet());
-        ListTag knownDialogueList = new ListTag();
+        ValueOutput.ValueOutputList knownDialogueList = tag.childrenList(KNOWN_DIALOGUE_PLAYERS_TAG);
         for (UUID playerUuid : knownDialoguePlayers) {
-            CompoundTag knownTag = new CompoundTag();
-            knownTag.putUUID(KNOWN_DIALOGUE_UUID_TAG, playerUuid);
+            ValueOutput knownTag = knownDialogueList.addChild();
+            knownTag.store(KNOWN_DIALOGUE_UUID_TAG, UUIDUtil.CODEC, playerUuid);
             String name = rememberedDialogueNames.get(playerUuid);
             if (name != null && !name.isBlank()) {
                 knownTag.putString(REMEMBERED_NAME_TAG, name);
@@ -2311,73 +2329,66 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             }
             Set<String> flags = rememberedDialogueFlags.get(playerUuid);
             if (flags != null && !flags.isEmpty()) {
-                ListTag flagsTag = new ListTag();
+                ValueOutput.TypedOutputList<String> flagsTag =
+                        knownTag.list(REMEMBERED_DIALOGUE_FLAGS_TAG, Codec.STRING);
                 flags.stream()
                         .filter(flag -> flag != null && !flag.isBlank())
                         .sorted()
-                        .forEach(flag -> flagsTag.add(StringTag.valueOf(flag)));
-                knownTag.put(REMEMBERED_DIALOGUE_FLAGS_TAG, flagsTag);
+                        .forEach(flagsTag::add);
             }
             DialogueResumePoint resumePoint = rememberedDialogueResumePoints.get(playerUuid);
             if (resumePoint != null) {
                 knownTag.putString(REMEMBERED_DIALOGUE_RESUME_ID_TAG, resumePoint.dialogueId().toString());
                 knownTag.putString(REMEMBERED_DIALOGUE_RESUME_NODE_TAG, resumePoint.nodeId());
             }
-            knownDialogueList.add(knownTag);
         }
-        tag.put(KNOWN_DIALOGUE_PLAYERS_TAG, knownDialogueList);
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        boolean hasCurrentTradeData = tag.getInt(IVY_TRADE_DATA_VERSION_TAG) >= IVY_TRADE_DATA_VERSION;
+        boolean hasCurrentTradeData = tag.getIntOr(IVY_TRADE_DATA_VERSION_TAG, 0) >= IVY_TRADE_DATA_VERSION;
         if (!hasCurrentTradeData) {
             this.offers = null;
         }
         long scheduledRestockGameTime = hasCurrentTradeData
-                && tag.contains(NEXT_TRADE_RESTOCK_GAME_TIME_TAG, Tag.TAG_LONG)
-                ? tag.getLong(NEXT_TRADE_RESTOCK_GAME_TIME_TAG)
+                ? tag.getLongOr(NEXT_TRADE_RESTOCK_GAME_TIME_TAG,
+                        level().getGameTime() + this.restockInterval)
                 : level().getGameTime() + this.restockInterval;
         this.nextRestockGameTime = Math.min(
                 scheduledRestockGameTime,
                 level().getGameTime() + this.restockInterval);
-        if (tag.contains(IVY_INVENTORY_TAG, Tag.TAG_LIST)) {
-            loadIvyInventory(tag.getList(IVY_INVENTORY_TAG, Tag.TAG_COMPOUND));
+        tag.child(IVY_INVENTORY_TAG).ifPresent(inventory -> {
+            ivyInventory.clearContent();
+            ContainerHelper.loadAllItems(inventory, ivyInventory.getItems());
             sanitizeIvyInventoryAfterLoad();
-        }
-        setTame(tag.getBoolean(TAME_TAG));
-        if (tag.hasUUID(OWNER_UUID_TAG)) {
-            setOwnerUUID(tag.getUUID(OWNER_UUID_TAG));
+        });
+        setTame(tag.getBooleanOr(TAME_TAG, false));
+        UUID savedOwner = tag.read(OWNER_UUID_TAG, UUIDUtil.CODEC).orElse(null);
+        if (savedOwner != null) {
+            setOwnerUUID(savedOwner);
             if (getOwnerUUID() != null) {
                 this.entityData.set(DATA_TAME, true);
             }
         } else if (!isTame()) {
             setOwnerUUID(null);
         }
-        setCommand(tag.contains(COMMAND_TAG, Tag.TAG_INT) ? tag.getInt(COMMAND_TAG) : CompanionCommand.WANDER.id);
-        if (!isTame()
-                && tag.contains(HOUSE_HOME_X_TAG, Tag.TAG_INT)
-                && tag.contains(HOUSE_HOME_Y_TAG, Tag.TAG_INT)
-                && tag.contains(HOUSE_HOME_Z_TAG, Tag.TAG_INT)) {
+        setCommand(tag.getIntOr(COMMAND_TAG, CompanionCommand.WANDER.id));
+        Optional<Integer> homeX = tag.getInt(HOUSE_HOME_X_TAG);
+        Optional<Integer> homeY = tag.getInt(HOUSE_HOME_Y_TAG);
+        Optional<Integer> homeZ = tag.getInt(HOUSE_HOME_Z_TAG);
+        if (!isTame() && homeX.isPresent() && homeY.isPresent() && homeZ.isPresent()) {
             setHouseHome(new BlockPos(
-                    tag.getInt(HOUSE_HOME_X_TAG),
-                    tag.getInt(HOUSE_HOME_Y_TAG),
-                    tag.getInt(HOUSE_HOME_Z_TAG)
+                    homeX.orElseThrow(), homeY.orElseThrow(), homeZ.orElseThrow()
             ));
         } else {
             clearHouseHome();
         }
-        setDowned(tag.getBoolean(DOWNED_TAG));
-        downedBleedTicks = tag.contains(DOWNED_BLEED_TICKS_TAG, Tag.TAG_INT)
-                ? Math.max(0, tag.getInt(DOWNED_BLEED_TICKS_TAG))
-                : DOWNED_BLEED_OUT_TICKS;
-        downedFinishHits = tag.contains(DOWNED_FINISH_HITS_TAG, Tag.TAG_INT)
-                ? Math.max(0, tag.getInt(DOWNED_FINISH_HITS_TAG))
-                : 0;
-        downedReviveProgress = tag.contains(DOWNED_REVIVE_PROGRESS_TAG, Tag.TAG_INT)
-                ? Math.max(0, tag.getInt(DOWNED_REVIVE_PROGRESS_TAG))
-                : 0;
+        setDowned(tag.getBooleanOr(DOWNED_TAG, false));
+        downedBleedTicks = Math.max(0,
+                tag.getIntOr(DOWNED_BLEED_TICKS_TAG, DOWNED_BLEED_OUT_TICKS));
+        downedFinishHits = Math.max(0, tag.getIntOr(DOWNED_FINISH_HITS_TAG, 0));
+        downedReviveProgress = Math.max(0, tag.getIntOr(DOWNED_REVIVE_PROGRESS_TAG, 0));
         downedReviveInteractionGraceTicks = 0;
         setDownedAriseTicks(0);
         finishingDownedDeath = false;
@@ -2390,76 +2401,33 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         rememberedDialogueImpressions.clear();
         rememberedDialogueFlags.clear();
         rememberedDialogueResumePoints.clear();
-        if (tag.contains(KNOWN_DIALOGUE_PLAYERS_TAG, Tag.TAG_LIST)) {
-            ListTag knownDialogueList = tag.getList(KNOWN_DIALOGUE_PLAYERS_TAG, Tag.TAG_COMPOUND);
-            for (int i = 0; i < knownDialogueList.size(); i++) {
-                CompoundTag knownTag = knownDialogueList.getCompound(i);
-                if (knownTag.hasUUID(KNOWN_DIALOGUE_UUID_TAG)) {
-                    UUID uuid = knownTag.getUUID(KNOWN_DIALOGUE_UUID_TAG);
-                    if (knownTag.contains(REMEMBERED_NAME_TAG, Tag.TAG_STRING)) {
-                        String name = knownTag.getString(REMEMBERED_NAME_TAG);
-                        if (!name.isBlank()) {
-                            rememberedDialogueNames.put(uuid, name);
-                        }
-                    }
-                    if (knownTag.contains(REMEMBERED_IMPRESSION_TAG, Tag.TAG_STRING)) {
-                        rememberedDialogueImpressions.put(uuid, knownTag.getString(REMEMBERED_IMPRESSION_TAG));
-                    }
-                    if (knownTag.contains(REMEMBERED_DIALOGUE_FLAGS_TAG, Tag.TAG_LIST)) {
-                        Set<String> flags = new HashSet<>();
-                        ListTag flagsTag = knownTag.getList(REMEMBERED_DIALOGUE_FLAGS_TAG, Tag.TAG_STRING);
-                        for (int flagIndex = 0; flagIndex < flagsTag.size(); flagIndex++) {
-                            String flag = flagsTag.getString(flagIndex);
-                            if (!flag.isBlank()) {
-                                flags.add(flag);
-                            }
-                        }
-                        if (!flags.isEmpty()) {
-                            rememberedDialogueFlags.put(uuid, flags);
-                        }
-                    }
-                    if (knownTag.contains(REMEMBERED_DIALOGUE_RESUME_ID_TAG, Tag.TAG_STRING)
-                            && knownTag.contains(REMEMBERED_DIALOGUE_RESUME_NODE_TAG, Tag.TAG_STRING)) {
-                        Identifier dialogueId = Identifier.tryParse(
-                                knownTag.getString(REMEMBERED_DIALOGUE_RESUME_ID_TAG));
-                        String nodeId = knownTag.getString(REMEMBERED_DIALOGUE_RESUME_NODE_TAG);
-                        if (dialogueId != null && !nodeId.isBlank()) {
-                            rememberedDialogueResumePoints.put(uuid, new DialogueResumePoint(dialogueId, nodeId));
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private ListTag saveIvyInventory() {
-        ListTag items = new ListTag();
-        for (int slot = 0; slot < IvyInventoryMenu.IVY_SLOT_COUNT; slot++) {
-            ItemStack stack = ivyInventory.getItem(slot);
-            if (stack.isEmpty()) {
+        for (ValueInput knownTag : tag.childrenListOrEmpty(KNOWN_DIALOGUE_PLAYERS_TAG)) {
+            UUID uuid = knownTag.read(KNOWN_DIALOGUE_UUID_TAG, UUIDUtil.CODEC).orElse(null);
+            if (uuid == null) {
                 continue;
             }
-            CompoundTag itemTag = stack.save(new CompoundTag());
-            itemTag.putByte(IVY_INVENTORY_SLOT_TAG, (byte) slot);
-            items.add(itemTag);
-        }
-        return items;
-    }
-
-    private void loadIvyInventory(ListTag items) {
-        for (int slot = 0; slot < IvyInventoryMenu.IVY_SLOT_COUNT; slot++) {
-            ivyInventory.setItem(slot, ItemStack.EMPTY);
-        }
-        for (int index = 0; index < items.size(); index++) {
-            CompoundTag itemTag = items.getCompound(index);
-            int slot = itemTag.contains(IVY_INVENTORY_SLOT_TAG, Tag.TAG_BYTE)
-                    ? Byte.toUnsignedInt(itemTag.getByte(IVY_INVENTORY_SLOT_TAG))
-                    : index;
-            if (slot >= 0 && slot < IvyInventoryMenu.IVY_SLOT_COUNT) {
-                ivyInventory.setItem(slot, ItemStack.of(itemTag));
+            knownTag.getString(REMEMBERED_NAME_TAG)
+                    .filter(name -> !name.isBlank())
+                    .ifPresent(name -> rememberedDialogueNames.put(uuid, name));
+            knownTag.getString(REMEMBERED_IMPRESSION_TAG)
+                    .filter(impression -> !impression.isBlank())
+                    .ifPresent(impression -> rememberedDialogueImpressions.put(uuid, impression));
+            Set<String> flags = new HashSet<>();
+            for (String flag : knownTag.listOrEmpty(REMEMBERED_DIALOGUE_FLAGS_TAG, Codec.STRING)) {
+                if (!flag.isBlank()) {
+                    flags.add(flag);
+                }
+            }
+            if (!flags.isEmpty()) {
+                rememberedDialogueFlags.put(uuid, flags);
+            }
+            String resumeId = knownTag.getStringOr(REMEMBERED_DIALOGUE_RESUME_ID_TAG, "");
+            String nodeId = knownTag.getStringOr(REMEMBERED_DIALOGUE_RESUME_NODE_TAG, "");
+            Identifier dialogueId = Identifier.tryParse(resumeId);
+            if (dialogueId != null && !nodeId.isBlank()) {
+                rememberedDialogueResumePoints.put(uuid, new DialogueResumePoint(dialogueId, nodeId));
             }
         }
-        ivyInventory.setChanged();
     }
 
     private void sanitizeIvyInventoryAfterLoad() {
@@ -2482,32 +2450,33 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
 
     private boolean canStayInEquipmentSlot(int slot, ItemStack stack) {
         return switch (slot) {
-            case IvyInventoryMenu.HELMET_SLOT -> isArmorOfType(stack, ArmorItem.Type.HELMET);
-            case IvyInventoryMenu.CHESTPLATE_SLOT -> isArmorOfType(stack, ArmorItem.Type.CHESTPLATE);
-            case IvyInventoryMenu.LEGGINGS_SLOT -> isArmorOfType(stack, ArmorItem.Type.LEGGINGS);
-            case IvyInventoryMenu.BOOTS_SLOT -> isArmorOfType(stack, ArmorItem.Type.BOOTS);
+            case IvyInventoryMenu.HELMET_SLOT -> isArmorOfType(stack, ArmorType.HELMET);
+            case IvyInventoryMenu.CHESTPLATE_SLOT -> isArmorOfType(stack, ArmorType.CHESTPLATE);
+            case IvyInventoryMenu.LEGGINGS_SLOT -> isArmorOfType(stack, ArmorType.LEGGINGS);
+            case IvyInventoryMenu.BOOTS_SLOT -> isArmorOfType(stack, ArmorType.BOOTS);
             case IvyInventoryMenu.SWORD_SLOT -> isWeaponStack(stack);
             default -> true;
         };
     }
 
     private static boolean isWeaponStack(ItemStack stack) {
-        return !stack.isEmpty()
-                && !stack.getAttributeModifiers(EquipmentSlot.MAINHAND).get(Attributes.ATTACK_DAMAGE).isEmpty();
+        return !stack.isEmpty() && stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+                ItemAttributeModifiers.EMPTY).compute(Attributes.ATTACK_DAMAGE, 0.0D, EquipmentSlot.MAINHAND) > 0.0D;
     }
 
-    private boolean isArmorOfType(ItemStack stack, ArmorItem.Type type) {
-        return stack.getItem() instanceof ArmorItem armor && armor.getType() == type;
+    private boolean isArmorOfType(ItemStack stack, ArmorType type) {
+        Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+        return equippable != null && equippable.slot() == type.getSlot();
     }
 
     private void setHouseHome(BlockPos home) {
         this.houseHome = home.immutable();
-        this.restrictTo(this.houseHome, HOUSE_ROAM_RADIUS);
+        this.setHomeTo(this.houseHome, HOUSE_ROAM_RADIUS);
     }
 
     private void clearHouseHome() {
         this.houseHome = null;
-        this.clearRestriction();
+        this.clearHome();
     }
 
     private void tickWaterCombatBlock() {
@@ -2853,7 +2822,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     public void playDialogueAnimation(String trigger) {
-        if (level().isClientSide || getBoxingCombat().isActive()) {
+        if (level().isClientSide() || getBoxingCombat().isActive()) {
             return;
         }
         setIdleVariantActive(false);
@@ -2863,7 +2832,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     public void exitDialogueExpressionAnimation() {
-        if (level().isClientSide || holdingDialogueExpressionTrigger == null) {
+        if (level().isClientSide() || holdingDialogueExpressionTrigger == null) {
             return;
         }
         String exitTrigger = dialogueExpressionExitTrigger(holdingDialogueExpressionTrigger);
@@ -2971,12 +2940,12 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     }
 
     boolean isInDialogue() {
-        return !level().isClientSide && DialogueSessionRegistry.hasSpeaker(this);
+        return !level().isClientSide() && DialogueSessionRegistry.hasSpeaker(this);
     }
 
     @Nullable
     private ServerPlayer getDialogueSpeaker() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return null;
         }
         return DialogueSessionRegistry.getSpeaker(this);

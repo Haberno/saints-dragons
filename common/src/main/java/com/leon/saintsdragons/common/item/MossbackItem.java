@@ -3,17 +3,21 @@ package com.leon.saintsdragons.common.item;
 import com.leon.saintsdragons.client.renderer.item.MossbackItemRenderer;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.dragons.Mossback;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animatable.GeoItem;
+import software.bernie.geckolib.animatable.client.GeoRenderProvider;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
@@ -42,12 +46,14 @@ public class MossbackItem extends Item implements GeoItem {
         ItemStack stack = player.getItemInHand(hand);
 
         if (level instanceof ServerLevel serverLevel) {
-            Mossback mossback = ModEntities.MOSSBACK.get().create(serverLevel);
+            Mossback mossback = ModEntities.MOSSBACK.get().create(serverLevel, EntitySpawnReason.SPAWN_ITEM_USE);
             if (mossback != null) {
                 mossback.setBaby(isBaby(stack));
                 Vec3 look = player.getLookAngle();
                 Vec3 spawn = player.getEyePosition().add(look.scale(0.65D));
-                mossback.moveTo(spawn.x, spawn.y - 0.25D, spawn.z, player.getYRot(), 0.0F);
+                mossback.setPos(spawn.x, spawn.y - 0.25D, spawn.z);
+                mossback.setYRot(player.getYRot());
+                mossback.setXRot(0.0F);
                 mossback.setDeltaMovement(look.scale(1.25D).add(0.0D, 0.18D, 0.0D));
                 mossback.markThrown();
                 serverLevel.addFreshEntity(mossback);
@@ -56,34 +62,33 @@ public class MossbackItem extends Item implements GeoItem {
             }
         }
 
-        return level.isClientSide ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
+        return level.isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
         controllers.add(new AnimationController<>("idle", 4, state -> {
-            ItemStack stack = state.getData(DataTickets.ITEMSTACK);
-            state.setAndContinue(isBaby(stack) ? BABY_IDLE : IDLE);
+            state.setAndContinue(IDLE);
             return PlayState.CONTINUE;
         }));
     }
 
     public static boolean isBaby(ItemStack stack) {
-        return stack != null && stack.hasTag() && stack.getTag().getBoolean(BABY_TAG);
+        return stack != null && stack.getOrDefault(DataComponents.CUSTOM_DATA, CustomData.EMPTY)
+                .copyTag().getBooleanOr(BABY_TAG, false);
     }
 
     public static void setBaby(ItemStack stack, boolean baby) {
         if (stack == null || stack.isEmpty()) {
             return;
         }
-        if (baby) {
-            stack.getOrCreateTag().putBoolean(BABY_TAG, true);
-        } else if (stack.hasTag()) {
-            stack.getTag().remove(BABY_TAG);
-            if (stack.getTag().isEmpty()) {
-                stack.setTag(null);
+        CustomData.update(DataComponents.CUSTOM_DATA, stack, tag -> {
+            if (baby) {
+                tag.putBoolean(BABY_TAG, true);
+            } else {
+                tag.remove(BABY_TAG);
             }
-        }
+        });
     }
 
     @Override
@@ -92,16 +97,13 @@ public class MossbackItem extends Item implements GeoItem {
     }
 
     @Override
-    public void createRenderer(Consumer<Object> consumer) {
-        Object provider = createFabricRenderProvider();
-        if (provider != null) {
-            consumer.accept(provider);
-        }
-    }
-
-    @Override
-    public Supplier<Object> getRenderProvider() {
-        return renderProvider;
+    public void createGeoRenderer(Consumer<GeoRenderProvider> consumer) {
+        consumer.accept(new GeoRenderProvider() {
+            @Override
+            public MossbackItemRenderer getGeoItemRenderer() {
+                return MossbackForgeRendererHolder.renderer();
+            }
+        });
     }
 
     private Object createFabricRenderProvider() {

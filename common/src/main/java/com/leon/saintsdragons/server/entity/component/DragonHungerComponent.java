@@ -3,7 +3,8 @@ package com.leon.saintsdragons.server.entity.component;
 import com.leon.saintsdragons.common.config.SaintsDragonsConfig;
 import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 
@@ -46,7 +47,7 @@ public final class DragonHungerComponent {
             return;
         }
         this.hunger = clamped;
-        if (!dragon.level().isClientSide && dragon.isTame() && dragon.getOwnerUUID() != null) {
+        if (!dragon.level().isClientSide() && dragon.isTame() && dragon.getOwnerUUID() != null) {
             net.minecraft.server.level.ServerLevel serverLevel = (net.minecraft.server.level.ServerLevel) dragon.level();
             DragonCodexSavedData.get(serverLevel).updateDragonStats(dragon.getOwnerUUID(), dragon);
         }
@@ -106,13 +107,13 @@ public final class DragonHungerComponent {
         return 1;
     }
 
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         tag.putInt("Hunger", this.hunger);
         tag.putInt("HungerDecayTicks", this.hungerDecayTicks);
     }
 
-    public void loadFromNBT(CompoundTag tag) {
-        this.hunger = tag.contains("Hunger") ? Mth.clamp(tag.getInt("Hunger"), 0, HUNGER_MAX) : HUNGER_MAX;
-        this.hungerDecayTicks = tag.contains("HungerDecayTicks") ? Math.max(0, tag.getInt("HungerDecayTicks")) : 0;
+    public void loadFromNBT(ValueInput tag) {
+        this.hunger = Mth.clamp(tag.getIntOr("Hunger", HUNGER_MAX), 0, HUNGER_MAX);
+        this.hungerDecayTicks = Math.max(0, tag.getIntOr("HungerDecayTicks", 0));
     }
 }

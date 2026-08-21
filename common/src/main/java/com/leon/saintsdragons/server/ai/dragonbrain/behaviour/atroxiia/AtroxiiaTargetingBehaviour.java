@@ -89,7 +89,7 @@ public final class AtroxiiaTargetingBehaviour extends DragonTargetingBehaviour<A
         double range = Math.max(32.0D, dragon.getAttributeValue(Attributes.FOLLOW_RANGE));
         TargetingConditions conditions = TargetingConditions.forCombat()
                 .range(range)
-                .selector(entity -> predicate.test(type.cast(entity)) && dragon.canTarget(entity));
+                .selector((entity, ignoredLevel) -> predicate.test(type.cast(entity)) && dragon.canTarget(entity));
         return level.getNearestEntity(
                 type,
                 conditions,

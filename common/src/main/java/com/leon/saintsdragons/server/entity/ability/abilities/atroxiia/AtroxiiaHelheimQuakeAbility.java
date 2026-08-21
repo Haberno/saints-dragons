@@ -190,7 +190,7 @@ public class AtroxiiaHelheimQuakeAbility extends DragonAbility<Atroxiia> {
 
         for (LivingEntity target : targets) {
             if (target.distanceToSqr(dragon) > radiusSqr
-                    || !target.hurt(server.damageSources().mobAttack(dragon), damage)) {
+                    || !target.hurtServer(server, server.damageSources().mobAttack(dragon), damage)) {
                 continue;
             }
 

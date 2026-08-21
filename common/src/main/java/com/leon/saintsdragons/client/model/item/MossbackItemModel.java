@@ -4,6 +4,7 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.item.MossbackItem;
 import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.model.GeoModel;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class MossbackItemModel extends GeoModel<MossbackItem> {
     private final boolean baby;
@@ -17,14 +18,14 @@ public class MossbackItemModel extends GeoModel<MossbackItem> {
     }
 
     @Override
-    public Identifier getModelResource(MossbackItem animatable) {
+    public Identifier getModelResource(GeoRenderState renderState) {
         return SaintsDragonsCommon.rl(baby
-                ? "geo/entity/baby_mossback.geo.json"
-                : "geo/entity/mossback.geo.json");
+                ? "geckolib/models/entity/baby_mossback.geo.json"
+                : "geckolib/models/entity/mossback.geo.json");
     }
 
     @Override
-    public Identifier getTextureResource(MossbackItem animatable) {
+    public Identifier getTextureResource(GeoRenderState renderState) {
         return SaintsDragonsCommon.rl(baby
                 ? "textures/entity/mossback/baby_mossback.png"
                 : "textures/entity/mossback/mossback.png");
@@ -33,7 +34,7 @@ public class MossbackItemModel extends GeoModel<MossbackItem> {
     @Override
     public Identifier getAnimationResource(MossbackItem animatable) {
         return SaintsDragonsCommon.rl(baby
-                ? "animations/entity/baby_mossback.animation.json"
-                : "animations/entity/mossback.animation.json");
+                ? "geckolib/animations/entity/baby_mossback.animation.json"
+                : "geckolib/animations/entity/mossback.animation.json");
     }
 }

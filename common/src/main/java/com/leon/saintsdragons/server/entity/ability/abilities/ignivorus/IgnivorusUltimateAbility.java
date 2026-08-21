@@ -120,7 +120,7 @@ public class IgnivorusUltimateAbility extends DragonAbility<Ignivorus> {
                 dragon.setDeltaMovement(Vec3.ZERO);
                 dragon.setUltimateCameraZoomActive(true);
                 dragon.triggerAnim(IgnivorusAnimationHandler.MOVEMENT_CONTROLLER, "phase2_ultimate");
-                if (!dragon.level().isClientSide) {
+                if (!dragon.level().isClientSide()) {
                     dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_ULTIMATE_AIR.get(), 1.0f, 1.0f, 127);
                 }
                 phase2DamageApplied = false;
@@ -151,12 +151,12 @@ public class IgnivorusUltimateAbility extends DragonAbility<Ignivorus> {
                 novaSpawned = false;
                 if (isAirborne) {
                     dragon.triggerAnim(AnimationHelper.FLIGHT_CONTROLLER, "ultimate_start_air");
-                    if (!dragon.level().isClientSide) {
+                    if (!dragon.level().isClientSide()) {
                         dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_ULTIMATE_START_AIR.get(), 1.0f, 1.0f, 54);
                     }
                 } else {
                     dragon.triggerAnim(IgnivorusAnimationHandler.MOVEMENT_CONTROLLER, "ultimate_start");
-                    if (!dragon.level().isClientSide) {
+                    if (!dragon.level().isClientSide()) {
                         dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_ULTIMATE_START.get(), 1.0f, 1.0f, 92);
                     }
                 }
@@ -302,7 +302,7 @@ public class IgnivorusUltimateAbility extends DragonAbility<Ignivorus> {
 
     private void spawnNovaEntity() {
         Ignivorus dragon = getUser();
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
 
@@ -360,7 +360,7 @@ public class IgnivorusUltimateAbility extends DragonAbility<Ignivorus> {
         Vec3 center = dragon.position();
         dragon.triggerScreenShake(openingPulse ? 2.3F : 1.2F);
 
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         ServerLevel server = (ServerLevel) dragon.level();
@@ -389,7 +389,7 @@ public class IgnivorusUltimateAbility extends DragonAbility<Ignivorus> {
             }
 
             entity.hurt(source, explosionDamage);
-            entity.setSecondsOnFire(EXPLOSION_FIRE_SECONDS);
+            entity.igniteForSeconds(EXPLOSION_FIRE_SECONDS);
 
             Vec3 knock = entity.position().subtract(center).normalize().scale(1.4D);
             entity.push(knock.x, 0.6D, knock.z);

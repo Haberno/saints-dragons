@@ -60,7 +60,8 @@ public class WingedPullAttackGoal extends Goal {
         if (this.attackTick >= 0) {
             this.attackTick++;
             if (this.attackTick == IMPACT_TICK && isInAttackRange(target)) {
-                if (this.winged.doHurtTarget(target)) {
+                if (this.winged.doHurtTarget(
+                        (net.minecraft.server.level.ServerLevel) this.winged.level(), target)) {
                     this.winged.recordPullAttackHit();
                     pullTarget(target);
                     this.winged.requestCombatRetreat();

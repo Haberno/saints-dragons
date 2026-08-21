@@ -1,23 +1,23 @@
 package com.leon.saintsdragons.client.renderer.npc;
 
 import com.leon.saintsdragons.client.model.npc.IvyTheDragonMerchantModel;
+import com.leon.saintsdragons.client.renderer.SaintsDragonsLivingGeoRenderer;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.client.renderer.layer.npc.IvyHeldItemLayer;
 import com.leon.saintsdragons.common.registry.ModSounds;
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.Font;
-import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
-import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.renderer.GeoEntityRenderer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.world.phys.Vec3;
+import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 import java.util.Map;
 import java.util.WeakHashMap;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class IvyTheDragonMerchantRenderer extends GeoEntityRenderer<IvyTheDragonMerchant> {
+public class IvyTheDragonMerchantRenderer extends SaintsDragonsLivingGeoRenderer<IvyTheDragonMerchant> {
     private static final double CHATTER_RENDER_DISTANCE_SQR = 256.0D;
     private static final float CHATTER_Y_OFFSET = 0.15F;
     private static final long CHATTER_TYPE_INTERVAL_MS = 42L;
@@ -30,30 +30,24 @@ public class IvyTheDragonMerchantRenderer extends GeoEntityRenderer<IvyTheDragon
     }
 
     @Override
-    protected float getDeathMaxRotation(IvyTheDragonMerchant animatable) {
+    protected float getDeathMaxRotation(GeoRenderState renderState) {
         return 0.0F;
     }
 
     public IvyTheDragonMerchantRenderer(EntityRendererProvider.Context renderManager) {
         super(renderManager, new IvyTheDragonMerchantModel());
-        this.addRenderLayer(new IvyHeldItemLayer(this));
+        this.withRenderLayer(new IvyHeldItemLayer(this));
         this.shadowRadius = 0.6f;
     }
 
     @Override
-    public void render(@NotNull IvyTheDragonMerchant entity, float entityYaw, float partialTick,
-                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
-        super.render(entity, entityYaw, partialTick, poseStack, bufferSource, packedLight);
-        renderIdleChatter(entity, poseStack, bufferSource, packedLight);
-    }
-
-    private void renderIdleChatter(IvyTheDragonMerchant entity,
-                                   PoseStack poseStack,
-                                   MultiBufferSource bufferSource,
-                                   int packedLight) {
+    public void extractRenderState(IvyTheDragonMerchant entity,
+                                   SaintsDragonsLivingEntityRenderState renderState,
+                                   float partialTick) {
+        super.extractRenderState(entity, renderState, partialTick);
         String chatter = entity.getIdleChatterText();
         if (chatter.isEmpty()
-                || entity.distanceToSqr(Minecraft.getInstance().gameRenderer.getMainCamera().getPosition()) > CHATTER_RENDER_DISTANCE_SQR) {
+                || renderState.distanceToCameraSq > CHATTER_RENDER_DISTANCE_SQR) {
             return;
         }
         chatter = resolveChatterText(entity, chatter);
@@ -63,15 +57,8 @@ public class IvyTheDragonMerchantRenderer extends GeoEntityRenderer<IvyTheDragon
             return;
         }
         playVoiceBlipForNewText(visibleChatter, state);
-        Font font = Minecraft.getInstance().font;
-        float y = entity.getNameTagOffsetY() + CHATTER_Y_OFFSET;
-        poseStack.pushPose();
-        poseStack.translate(0.0F, y, 0.0F);
-        poseStack.mulPose(this.entityRenderDispatcher.cameraOrientation());
-        poseStack.scale(-0.025F, -0.025F, 0.025F);
-        float x = -font.width(visibleChatter) / 2.0F;
-        font.drawInBatch(visibleChatter, x, 0.0F, 0xFFFFFFFF, false, poseStack.last().pose(), bufferSource, Font.DisplayMode.NORMAL, 0, packedLight);
-        poseStack.popPose();
+        renderState.nameTag = Component.literal(visibleChatter);
+        renderState.nameTagAttachment = new Vec3(0.0D, entity.getBbHeight() + CHATTER_Y_OFFSET, 0.0D);
     }
 
     private ChatterRenderState getChatterState(IvyTheDragonMerchant entity, String text) {

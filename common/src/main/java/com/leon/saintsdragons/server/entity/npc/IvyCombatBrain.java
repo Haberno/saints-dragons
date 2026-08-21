@@ -6,6 +6,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.goal.Goal;
 import net.minecraft.world.entity.monster.illager.Evoker;
@@ -241,7 +242,7 @@ public class IvyCombatBrain {
             return true;
         }
         if (!lastAppliedCombatAnimation.isEmpty()) {
-            state.controller().forceAnimationReset();
+            state.controller().reset();
             lastAppliedCombatAnimation = "";
         }
         if (ivy.isBoxingBackingUp()) {
@@ -261,7 +262,7 @@ public class IvyCombatBrain {
             return false;
         }
         if (!animation.equals(lastAppliedCombatAnimation)) {
-            state.controller().forceAnimationReset();
+            state.controller().reset();
             lastAppliedCombatAnimation = animation;
         }
         AnimationHelper.setAndContinue(state, rawAnimation);
@@ -372,7 +373,7 @@ public class IvyCombatBrain {
     }
 
     public void onHurt(@NotNull DamageSource source, boolean wasHurt) {
-        if (!wasHurt || ivy.isDownedOrArising() || ivy.level().isClientSide || !(source.getEntity() instanceof LivingEntity attacker) || attacker == ivy) {
+        if (!wasHurt || ivy.isDownedOrArising() || ivy.level().isClientSide() || !(source.getEntity() instanceof LivingEntity attacker) || attacker == ivy) {
             return;
         }
         LivingEntity target = resolveReactiveTarget(attacker);
@@ -387,7 +388,7 @@ public class IvyCombatBrain {
     }
 
     public boolean tryDodgeOnHit(@NotNull DamageSource source, float amount) {
-        if (amount <= 0.0F || ivy.isDownedOrArising() || ivy.level().isClientSide || !(source.getEntity() instanceof LivingEntity attacker) || attacker == ivy) {
+        if (amount <= 0.0F || ivy.isDownedOrArising() || ivy.level().isClientSide() || !(source.getEntity() instanceof LivingEntity attacker) || attacker == ivy) {
             return false;
         }
         if (attacker instanceof Player) {
@@ -448,7 +449,7 @@ public class IvyCombatBrain {
     }
 
     public void dodgeBlockedHit(@NotNull DamageSource source) {
-        if (ivy.isDownedOrArising() || ivy.level().isClientSide || !(source.getEntity() instanceof LivingEntity attacker) || attacker == ivy || !attacker.isAlive()) {
+        if (ivy.isDownedOrArising() || ivy.level().isClientSide() || !(source.getEntity() instanceof LivingEntity attacker) || attacker == ivy || !attacker.isAlive()) {
             return;
         }
         if (attacker instanceof Player) {
@@ -622,7 +623,6 @@ public class IvyCombatBrain {
 
         Vec3 step = away.normalize().scale(1.55D);
         ivy.setDeltaMovement(step.x, ivy.getDeltaMovement().y + 0.08D, step.z);
-        ivy.hasImpulse = true;
         ivy.setBoxingMovement(true, true);
         ivy.setBoxingActionTicks(DODGE_ACTION_TICKS);
         ivy.setBoxingAnimation(dodgeBackwardsTrigger());
@@ -660,7 +660,7 @@ public class IvyCombatBrain {
 
     public void tryStartRetreatRecovery() {
         boolean urgentFoodRecovery = ivy.needsCombatRecoveryFood() && ivy.hasRecoveryFood();
-        if (ivy.level().isClientSide
+        if (ivy.level().isClientSide()
                 || (!urgentFoodRecovery && retreatRecoveryCooldown > 0)
                 || ivy.isTrading()
                 || !ivy.isReadyForCombatAnimation()
@@ -883,7 +883,6 @@ public class IvyCombatBrain {
         Vec3 side = new Vec3(-away.z, 0.0D, away.x).normalize();
         Vec3 impulse = dodge == 2 ? away.normalize().scale(0.48D) : side.scale(dodge == 0 ? 0.42D : -0.42D);
         ivy.setDeltaMovement(ivy.getDeltaMovement().add(impulse.x, 0.08D, impulse.z));
-        ivy.hasImpulse = true;
     }
 
     private void startReactiveDodge(LivingEntity target, int counterChance) {
@@ -938,7 +937,6 @@ public class IvyCombatBrain {
 
         Vec3 step = tangent.scale(0.44D).add(radial.scale(-0.18D)).normalize().scale(0.54D);
         ivy.setDeltaMovement(step.x, ivy.getDeltaMovement().y + 0.08D, step.z);
-        ivy.hasImpulse = true;
     }
 
     private void applyImpact(AttackHit hit) {
@@ -961,7 +959,8 @@ public class IvyCombatBrain {
         }
         boolean swordDamage = hit.swordDamage;
         float damage = swordDamage ? ivy.getEquippedSwordDamageAgainst(target) : hit.damage;
-        boolean damaged = target.hurt(ivy.damageSources().mobAttack(ivy), damage);
+        boolean damaged = ivy.level() instanceof ServerLevel serverLevel
+                && target.hurtServer(serverLevel, ivy.damageSources().mobAttack(ivy), damage);
         if (damaged && swordDamage) {
             ivy.applyEquippedSwordPostHit(target);
         }
@@ -1014,7 +1013,7 @@ public class IvyCombatBrain {
     }
 
     private void throwVenomArrowAtTarget() {
-        if (ivy.level().isClientSide || impactTargetId < 0 || !(ivy.level().getEntity(impactTargetId) instanceof LivingEntity target) || !isValidTarget(target)) {
+        if (ivy.level().isClientSide() || impactTargetId < 0 || !(ivy.level().getEntity(impactTargetId) instanceof LivingEntity target) || !isValidTarget(target)) {
             return;
         }
         if (!ivy.hasLineOfSight(target)) {
@@ -1084,7 +1083,6 @@ public class IvyCombatBrain {
     private void setComboHorizontalImpulse(Vec3 step, double lift) {
         Vec3 current = ivy.getDeltaMovement();
         ivy.setDeltaMovement(step.x, current.y + lift, step.z);
-        ivy.hasImpulse = true;
     }
 
     private AttackType chooseAttack(double distanceSqr, boolean targetStill) {
@@ -1314,7 +1312,6 @@ public class IvyCombatBrain {
         if (away.horizontalDistanceSqr() > 1.0E-4D) {
             Vec3 step = away.normalize().scale(0.17D);
             ivy.setDeltaMovement(ivy.getDeltaMovement().add(step.x, 0.0D, step.z));
-            ivy.hasImpulse = true;
         }
     }
 
@@ -1343,7 +1340,6 @@ public class IvyCombatBrain {
         double radialCorrection = Mth.clamp(distance - preferred, -0.75D, 0.75D) * -0.035D;
         Vec3 step = tangent.scale(0.13D).add(radial.scale(radialCorrection));
         ivy.setDeltaMovement(ivy.getDeltaMovement().add(step.x, 0.0D, step.z));
-        ivy.hasImpulse = true;
     }
 
     private class BoxingGoal extends Goal {

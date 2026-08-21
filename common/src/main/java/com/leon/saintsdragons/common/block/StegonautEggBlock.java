@@ -22,12 +22,18 @@ import java.util.function.Supplier;
 
 
 public class StegonautEggBlock extends AbstractTimedDragonEggBlock<StegonautEggBlockEntity> {
+    public static final com.mojang.serialization.MapCodec<StegonautEggBlock> CODEC = simpleCodec(StegonautEggBlock::new);
     private static final int DEFAULT_HATCH_TICKS = 30000; // 25 minutes
     private static final VoxelShape EGG_SHAPE = box(3.0D, 0.0D, 3.0D, 13.0D, 10.0D, 13.0D);
 
     public StegonautEggBlock(Properties properties) {
         super(properties);
         this.registerDefaultState(this.stateDefinition.any().setValue(HATCH, 0));
+    }
+
+    @Override
+    protected com.mojang.serialization.MapCodec<StegonautEggBlock> codec() {
+        return CODEC;
     }
 
     @Nullable
@@ -64,7 +70,7 @@ public class StegonautEggBlock extends AbstractTimedDragonEggBlock<StegonautEggB
 
     @Override
     protected DragonEntity createBaby(ServerLevel level) {
-        return ModEntities.STEGONAUT.get().create(level);
+        return ModEntities.STEGONAUT.get().create(level, net.minecraft.world.entity.EntitySpawnReason.BREEDING);
     }
 
     @Override

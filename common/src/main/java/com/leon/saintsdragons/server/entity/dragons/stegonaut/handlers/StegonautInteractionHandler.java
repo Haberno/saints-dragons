@@ -71,7 +71,7 @@ public final class StegonautInteractionHandler extends AbstractDragonInteraction
             );
         }
 
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!player.getAbilities().instabuild) {
                 heldItem.shrink(1);
             }
@@ -101,7 +101,7 @@ public final class StegonautInteractionHandler extends AbstractDragonInteraction
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     @Override
@@ -177,7 +177,7 @@ public final class StegonautInteractionHandler extends AbstractDragonInteraction
 
     private InteractionResult handleFeeding(Player player, ItemStack heldItem) {
         var baby = dragon.getBabyComponent();
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             if (!player.getAbilities().instabuild) {
                 heldItem.shrink(1);
             }
@@ -207,13 +207,13 @@ public final class StegonautInteractionHandler extends AbstractDragonInteraction
             }
         }
 
-        return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+        return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private void awardTamingAdvancement(Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
-            var advancement = serverPlayer.server.getAdvancements()
-                    .getAdvancement(SaintsDragonsCommon.rl("tame_stegonaut"));
+            var advancement = serverPlayer.level().getServer().getAdvancements()
+                    .get(SaintsDragonsCommon.rl("tame_stegonaut"));
             if (advancement != null) {
                 serverPlayer.getAdvancements().award(advancement, "tame_stegonaut");
             }

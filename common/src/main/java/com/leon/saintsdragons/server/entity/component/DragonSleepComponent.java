@@ -4,7 +4,8 @@ import com.leon.saintsdragons.server.ai.dragonbrain.DragonMemories;
 import com.leon.saintsdragons.server.ai.dragonbrain.perception.DragonAwarenessMemory;
 import com.leon.saintsdragons.server.ai.dragonbrain.perception.DragonSensoryObservation;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -77,7 +78,7 @@ public final class DragonSleepComponent {
     }
 
     public void tickBrainDecisions() {
-        if (dragon.level().isClientSide || !dragon.usesBrainSleepBehaviour()) {
+        if (dragon.level().isClientSide() || !dragon.usesBrainSleepBehaviour()) {
             return;
         }
         if (!dragon.supportsSleep()) {
@@ -137,25 +138,25 @@ public final class DragonSleepComponent {
     }
 
     public boolean isSleeping() {
-        return dragon.level() != null && dragon.level().isClientSide
+        return dragon.level() != null && dragon.level().isClientSide()
                 ? dragon.getEntityData().get(dataSleeping)
                 : sleeping;
     }
 
     public boolean isSleepingEntering() {
-        return dragon.level() != null && dragon.level().isClientSide
+        return dragon.level() != null && dragon.level().isClientSide()
                 ? dragon.getEntityData().get(dataSleepingEntering)
                 : sleepingEntering;
     }
 
     public boolean isSleepingExiting() {
-        return dragon.level() != null && dragon.level().isClientSide
+        return dragon.level() != null && dragon.level().isClientSide()
                 ? dragon.getEntityData().get(dataSleepingExiting)
                 : sleepingExiting;
     }
 
     public boolean isSleepTransitioning() {
-        if (dragon.level() != null && dragon.level().isClientSide) {
+        if (dragon.level() != null && dragon.level().isClientSide()) {
             return isSleepingEntering() || isSleepingExiting();
         }
         return sleepTransitioning || sleepingEntering || sleepingExiting;
@@ -179,7 +180,7 @@ public final class DragonSleepComponent {
     }
 
     private void tickSleepDecisions(boolean useSleepPressure) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         if (!dragon.supportsSleep()) {
@@ -446,8 +447,8 @@ public final class DragonSleepComponent {
         float amount = switch (sound.kind()) {
             case IMPACT -> 7.0F + confidence * 18.0F;
             case STEP -> confidence >= 0.18F ? 0.75F + confidence * 2.5F : 0.0F;
-            case SPLASH -> (dragon.isInWaterOrBubble() ? 4.0F : 2.0F)
-                    + confidence * (dragon.isInWaterOrBubble() ? 14.0F : 7.0F);
+            case SPLASH -> (dragon.isInWater() ? 4.0F : 2.0F)
+                    + confidence * (dragon.isInWater() ? 14.0F : 7.0F);
             case BLOCK -> 3.0F + confidence * 9.0F;
             case TELEPORT -> 5.0F + confidence * 12.0F;
             case EXPLOSION, COMBAT, PROJECTILE, ROAR -> 4.0F + confidence * 10.0F;
@@ -500,7 +501,7 @@ public final class DragonSleepComponent {
         }
 
         float threshold = switch (sound.kind()) {
-            case SPLASH -> dragon.isInWaterOrBubble() ? 0.09F : 0.16F;
+            case SPLASH -> dragon.isInWater() ? 0.09F : 0.16F;
             case STEP -> 0.16F;
             case BLOCK, TELEPORT -> 0.14F;
             default -> 0.10F;
@@ -564,11 +565,11 @@ public final class DragonSleepComponent {
         if (recentCombatTick > 0
                 && ticksSinceCombat >= 0
                 && ticksSinceCombat < RECENT_COMBAT_SLEEP_BLOCK_TICKS) return false;
-        if ((dragon.isInWaterOrBubble() && !dragon.canSleepInWater()) || dragon.isInLava()) return false;
+        if ((dragon.isInWater() && !dragon.canSleepInWater()) || dragon.isInLava()) return false;
         boolean alreadySleepingOrTransitioning = dragon.isSleeping() || dragon.isSleepTransitioning();
         boolean ownerBedSleep = shouldFollowOwnerSleepNow();
         boolean ownerSitCommand = dragon.isTame() && (dragon.isOrderedToSit() || dragon.getCommand() == 1);
-        boolean waterSleeperAtRest = dragon.canSleepInWater() && dragon.isInWaterOrBubble();
+        boolean waterSleeperAtRest = dragon.canSleepInWater() && dragon.isInWater();
         if (!alreadySleepingOrTransitioning) {
             if (!dragon.onGround() && !waterSleeperAtRest && !(ownerBedSleep && ownerSitCommand)) return false;
             if (dragon.isAerial()) {
@@ -719,18 +720,16 @@ public final class DragonSleepComponent {
         return sleepReentryCooldownTicks > 0;
     }
 
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         tag.putFloat("SleepPressure", sleepPressure);
         if (sleepCommandSnapshot >= 0) {
             tag.putInt("SleepCommandSnapshot", sleepCommandSnapshot);
         }
     }
 
-    public void loadFromNBT(CompoundTag tag) {
-        if (tag.contains("SleepPressure")) {
-            sleepPressure = Math.max(0.0F, Math.min(MAX_SLEEP_PRESSURE, tag.getFloat("SleepPressure")));
-        }
-        sleepCommandSnapshot = tag.contains("SleepCommandSnapshot") ? tag.getInt("SleepCommandSnapshot") : -1;
+    public void loadFromNBT(ValueInput tag) {
+        sleepPressure = Math.max(0.0F, Math.min(MAX_SLEEP_PRESSURE, tag.getFloatOr("SleepPressure", 0.0F)));
+        sleepCommandSnapshot = tag.getIntOr("SleepCommandSnapshot", -1);
 
         sleepTransitionTicks = 0;
         sleepTransitioning = false;

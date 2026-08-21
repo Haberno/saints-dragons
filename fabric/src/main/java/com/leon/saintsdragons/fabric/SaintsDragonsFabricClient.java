@@ -12,15 +12,14 @@ import com.leon.saintsdragons.fabric.client.FabricDragonRideKeybinds;
 import com.leon.saintsdragons.fabric.client.FabricDragonUI;
 import com.leon.saintsdragons.fabric.client.event.FabricClientEventHandler;
 import com.leon.saintsdragons.fabric.client.particle.FabricParticleRegistry;
-import com.leon.saintsdragons.fabric.client.renderer.FabricDraconianArmorRenderer;
 import com.leon.saintsdragons.fabric.client.renderer.FabricDragonPartRenderer;
 import com.leon.saintsdragons.fabric.entity.part.FabricPartEntities;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
-import net.fabricmc.fabric.api.blockrenderlayer.v1.BlockRenderLayerMap;
+import net.fabricmc.fabric.api.client.rendering.v1.BlockRenderLayerMap;
 import net.fabricmc.fabric.api.client.rendering.v1.BlockEntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityModelLayerRegistry;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 
 public final class SaintsDragonsFabricClient implements ClientModInitializer {
 
@@ -29,7 +28,7 @@ public final class SaintsDragonsFabricClient implements ClientModInitializer {
         RealCameraCompatibility.register();
         CommonClientModEvents.registerEntityRenderers(EntityRendererRegistry::register);
         CommonClientModEvents.registerMenuScreens();
-        BlockRenderLayerMap.INSTANCE.putBlock(ModBlocks.DRACONIAN_NUCLEUS.get(), RenderType.translucent());
+        BlockRenderLayerMap.putBlock(ModBlocks.DRACONIAN_NUCLEUS.get(), ChunkSectionLayer.TRANSLUCENT);
         EntityModelLayerRegistry.registerModelLayer(
                 DraconianNucleusModel.LAYER_LOCATION,
                 DraconianNucleusModel::createBodyLayer);
@@ -43,7 +42,6 @@ public final class SaintsDragonsFabricClient implements ClientModInitializer {
                 ModBlockEntities.DRACONIC_CRUCIBLE.get(),
                 DraconicCrucibleRenderer::new);
         EntityRendererRegistry.register(FabricPartEntities.DRAGON_PART, FabricDragonPartRenderer::new);
-        FabricDraconianArmorRenderer.register();
         FabricParticleRegistry.registerParticleFactories();
         FabricDragonRideKeybinds.init();
         FabricDragonUI.init();

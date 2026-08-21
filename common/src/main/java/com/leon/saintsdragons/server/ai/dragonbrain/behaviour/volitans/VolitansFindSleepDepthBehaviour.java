@@ -112,12 +112,12 @@ public final class VolitansFindSleepDepthBehaviour extends DragonBehaviour<Volit
             return null;
         }
         BlockPos.MutableBlockPos cursor = new BlockPos.MutableBlockPos(x, originY, z);
-        int maxY = Math.min(dragon.level().getMaxBuildHeight() - 1, originY + 8);
+        int maxY = Math.min(dragon.level().getMaxY() - 1, originY + 8);
         int surfaceY = findSurfaceY(dragon, cursor, maxY);
         if (surfaceY == Integer.MIN_VALUE) {
             return null;
         }
-        int minScanY = Math.max(dragon.level().getMinBuildHeight() + 1, originY - DOWN_SCAN_BLOCKS);
+        int minScanY = Math.max(dragon.level().getMinY() + 1, originY - DOWN_SCAN_BLOCKS);
         cursor.set(x, originY, z);
         int bottomY = findBottomY(dragon, cursor, minScanY);
         int minTargetY = bottomY + FLOOR_CLEARANCE_BLOCKS;

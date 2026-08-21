@@ -86,7 +86,7 @@ public class RaevyxGroundCombatBehaviour extends DragonBehaviour<Raevyx> {
 
         boolean hasLineOfSight = dragon.getSensing().hasLineOfSight(target);
         double gap = gapToTarget(dragon, target);
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             if (gap <= meleeStopRange(dragon, target) && hasLineOfSight && tryMeleeAttack(dragon, target)) {
                 claimStationaryMovement(context, "water-melee");
             }
@@ -227,7 +227,7 @@ public class RaevyxGroundCombatBehaviour extends DragonBehaviour<Raevyx> {
     }
 
     private boolean tryGroundDash(Raevyx dragon, LivingEntity target) {
-        if (dragon.isAerial() || dragon.isInWaterOrBubble() || dragon.isDashing() || dragon.isDodging()) {
+        if (dragon.isAerial() || dragon.isInWater() || dragon.isDashing() || dragon.isDodging()) {
             return false;
         }
 

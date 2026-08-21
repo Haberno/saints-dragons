@@ -3,10 +3,14 @@ package com.leon.saintsdragons.fabric.mixin;
 import com.leon.saintsdragons.common.registry.ModItems;
 import com.leon.saintsdragons.common.registry.ModPotionItems;
 import com.leon.saintsdragons.common.registry.ModPotions;
+import net.minecraft.core.Holder;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionBrewing;
-import net.minecraft.world.item.alchemy.PotionUtils;
+import net.minecraft.world.item.alchemy.Potion;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.alchemy.Potions;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -25,8 +29,19 @@ public final class PotionBrewingMixin {
     private static boolean isSaintsDragonsPotion(ItemStack stack) {
         return stack.is(ModPotionItems.POTION_OF_TIDEGUARD.get())
                 || stack.is(ModPotionItems.POTION_OF_SEARING.get())
-                || PotionUtils.getPotion(stack) == ModPotions.TIDEGUARD.get()
-                || PotionUtils.getPotion(stack) == ModPotions.SEARING.get();
+                || hasPotion(stack, BuiltInRegistries.POTION.wrapAsHolder(ModPotions.TIDEGUARD.get()))
+                || hasPotion(stack, BuiltInRegistries.POTION.wrapAsHolder(ModPotions.SEARING.get()));
+    }
+
+    @Unique
+    private static boolean hasPotion(ItemStack stack, Holder<Potion> potion) {
+        return stack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY).is(potion);
+    }
+
+    @Unique
+    private static void setPotion(ItemStack stack, Potion potion) {
+        stack.set(DataComponents.POTION_CONTENTS,
+                new PotionContents(BuiltInRegistries.POTION.wrapAsHolder(potion)));
     }
 
     @Inject(method = "isIngredient", at = @At("HEAD"), cancellable = true)
@@ -64,7 +79,7 @@ public final class PotionBrewingMixin {
             return;
         }
 
-        if (PotionUtils.getPotion(itemStack) != Potions.AWKWARD) {
+        if (!hasPotion(itemStack, Potions.AWKWARD)) {
             return;
         }
 
@@ -84,7 +99,7 @@ public final class PotionBrewingMixin {
     ) {
         if (isCustomRecipeIngredient(itemStack2)
                 && itemStack.is(Items.POTION)
-                && PotionUtils.getPotion(itemStack) == Potions.AWKWARD) {
+                && hasPotion(itemStack, Potions.AWKWARD)) {
             cir.setReturnValue(true);
             return;
         }
@@ -105,20 +120,20 @@ public final class PotionBrewingMixin {
             return;
         }
 
-        if (PotionUtils.getPotion(itemStack) != Potions.AWKWARD || !itemStack.is(Items.POTION)) {
+        if (!hasPotion(itemStack, Potions.AWKWARD) || !itemStack.is(Items.POTION)) {
             return;
         }
 
         if (itemStack2.is(ModItems.VARASUCHUS_SCALE.get())) {
             ItemStack output = new ItemStack(ModPotionItems.POTION_OF_TIDEGUARD.get());
-            PotionUtils.setPotion(output, ModPotions.TIDEGUARD.get());
+            setPotion(output, ModPotions.TIDEGUARD.get());
             cir.setReturnValue(output);
             return;
         }
 
         if (itemStack2.is(ModItems.IGNIVORUS_TOOTH.get())) {
             ItemStack output = new ItemStack(ModPotionItems.POTION_OF_SEARING.get());
-            PotionUtils.setPotion(output, ModPotions.SEARING.get());
+            setPotion(output, ModPotions.SEARING.get());
             cir.setReturnValue(output);
         }
     }

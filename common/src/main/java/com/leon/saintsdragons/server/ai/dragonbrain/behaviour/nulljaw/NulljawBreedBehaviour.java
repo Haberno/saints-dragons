@@ -12,7 +12,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.entity.AgeableMob;
 import net.minecraft.world.entity.ExperienceOrb;
-import net.minecraft.world.level.GameRules;
+import net.minecraft.world.level.gamerules.GameRules;
 
 public final class NulljawBreedBehaviour extends DragonBreedBehaviour<Nulljaw> {
     private static final double BREED_FLIGHT_SPEED = 0.22D;
@@ -97,7 +97,7 @@ public final class NulljawBreedBehaviour extends DragonBreedBehaviour<Nulljaw> {
         level.addFreshEntityWithPassengers(baby);
         level.broadcastEntityEvent(dragon, (byte)18);
 
-        if (level.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) {
+        if (level.getGameRules().get(GameRules.MOB_DROPS)) {
             level.addFreshEntity(new ExperienceOrb(
                     level,
                     baby.getX(),

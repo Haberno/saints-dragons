@@ -14,7 +14,7 @@
 //
 //final class SaintsDragonsBrewingEmiRecipe implements EmiRecipe {
 //    private static final Identifier BACKGROUND =
-//            new Identifier("minecraft", "textures/gui/container/brewing_stand.png");
+//            Identifier.fromNamespaceAndPath("minecraft", "textures/gui/container/brewing_stand.png");
 //    private static final EmiStack BLAZE_POWDER = EmiStack.of(Items.BLAZE_POWDER);
 //
 //    private final EmiStack input;

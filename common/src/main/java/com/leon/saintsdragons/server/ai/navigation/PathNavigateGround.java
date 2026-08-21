@@ -145,7 +145,7 @@ public class PathNavigateGround extends GroundPathNavigation {
                 || blockedAscentJumpAttempts >= MAX_BLOCKED_ASCENT_JUMPS_PER_NODE
                 || !this.mob.onGround()
                 || !this.mob.horizontalCollision
-                || this.mob.isInWaterOrBubble()) {
+                || this.mob.isInWater()) {
             return;
         }
 
@@ -301,7 +301,7 @@ public class PathNavigateGround extends GroundPathNavigation {
         }
 
         if (pathType == PathType.WATER) {
-            return waterEntryAllowed || this.mob.isInWaterOrBubble();
+            return waterEntryAllowed || this.mob.isInWater();
         }
 
         return pathType != PathType.OPEN;

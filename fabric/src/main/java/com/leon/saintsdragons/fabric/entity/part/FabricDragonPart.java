@@ -1,9 +1,11 @@
 package com.leon.saintsdragons.fabric.entity.part;
 
 import com.leon.saintsdragons.server.entity.base.DragonPartEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
+import net.minecraft.server.level.ServerEntity;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityDimensions;
@@ -11,6 +13,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -114,9 +118,9 @@ public class FabricDragonPart extends Entity implements DragonPartEntity {
     }
 
     @Override
-    public boolean startRiding(@NotNull Entity entity, boolean force) {
+    public boolean startRiding(@NotNull Entity entity, boolean force, boolean sendPacket) {
         if (parent != null) {
-            return entity.startRiding(parent, force);
+            return entity.startRiding(parent, force, sendPacket);
         }
         return false;
     }
@@ -124,7 +128,7 @@ public class FabricDragonPart extends Entity implements DragonPartEntity {
     @Override
     public void addPassenger(@NotNull Entity passenger) {
         if (parent != null) {
-            passenger.startRiding(parent, true);
+            passenger.startRiding(parent, true, true);
             return;
         }
         super.addPassenger(passenger);
@@ -151,13 +155,8 @@ public class FabricDragonPart extends Entity implements DragonPartEntity {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
-        // Only process damage on server side
-        if (this.level().isClientSide) {
-            return !this.isInvulnerableTo(source);
-        }
-
-        if (this.isInvulnerableTo(source)) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        if (this.isInvulnerableToBase(source)) {
             return false;
         }
 
@@ -167,26 +166,25 @@ public class FabricDragonPart extends Entity implements DragonPartEntity {
 
         // Apply damage multiplier based on which part was hit
         float adjustedAmount = amount * damageMultiplier;
-        return parent.hurt(source, adjustedAmount);
+        return parent.hurtServer(level, source, adjustedAmount);
     }
 
-    @Override
     public boolean is(@NotNull Entity entity) {
         return this == entity || (this.parent != null && this.parent == entity);
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
         // No synced data needed for hitbox parts
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void readAdditionalSaveData(@NotNull ValueInput input) {
         // Parts don't save data
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput output) {
         // Parts don't save data
     }
 
@@ -201,13 +199,13 @@ public class FabricDragonPart extends Entity implements DragonPartEntity {
     }
 
     @Override
-    public @Nullable Packet<ClientGamePacketListener> getAddEntityPacket() {
+    public @Nullable Packet<ClientGamePacketListener> getAddEntityPacket(ServerEntity serverEntity) {
         // Parts are not synced to client as separate entities
         return null;
     }
 
     @Override
-    public boolean canBeCollidedWith() {
+    public boolean canBeCollidedWith(Entity entity) {
         return false;
     }
 

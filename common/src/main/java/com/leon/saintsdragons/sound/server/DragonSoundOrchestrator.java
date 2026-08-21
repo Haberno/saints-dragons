@@ -29,7 +29,7 @@ public final class DragonSoundOrchestrator {
     }
 
     private static void playWorld(DragonEntity dragon, DragonSoundSpec spec) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             dragon.level().playLocalSound(
                     dragon.getX(), dragon.getY(), dragon.getZ(),
                     spec.sound(), spec.source(), spec.volume(), spec.pitch(), false
@@ -43,7 +43,7 @@ public final class DragonSoundOrchestrator {
     }
 
     private static void playMoving(DragonEntity dragon, DragonSoundSpec spec) {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         var soundId = BuiltInRegistries.SOUND_EVENT.getKey(spec.sound());

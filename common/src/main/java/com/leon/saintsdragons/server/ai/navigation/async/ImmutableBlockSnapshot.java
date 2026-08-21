@@ -74,8 +74,8 @@ final class ImmutableBlockSnapshot implements BlockGetter {
             throw new IllegalStateException("Immutable block snapshots must be captured on the server thread");
         }
 
-        int minBuildHeight = level.getMinBuildHeight();
-        int maxBuildHeight = level.getMaxBuildHeight();
+        int minBuildHeight = level.getMinY();
+        int maxBuildHeight = level.getMaxY();
         int minX = Math.min(requestedMin.getX(), requestedMax.getX());
         int minY = Math.max(minBuildHeight, Math.min(requestedMin.getY(), requestedMax.getY()));
         int minZ = Math.min(requestedMin.getZ(), requestedMax.getZ());
@@ -270,7 +270,7 @@ final class ImmutableBlockSnapshot implements BlockGetter {
     }
 
     @Override
-    public int getMinBuildHeight() {
+    public int getMinY() {
         return this.minBuildHeight;
     }
 }

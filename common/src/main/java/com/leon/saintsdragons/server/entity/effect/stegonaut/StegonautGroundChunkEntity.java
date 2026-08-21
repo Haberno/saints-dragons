@@ -3,9 +3,6 @@ package com.leon.saintsdragons.server.entity.effect.stegonaut;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.NbtUtils;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -20,6 +17,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,9 +58,9 @@ public class StegonautGroundChunkEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_BLOCK_STATE, Blocks.DIRT.defaultBlockState());
-        this.entityData.define(DATA_SCALE, 1.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_BLOCK_STATE, Blocks.DIRT.defaultBlockState());
+        builder.define(DATA_SCALE, 1.0F);
     }
 
     public void setBlockState(BlockState state) {
@@ -119,7 +118,7 @@ public class StegonautGroundChunkEntity extends Entity {
             this.setPos(nextPos);
         }
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             this.setDeltaMovement(this.getDeltaMovement().scale(0.99D));
             if (livedTicks > lifetimeTicks || hitBlock || hitEntity) {
                 explode();
@@ -132,7 +131,7 @@ public class StegonautGroundChunkEntity extends Entity {
 
     @Nullable
     private EntityHitResult findEntityHit(Vec3 start, Vec3 end) {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return null;
         }
         AABB bounds = getBoundingBox().expandTowards(end.subtract(start)).inflate(0.8D);
@@ -144,7 +143,7 @@ public class StegonautGroundChunkEntity extends Entity {
                 return false;
             }
             return true;
-        });
+        }, ProjectileUtil.DEFAULT_ENTITY_HIT_RESULT_MARGIN);
     }
 
     private void explode() {
@@ -168,9 +167,9 @@ public class StegonautGroundChunkEntity extends Entity {
                 target -> target.isAlive() && target != owner && (owner == null || !owner.isAlly(target)));
         for (LivingEntity target : hits) {
             if (owner != null) {
-                target.hurt(server.damageSources().mobAttack(owner), impactDamage);
+                target.hurtServer(server, server.damageSources().mobAttack(owner), impactDamage);
             } else {
-                target.hurt(server.damageSources().generic(), impactDamage);
+                target.hurtServer(server, server.damageSources().generic(), impactDamage);
             }
             Vec3 kb = target.position().subtract(impact).normalize().scale(0.55D * scale);
             target.push(kb.x, 0.16D, kb.z);
@@ -179,39 +178,30 @@ public class StegonautGroundChunkEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        this.livedTicks = tag.getInt("Lived");
-        this.lifetimeTicks = tag.getInt("Lifetime");
-        this.impactRadius = tag.getDouble("ImpactRadius");
-        this.impactDamage = tag.getFloat("ImpactDamage");
-        if (tag.contains("BlockState", CompoundTag.TAG_COMPOUND) && level() instanceof ServerLevel server) {
-            BlockState state = NbtUtils.readBlockState(server.holderLookup(Registries.BLOCK), tag.getCompound("BlockState"));
-            setBlockState(state.isAir() ? Blocks.DIRT.defaultBlockState() : state);
-        }
-        if (tag.contains("Scale")) {
-            setVisualScale(tag.getFloat("Scale"));
-        }
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        this.livedTicks = tag.getIntOr("Lived", 0);
+        this.lifetimeTicks = tag.getIntOr("Lifetime", 0);
+        this.impactRadius = tag.getDoubleOr("ImpactRadius", 0.0D);
+        this.impactDamage = tag.getFloatOr("ImpactDamage", 0.0F);
+        tag.read("BlockState", BlockState.CODEC)
+                .ifPresent(state -> setBlockState(state.isAir() ? Blocks.DIRT.defaultBlockState() : state));
+        setVisualScale(tag.getFloatOr("Scale", 1.0F));
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Lived", livedTicks);
         tag.putInt("Lifetime", lifetimeTicks);
         tag.putDouble("ImpactRadius", impactRadius);
         tag.putFloat("ImpactDamage", impactDamage);
-        tag.put("BlockState", NbtUtils.writeBlockState(getBlockState()));
+        tag.store("BlockState", BlockState.CODEC, getBlockState());
         tag.putFloat("Scale", getVisualScale());
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
     public void recreateFromPacket(@NotNull ClientboundAddEntityPacket packet) {
         super.recreateFromPacket(packet);
-        this.setDeltaMovement(packet.getXa(), packet.getYa(), packet.getZa());
+        this.setDeltaMovement(packet.getMovement());
     }
 
     @Override
@@ -225,13 +215,13 @@ public class StegonautGroundChunkEntity extends Entity {
     }
 
     @Override
-    public float getEyeHeight(@NotNull Pose pose) {
-        return 0.5F * getVisualScale();
-    }
-
-    @Override
     public @NotNull EntityDimensions getDimensions(@NotNull Pose pose) {
         float scale = getVisualScale();
         return EntityDimensions.fixed(0.98F * scale, 0.98F * scale);
+    }
+
+    @Override
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull net.minecraft.world.damagesource.DamageSource source, float amount) {
+        return false;
     }
 }

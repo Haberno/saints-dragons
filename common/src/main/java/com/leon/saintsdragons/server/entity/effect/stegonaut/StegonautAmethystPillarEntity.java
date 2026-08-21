@@ -2,8 +2,8 @@ package com.leon.saintsdragons.server.entity.effect.stegonaut;
 
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -19,6 +19,8 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.Pose;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -81,9 +83,9 @@ public class StegonautAmethystPillarEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(DATA_SUBSIDING, false);
-        this.entityData.define(DATA_SCALE, 1.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_SUBSIDING, false);
+        builder.define(DATA_SCALE, 1.0F);
     }
 
     public boolean isSubsiding() {
@@ -105,19 +107,19 @@ public class StegonautAmethystPillarEntity extends Entity implements GeoEntity {
         setDeltaMovement(Vec3.ZERO);
         livedTicks++;
 
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             spawnClientEffects();
         }
 
         if (isSubsiding()) {
             subsideTicks++;
-            if (!level().isClientSide && subsideTicks >= SUBSIDE_TICKS) {
+            if (!level().isClientSide() && subsideTicks >= SUBSIDE_TICKS) {
                 discard();
             }
             return;
         }
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             resolveOwner();
             if (livedTicks >= warmupTicks) {
                 applyImpact();
@@ -163,7 +165,7 @@ public class StegonautAmethystPillarEntity extends Entity implements GeoEntity {
         DamageSource source = owner != null ? damageSources().mobAttack(owner) : damageSources().generic();
         for (LivingEntity target : targets) {
             hitEntities.add(target.getUUID());
-            target.hurt(source, damage);
+            target.hurtServer(server, source, damage);
             Vec3 knockDir = target.position().subtract(position());
             knockDir = new Vec3(knockDir.x, 0.0D, knockDir.z);
             if (knockDir.lengthSqr() < 1.0E-4D) {
@@ -191,7 +193,7 @@ public class StegonautAmethystPillarEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         return false;
     }
 
@@ -206,24 +208,20 @@ public class StegonautAmethystPillarEntity extends Entity implements GeoEntity {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
-        livedTicks = tag.getInt("Lived");
-        lifetimeTicks = tag.getInt("Lifetime");
-        warmupTicks = tag.getInt("Warmup");
-        damage = tag.getFloat("Damage");
-        knockbackStrength = tag.contains("Knockback") ? tag.getDouble("Knockback") : DEFAULT_KNOCKBACK_STRENGTH;
-        if (tag.hasUUID("Owner")) {
-            ownerUUID = tag.getUUID("Owner");
-        }
-        if (tag.contains("Yaw")) {
-            initializeRotation(tag.getFloat("Yaw"));
-        }
-        this.entityData.set(DATA_SUBSIDING, tag.getBoolean("Subsiding"));
-        subsideTicks = Math.max(0, tag.getInt("SubsideTicks"));
+    protected void readAdditionalSaveData(@NotNull ValueInput tag) {
+        livedTicks = tag.getIntOr("Lived", 0);
+        lifetimeTicks = tag.getIntOr("Lifetime", DEFAULT_LIFETIME_TICKS);
+        warmupTicks = tag.getIntOr("Warmup", DEFAULT_WARMUP_TICKS);
+        damage = tag.getFloatOr("Damage", 10.0F);
+        knockbackStrength = tag.getDoubleOr("Knockback", DEFAULT_KNOCKBACK_STRENGTH);
+        ownerUUID = tag.read("Owner", UUIDUtil.CODEC).orElse(null);
+        initializeRotation(tag.getFloatOr("Yaw", 0.0F));
+        this.entityData.set(DATA_SUBSIDING, tag.getBooleanOr("Subsiding", false));
+        subsideTicks = Math.max(0, tag.getIntOr("SubsideTicks", 0));
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput tag) {
         tag.putInt("Lived", livedTicks);
         tag.putInt("Lifetime", lifetimeTicks);
         tag.putInt("Warmup", warmupTicks);
@@ -233,13 +231,8 @@ public class StegonautAmethystPillarEntity extends Entity implements GeoEntity {
         tag.putBoolean("Subsiding", isSubsiding());
         tag.putInt("SubsideTicks", subsideTicks);
         if (ownerUUID != null) {
-            tag.putUUID("Owner", ownerUUID);
+            tag.store("Owner", UUIDUtil.CODEC, ownerUUID);
         }
-    }
-
-    @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
     }
 
     @Override
@@ -255,11 +248,12 @@ public class StegonautAmethystPillarEntity extends Entity implements GeoEntity {
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        controllers.add(new AnimationController<>("controller", 1, this::animationPredicate));
+        controllers.add(new AnimationController<StegonautAmethystPillarEntity>(
+                "controller", 1, this::animationPredicate));
     }
 
-    private <E extends GeoEntity> PlayState animationPredicate(AnimationTest<E> state) {
-        state.controller().transitionLength(1);
+    private PlayState animationPredicate(AnimationTest<StegonautAmethystPillarEntity> state) {
+        state.controller().setTransitionTicks(1);
         state.controller().setAnimation(isSubsiding() ? SUBSIDE : EMERGE);
         return PlayState.CONTINUE;
     }

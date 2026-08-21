@@ -1,6 +1,7 @@
 package com.leon.saintsdragons.client.renderer.raevyx;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.leon.saintsdragons.client.renderer.SaintsDragonsDeferredEntityRenderer;
 import com.leon.saintsdragons.server.entity.effect.LightningVisualEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
@@ -8,11 +9,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.LightTexture;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.culling.Frustum;
-import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
 import net.minecraft.resources.Identifier;
@@ -25,7 +26,7 @@ import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 @Environment(EnvType.CLIENT)
-public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisualEntity> {
+public class RaevyxGroundRendTrailRenderer extends SaintsDragonsDeferredEntityRenderer<LightningVisualEntity> {
     private static final float WIDTH_MULTIPLIER = 1.40F;
     private static final int SLASH_FRAME_COUNT = 7;
     private static final float SLASH_TICKS_PER_FRAME = 2.0F;
@@ -58,8 +59,10 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
     }
 
     @Override
-    public void render(@NotNull LightningVisualEntity entity, float entityYaw, float partialTick,
-                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
+    protected void submitEntity(LightningVisualEntity entity, RenderState<LightningVisualEntity> renderState,
+                                PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                                CameraRenderState cameraState) {
+        float partialTick = renderState.partialTick;
         Vec3 start = entity.getStartOffset();
         Vec3 end = entity.getEndOffset();
         if (start.distanceToSqr(end) < 1.0E-6D) {
@@ -67,13 +70,13 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
         }
 
         if (entity.getVisualStyle() == LightningVisualEntity.VisualStyle.BLOOD_TEMPEST_SLASH) {
-            renderAnimatedTrail(entity, partialTick, poseStack, bufferSource, start, end,
+            renderAnimatedTrail(entity, partialTick, poseStack, submitNodeCollector, start, end,
                     SLASH_TEXTURES, SLASH_TICKS_PER_FRAME, 1.1D);
             return;
         }
 
         if (entity.getVisualStyle() == LightningVisualEntity.VisualStyle.BLOOD_TEMPEST_STORM) {
-            renderAnimatedTrail(entity, partialTick, poseStack, bufferSource, start, end,
+            renderAnimatedTrail(entity, partialTick, poseStack, submitNodeCollector, start, end,
                     STORM_TEXTURES, STORM_TICKS_PER_FRAME, 1.55D);
             return;
         }
@@ -85,41 +88,35 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
             return;
         }
 
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.lightning());
-        Matrix4f matrix = poseStack.last().pose();
         long seed = Integer.toUnsignedLong(entity.getRenderSeed())
                 + (bloodTempest ? 0L : (long)entity.tickCount * 31L);
-
-        if (bloodTempest) {
-            RenderWindow window = getBloodTempestWindow(entity, partialTick);
-            if (window.end() <= window.start()) {
-                return;
-            }
-            float pulse = window.flashing() ? 1.32F : 1.0F;
-            renderLayer(matrix, consumer, start, end, entity.getVisualScale() * pulse, alpha, seed,
-                    window.start(), window.end(),
-                    0.17F, 0.020F, 0.36F, 0.01F, 0.025F, 0.52F);
-            renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.72F * pulse, alpha, seed + 31L,
-                    window.start(), window.end(),
-                    0.11F, 0.013F, 1.0F, 0.035F, 0.085F, 0.72F);
-            renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.38F * pulse, alpha, seed + 63L,
-                    window.start(), window.end(),
-                    0.065F, 0.007F, 1.0F, 0.78F, 0.82F, 0.92F);
-        } else {
-            renderLayer(matrix, consumer, start, end, entity.getVisualScale(), alpha, seed,
-                    0.0F, 1.0F,
-                    0.18F, 0.012F, 0.45F, 0.45F, 0.50F, 0.26F);
-            renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.74F, alpha, seed + 31L,
-                    0.0F, 1.0F,
-                    0.12F, 0.008F, 0.66F, 0.77F, 0.98F, 0.31F);
-            renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.46F, alpha, seed + 63L,
-                    0.0F, 1.0F,
-                    0.07F, 0.004F, 0.96F, 0.98F, 1.0F, 0.36F);
+        RenderWindow window = bloodTempest ? getBloodTempestWindow(entity, partialTick) : null;
+        if (window != null && window.end() <= window.start()) {
+            return;
         }
+        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.lightning(), (pose, consumer) -> {
+            Matrix4f matrix = pose.pose();
+            if (bloodTempest) {
+                float pulse = window.flashing() ? 1.32F : 1.0F;
+                renderLayer(matrix, consumer, start, end, entity.getVisualScale() * pulse, alpha, seed,
+                        window.start(), window.end(), 0.17F, 0.020F, 0.36F, 0.01F, 0.025F, 0.52F);
+                renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.72F * pulse, alpha, seed + 31L,
+                        window.start(), window.end(), 0.11F, 0.013F, 1.0F, 0.035F, 0.085F, 0.72F);
+                renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.38F * pulse, alpha, seed + 63L,
+                        window.start(), window.end(), 0.065F, 0.007F, 1.0F, 0.78F, 0.82F, 0.92F);
+            } else {
+                renderLayer(matrix, consumer, start, end, entity.getVisualScale(), alpha, seed,
+                        0.0F, 1.0F, 0.18F, 0.012F, 0.45F, 0.45F, 0.50F, 0.26F);
+                renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.74F, alpha, seed + 31L,
+                        0.0F, 1.0F, 0.12F, 0.008F, 0.66F, 0.77F, 0.98F, 0.31F);
+                renderLayer(matrix, consumer, start, end, entity.getVisualScale() * 0.46F, alpha, seed + 63L,
+                        0.0F, 1.0F, 0.07F, 0.004F, 0.96F, 0.98F, 1.0F, 0.36F);
+            }
+        });
     }
 
     private void renderAnimatedTrail(LightningVisualEntity entity, float partialTick, PoseStack poseStack,
-                                     MultiBufferSource bufferSource, Vec3 start, Vec3 end,
+                                     SubmitNodeCollector submitNodeCollector, Vec3 start, Vec3 end,
                                      Identifier[] textures, float ticksPerFrame, double halfWidth) {
         int frame = Mth.clamp(
                 (int)Math.floor((entity.tickCount + partialTick) / ticksPerFrame),
@@ -138,7 +135,7 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
         }
 
         Vec3 direction = delta.scale(1.0D / length);
-        Vec3 cameraLocal = Minecraft.getInstance().gameRenderer.getMainCamera().getPosition()
+        Vec3 cameraLocal = Minecraft.getInstance().gameRenderer.getMainCamera().position()
                 .subtract(entity.position());
         Vec3 widthAxis = direction.cross(cameraLocal);
         if (widthAxis.lengthSqr() < 1.0E-6D) {
@@ -149,14 +146,14 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
         widthAxis = widthAxis.normalize().scale(halfWidth * entity.getVisualScale());
 
         Vec3 normal = direction.cross(widthAxis).normalize();
-        Matrix4f matrix = poseStack.last().pose();
         Matrix3f normalMatrix = poseStack.last().normal();
         Vector3f transformedNormal = new Vector3f((float)normal.x, (float)normal.y, (float)normal.z);
         normalMatrix.transform(transformedNormal);
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.eyes(textures[frame]));
-
-        emitSlashQuad(consumer, matrix, transformedNormal, start, end, widthAxis, alpha, false);
-        emitSlashQuad(consumer, matrix, transformedNormal, start, end, widthAxis, alpha, true);
+        Vec3 finalWidthAxis = widthAxis;
+        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.eyes(textures[frame]), (pose, consumer) -> {
+            emitSlashQuad(consumer, pose.pose(), transformedNormal, start, end, finalWidthAxis, alpha, false);
+            emitSlashQuad(consumer, pose.pose(), transformedNormal, start, end, finalWidthAxis, alpha, true);
+        });
     }
 
     private void emitSlashQuad(VertexConsumer consumer, Matrix4f matrix, Vector3f normal,
@@ -181,13 +178,12 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
 
     private void addSlashVertex(VertexConsumer consumer, Matrix4f matrix, Vector3f normal,
                                 Vec3 position, float u, float v, float alpha) {
-        consumer.vertex(matrix, (float)position.x, (float)position.y, (float)position.z)
-                .color(1.0F, 1.0F, 1.0F, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(LightTexture.FULL_BRIGHT)
-                .normal(normal.x(), normal.y(), normal.z())
-                .endVertex();
+        consumer.addVertex(matrix, (float)position.x, (float)position.y, (float)position.z)
+                .setColor(1.0F, 1.0F, 1.0F, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(LightTexture.FULL_BRIGHT)
+                .setNormal(normal.x(), normal.y(), normal.z());
     }
 
     private void renderLayer(Matrix4f matrix, VertexConsumer consumer, Vec3 start, Vec3 end, float scale, float alpha,
@@ -291,20 +287,8 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
     }
 
     private void addVertex(Matrix4f matrix, VertexConsumer consumer, Vec3 pos, float red, float green, float blue, float alpha) {
-        consumer.vertex(matrix, (float)pos.x, (float)pos.y, (float)pos.z)
-                .color(red, green, blue, alpha)
-                .endVertex();
-    }
-
-    @Override
-    public @NotNull Identifier getTextureLocation(@NotNull LightningVisualEntity entity) {
-        if (entity.getVisualStyle() == LightningVisualEntity.VisualStyle.BLOOD_TEMPEST_SLASH) {
-            return SLASH_TEXTURES[0];
-        }
-        if (entity.getVisualStyle() == LightningVisualEntity.VisualStyle.BLOOD_TEMPEST_STORM) {
-            return STORM_TEXTURES[0];
-        }
-        return TextureAtlas.LOCATION_BLOCKS;
+        consumer.addVertex(matrix, (float)pos.x, (float)pos.y, (float)pos.z)
+                .setColor(red, green, blue, alpha);
     }
 
     private record RenderWindow(float start, float end, boolean flashing) {

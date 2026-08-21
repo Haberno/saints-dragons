@@ -37,7 +37,7 @@ public final class ForgeRegistryHelper implements RegistryHelper {
 
         @Override
         public void register() {
-            deferredRegister.register(FMLJavaModLoadingContext.get().getModEventBus());
+            deferredRegister.register(FMLJavaModLoadingContext.get().getModBusGroup());
         }
     }
 }

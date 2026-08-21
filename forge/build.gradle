@@ -60,7 +60,10 @@ configurations {
         canBeConsumed = false
     }
     compileClasspath.extendsFrom common
-    runtimeClasspath.extendsFrom common
+    // Loom 1.17 feeds the common jar through developmentForge for dev launches.
+    // Adding it to runtimeClasspath as well exposes both the original and transformed
+    // jar to Forge 61's module layer, which rejects their duplicate packages.
+//    runtimeClasspath.extendsFrom common
     developmentForge.extendsFrom common
 
     shadowBundle {
@@ -140,6 +143,20 @@ processResources {
 
 sourceSets {
     main {
+        // Forge Jade support is intentionally disabled while the dependency is absent.
+        // Keep the integration sources in-tree so they can be restored later.
+        java.exclude 'com/leon/saintsdragons/forge/integration/jade/**'
+        // These optional 1.20-era client hooks target renderer/events removed in 1.21.11.
+        // Preserve their sources, but keep them out of the production compile until reimplemented.
+        java.exclude 'com/leon/saintsdragons/forge/compat/EpicFightRenderCompatibility.java'
+        java.exclude 'com/leon/saintsdragons/forge/client/event/DragonAbilityDebugForgeHandler.java'
+        java.exclude 'com/leon/saintsdragons/forge/client/event/DragonAbilityDebugForgeKeybindRegistration.java'
+        java.exclude 'com/leon/saintsdragons/forge/client/event/DragonPathDebugForgeHandler.java'
+        java.exclude 'com/leon/saintsdragons/forge/client/event/DragonUIEventHandler.java'
+        java.exclude 'com/leon/saintsdragons/forge/mixin/client/BloodTempestAfterimage*Mixin.java'
+        java.exclude 'com/leon/saintsdragons/forge/mixin/client/LivingEntityRendererMixin.java'
+        java.exclude 'com/leon/saintsdragons/forge/mixin/client/RiderMixin.java'
+        java.exclude 'com/leon/saintsdragons/forge/mixin/client/GameRendererMixin.java'
         resources.srcDirs = [
                 'src/main/resources',
                 '../common/src/main/resources',

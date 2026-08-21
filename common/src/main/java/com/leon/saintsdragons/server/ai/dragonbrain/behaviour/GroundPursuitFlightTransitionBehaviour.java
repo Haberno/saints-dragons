@@ -83,7 +83,7 @@ public class GroundPursuitFlightTransitionBehaviour<
     private void tickGroundProgress(DragonBrainContext<T> context, LivingEntity target) {
         T dragon = context.dragon();
         if (dragon.getLocomotionMode() != DragonLocomotionMode.GROUND
-                || dragon.isInWaterOrBubble()) {
+                || dragon.isInWater()) {
             resetProgressTracking();
             return;
         }
@@ -259,7 +259,7 @@ public class GroundPursuitFlightTransitionBehaviour<
                 || dragon.isVehicle()
                 || dragon.isPassenger()
                 || dragon.isOrderedToSit()
-                || dragon.isInWaterOrBubble()) {
+                || dragon.isInWater()) {
             return false;
         }
         if (isGroundRouteAbandoned(context)) {

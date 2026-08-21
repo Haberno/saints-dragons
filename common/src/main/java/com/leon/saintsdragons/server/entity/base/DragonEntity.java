@@ -49,10 +49,12 @@ import javax.annotation.Nullable;
 import com.leon.saintsdragons.util.math.SmoothValue;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Holder;
+import net.minecraft.core.UUIDUtil;
+import net.minecraft.nbt.CompoundTag;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.particles.ParticleOptions;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -83,6 +85,8 @@ import net.minecraft.world.level.LevelAccessor;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.ServerLevelAccessor;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.level.gameevent.DynamicGameEventListener;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.phys.AABB;
@@ -244,6 +248,35 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return this.locomotionMode;
     }
 
+    @Nullable
+    public UUID getOwnerUUID() {
+        EntityReference<LivingEntity> owner = getOwnerReference();
+        return owner == null ? null : owner.getUUID();
+    }
+
+    public void setOwnerUUID(@Nullable UUID ownerUuid) {
+        setOwnerReference(ownerUuid == null ? null : EntityReference.of(ownerUuid));
+    }
+
+    public void moveTo(double x, double y, double z, float yRot, float xRot) {
+        setPos(x, y, z);
+        setYRot(yRot);
+        setXRot(xRot);
+    }
+
+    /** Compatibility bridge for the pre-1.21.11 step-height setter. */
+    public void setMaxUpStep(float height) {
+        AttributeInstance stepHeight = getAttribute(Attributes.STEP_HEIGHT);
+        if (stepHeight != null) {
+            stepHeight.setBaseValue(height);
+        }
+    }
+
+    /** Compatibility bridge for the renamed local-authority query. */
+    public boolean isControlledByLocalInstance() {
+        return isLocalInstanceAuthoritative();
+    }
+
     protected void tickLocomotionMode() {
         DragonLocomotionMode desiredMode = resolveLocomotionMode();
         if (desiredMode == this.locomotionMode) {
@@ -259,7 +292,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     protected DragonLocomotionMode resolveLocomotionMode() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return DragonLocomotionMode.WATER;
         }
         if (this instanceof RideableDragonBase rideableDragon && rideableDragon.isAerial()) {
@@ -301,15 +334,15 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         Identifier soundId = null;
         Identifier entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(getType());
         if ("step".equals(soundKey) && entityTypeId != null) {
-            soundId = new Identifier(entityTypeId.getNamespace(), entityTypeId.getPath() + "_step");
+            soundId = Identifier.fromNamespaceAndPath(entityTypeId.getNamespace(), entityTypeId.getPath() + "_step");
         } else if (soundKey.endsWith("_step") && entityTypeId != null) {
-            soundId = new Identifier(entityTypeId.getNamespace(), soundKey);
+            soundId = Identifier.fromNamespaceAndPath(entityTypeId.getNamespace(), soundKey);
         } else if (soundKey.indexOf(':') >= 0) {
             soundId = Identifier.tryParse(soundKey);
         }
 
         if (soundId != null) {
-            SoundEvent sound = soundId != null ? BuiltInRegistries.SOUND_EVENT.get(soundId) : null;
+            SoundEvent sound = BuiltInRegistries.SOUND_EVENT.getValue(soundId);
             if (sound != null) {
                 getSoundHandler().playClientSound(this, position(), sound, 1.0f, 1.0f);
                 return;
@@ -424,21 +457,21 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
 
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_COMMAND, 0);
-        this.entityData.define(DATA_SIT_PROGRESS, 0.0f);
-        this.entityData.define(DATA_GENDER, DragonGender.MALE.getId());
-        this.entityData.define(DATA_HAPPINESS, HAPPINESS_MAX);
-        this.entityData.define(DATA_SLEEPING, false);
-        this.entityData.define(DATA_SLEEPING_ENTERING, false);
-        this.entityData.define(DATA_SLEEPING_EXITING, false);
-        this.entityData.define(DATA_DANCING, false);
-        this.entityData.define(DATA_SCENT_ASSESSING, false);
-        this.entityData.define(DATA_TEXTURE_VARIANT, 0);
-        this.entityData.define(DATA_PENDING_ADULT_TEXTURE_VARIANT, -1);
-        this.entityData.define(DATA_TEXTURE_VARIANT_ID, SaintsDragonVariantRegistry.DEFAULT_VARIANT_ID.toString());
-        this.entityData.define(DATA_PENDING_ADULT_TEXTURE_VARIANT_ID, "");
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_COMMAND, 0);
+        builder.define(DATA_SIT_PROGRESS, 0.0f);
+        builder.define(DATA_GENDER, DragonGender.MALE.getId());
+        builder.define(DATA_HAPPINESS, HAPPINESS_MAX);
+        builder.define(DATA_SLEEPING, false);
+        builder.define(DATA_SLEEPING_ENTERING, false);
+        builder.define(DATA_SLEEPING_EXITING, false);
+        builder.define(DATA_DANCING, false);
+        builder.define(DATA_SCENT_ASSESSING, false);
+        builder.define(DATA_TEXTURE_VARIANT, 0);
+        builder.define(DATA_PENDING_ADULT_TEXTURE_VARIANT, -1);
+        builder.define(DATA_TEXTURE_VARIANT_ID, SaintsDragonVariantRegistry.DEFAULT_VARIANT_ID.toString());
+        builder.define(DATA_PENDING_ADULT_TEXTURE_VARIANT_ID, "");
     }
 
     @Override
@@ -465,7 +498,6 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
 
         clientBabyState = baby;
         var animationManager = getAnimatableInstanceCache().getManagerForId(getId());
-        animationManager.clearSnapshotCache();
         animationManager.getAnimationControllers().values().forEach(controller -> {
             controller.stopTriggeredAnimation();
             controller.reset();
@@ -741,7 +773,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             }
 
             for (int i = 0; i < spawnCount; i++) {
-                T baby = babyType.create(serverLevel);
+                T baby = babyType.create(serverLevel, EntitySpawnReason.BREEDING);
                 if (baby == null) {
                     continue;
                 }
@@ -770,7 +802,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     protected <T extends DragonEntity> T createBreedOffspring(ServerLevel level, AgeableMob otherParent, EntityType<T> babyType, Consumer<T> configureBaby) {
-        T baby = babyType.create(level);
+        T baby = babyType.create(level, EntitySpawnReason.BREEDING);
         if (baby == null) {
             return null;
         }
@@ -780,7 +812,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         UUID ownerId = this.getOwnerUUID();
         if (ownerId != null) {
             baby.setOwnerUUID(ownerId);
-            baby.setTame(true);
+            baby.setTame(true, false);
         }
 
         baby.setAge(-24000);
@@ -987,7 +1019,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             return fallback;
         }
         try {
-            return new Identifier(value);
+            return Identifier.parse(value);
         } catch (Exception ignored) {
             return fallback;
         }
@@ -1049,10 +1081,10 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
 
     @Override
     public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor levelAccessor, @NotNull DifficultyInstance difficulty, @NotNull EntitySpawnReason reason,
-                                                 @Nullable SpawnGroupData spawnData, @Nullable CompoundTag spawnTag) {
-        SpawnGroupData data = super.finalizeSpawn(levelAccessor, difficulty, reason, spawnData, spawnTag);
+                                                 @Nullable SpawnGroupData spawnData) {
+        SpawnGroupData data = super.finalizeSpawn(levelAccessor, difficulty, reason, spawnData);
         ensureGenderInitialized();
-        Identifier chosenVariant = chooseSpawnTextureVariantId(levelAccessor, difficulty, reason, spawnData, spawnTag);
+        Identifier chosenVariant = chooseSpawnTextureVariantId(levelAccessor, difficulty, reason, spawnData, null);
         if (this.isBaby() && shouldPersistAdultTextureVariantOnBabies()) {
             setPendingAdultTextureVariantId(chosenVariant);
             setCurrentTextureVariantId(SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId()));
@@ -1060,7 +1092,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             setTextureVariantId(chosenVariant);
         }
 
-        if (this.isBaby() && reason == EntitySpawnReason.SPAWN_EGG) {
+        if (this.isBaby() && reason == EntitySpawnReason.SPAWN_ITEM_USE) {
             BlockPos safePos = findSafeBabySpawnPos(levelAccessor, this.blockPosition());
             if (safePos != null && safePos.getY() < this.getY()) {
                 this.moveTo(this.getX(), safePos.getY(), this.getZ(), this.getYRot(), this.getXRot());
@@ -1083,7 +1115,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     public <T extends DragonEntity> void tryActivateAbility(DragonAbilityType<T, ?> abilityType) {
-        if (abilityType == null || level().isClientSide) {
+        if (abilityType == null || level().isClientSide()) {
             return;
         }
         combatManager.tryUseAbility(abilityType);
@@ -1199,7 +1231,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     public void triggerHurtReaction() {
-        if (level().isClientSide || isDying()) {
+        if (level().isClientSide() || isDying()) {
             return;
         }
         DragonAbilityType<?, ?> hurtAbility = getHurtAbilityType();
@@ -1231,19 +1263,19 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, @NotNull DamageSource source) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, @NotNull DamageSource source) {
         this.fallDistance = 0.0F;
         return false;
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel damageLevel, @NotNull DamageSource source, float amount) {
         if (isDamageFromCurrentRider(source) && !source.is(DamageTypeTags.BYPASSES_INVULNERABILITY)) {
             return false;
         }
 
         rememberIncomingProjectile(source);
-        boolean result = super.hurt(source, amount);
+        boolean result = super.hurtServer(damageLevel, source, amount);
         if (result) {
             if (isSleeping() || isSleepingEntering() || isSleepTransitioning()) {
                 startSleepExit();
@@ -1270,7 +1302,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             }
             onSuccessfulDamage(source, amount);
         }
-        if (result && !level().isClientSide && this.isTame() && this.getOwnerUUID() != null) {
+        if (result && !level().isClientSide() && this.isTame() && this.getOwnerUUID() != null) {
             ServerLevel serverLevel = (ServerLevel) level();
             DragonCodexSavedData.get(serverLevel).updateDragonStats(this.getOwnerUUID(), this);
             applyHappinessHitPenalty(serverLevel);
@@ -1279,7 +1311,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     protected final void rememberIncomingProjectile(DamageSource source) {
-        if (!level().isClientSide
+        if (!level().isClientSide()
                 && (!isDamageFromCurrentRider(source)
                 || source.is(DamageTypeTags.BYPASSES_INVULNERABILITY))
                 && source.getDirectEntity() instanceof Projectile projectile) {
@@ -1321,17 +1353,17 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     public void die(@NotNull DamageSource cause) {
         if (!this.dead) {
             killDataCause = cause;
-            killDataRecentlyHit = this.lastHurtByPlayerTime;
-            killDataAttackingPlayer = this.lastHurtByPlayer;
+            killDataRecentlyHit = this.getLastHurtByPlayerMemoryTime();
+            killDataAttackingPlayer = this.getLastHurtByPlayer();
 
             dying = true;
 
             DragonAbilityType<?, ?> deathAbility = getDeathAbilityType();
-            if (deathAbility != null && !level().isClientSide) {
+            if (deathAbility != null && !level().isClientSide()) {
                 combatManager.forceUseAbility(deathAbility);
             }
         }
-        if (!level().isClientSide && this.isTame() && this.getOwnerUUID() != null) {
+        if (!level().isClientSide() && this.isTame() && this.getOwnerUUID() != null) {
             ServerLevel serverLevel = (ServerLevel) level();
             DragonCodexSavedData.get(serverLevel).removeDragon(this.getOwnerUUID(), this.getUUID());
         }
@@ -1341,15 +1373,15 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     @Override
     public void tame(@NotNull Player player) {
         super.tame(player);
-        if (!level().isClientSide && player instanceof ServerPlayer serverPlayer) {
-            DragonCodexSavedData.get(serverPlayer.serverLevel()).addDragon(serverPlayer, this);
+        if (!level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
+            DragonCodexSavedData.get(serverPlayer.level()).addDragon(serverPlayer, this);
         }
     }
 
     @Override
     public void setCustomName(@Nullable Component name) {
         super.setCustomName(name);
-        if (!level().isClientSide && this.isTame() && this.getOwnerUUID() != null) {
+        if (!level().isClientSide() && this.isTame() && this.getOwnerUUID() != null) {
            ServerLevel serverLevel = (ServerLevel) level();
             DragonCodexSavedData.get(serverLevel).updateDragonName(this.getOwnerUUID(), this.getUUID(), this.getName().getString());
             DragonCodexSavedData.get(serverLevel).updateDragonStats(this.getOwnerUUID(), this);
@@ -1359,7 +1391,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     @Override
     public void heal(float amount) {
         super.heal(amount);
-        if (!level().isClientSide && this.isTame() && this.getOwnerUUID() != null) {
+        if (!level().isClientSide() && this.isTame() && this.getOwnerUUID() != null) {
             ServerLevel serverLevel = (ServerLevel) level();
             DragonCodexSavedData.get(serverLevel).updateDragonStats(this.getOwnerUUID(), this);
         }
@@ -1373,11 +1405,12 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
 
         if (this.deathTime >= deathDuration && !this.level().isClientSide()) {
 
-            this.lastHurtByPlayer = killDataAttackingPlayer;
-            this.lastHurtByPlayerTime = killDataRecentlyHit;
+            if (killDataAttackingPlayer != null) {
+                this.setLastHurtByPlayer(killDataAttackingPlayer, killDataRecentlyHit);
+            }
 
             if (killDataCause != null) {
-                this.dropAllDeathLoot(killDataCause);
+                this.dropAllDeathLoot((ServerLevel) this.level(), killDataCause);
             }
             this.level().broadcastEntityEvent(this, (byte)60);
             this.remove(Entity.RemovalReason.KILLED);
@@ -1391,7 +1424,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
                     + " uuid=" + this.getUUID()
                     + " reason=" + reason
                     + " pos=" + this.position()
-                    + " dim=" + this.level().dimension().location()
+                    + " dim=" + this.level().dimension().identifier()
                     + " health=" + this.getHealth()
                     + " alive=" + this.isAlive()
                     + " dying=" + this.isDying()
@@ -1405,7 +1438,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     private boolean shouldLogDragonRemoval(Entity.RemovalReason reason) {
-        if (this.level().isClientSide || !this.isTame() || this.isBoundInBinder()) {
+        if (this.level().isClientSide() || !this.isTame() || this.isBoundInBinder()) {
             return false;
         }
         if (reason == Entity.RemovalReason.DISCARDED) {
@@ -1416,20 +1449,19 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     @Override
-    protected void dropAllDeathLoot(@NotNull DamageSource source) {
+    protected void dropAllDeathLoot(@NotNull ServerLevel serverLevel, @NotNull DamageSource source) {
         if (deathTime < getDeathAnimationDurationTicks()) {
             return;
         }
-        super.dropAllDeathLoot(source);
+        super.dropAllDeathLoot(serverLevel, source);
         dropAdditionalDeathLootAfterBase(source);
     }
 
     protected void dropAdditionalDeathLootAfterBase(@NotNull DamageSource source) {
     }
 
-    @Override
-    public @NotNull AABB getBoundingBoxForCulling() {
-        return super.getBoundingBoxForCulling().inflate(
+    public @NotNull AABB getExpandedCullingBox() {
+        return getBoundingBox().inflate(
                 getCullingInflateX(),
                 getCullingInflateY(),
                 getCullingInflateZ());
@@ -1502,7 +1534,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             babyComponent.registerToOwnerCodex(dragon, level);
             return;
         }
-        if (dragon == null || level == null || level.isClientSide) {
+        if (dragon == null || level == null || level.isClientSide()) {
             return;
         }
         if (dragon.isTame() && dragon.getOwnerUUID() != null) {
@@ -1921,7 +1953,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return getConfiguredDragonAttributes().extraBoolean(key, fallback);
     }
 
-    protected void setAttributeBase(Attribute attribute, double value) {
+    protected void setAttributeBase(Holder<Attribute> attribute, double value) {
         AttributeInstance instance = this.getAttribute(attribute);
         if (instance != null) {
             instance.setBaseValue(value);
@@ -1961,8 +1993,8 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     @Override
-    public @NotNull EntityDimensions getDimensions(@NotNull Pose pose) {
-        EntityDimensions baseDimensions = super.getDimensions(pose);
+    protected @NotNull EntityDimensions getDefaultDimensions(@NotNull Pose pose) {
+        EntityDimensions baseDimensions = super.getDefaultDimensions(pose);
         float babyScale = getBabyHitboxScale();
         return isBaby() && babyScale != 1.0F ? baseDimensions.scale(babyScale) : baseDimensions;
     }
@@ -2021,13 +2053,13 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         }
     }
 
-    protected void saveSitProgress(CompoundTag tag) {
+    protected void saveSitProgress(ValueOutput tag) {
         if (sitComponent != null) {
             sitComponent.saveToNBT(tag);
         }
     }
 
-    protected void loadSitProgress(CompoundTag tag, boolean orderedToSit) {
+    protected void loadSitProgress(ValueInput tag, boolean orderedToSit) {
         if (sitComponent != null) {
             sitComponent.loadFromNBT(tag, orderedToSit);
         }
@@ -2080,7 +2112,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     protected void tickAbilities() {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             combatManager.tick();
         }
     }
@@ -2090,7 +2122,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         super.tick();
         this.soundHandler.tick();
         tickAbilities();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             tickLocomotionMode();
             aiCombatPacing.tick();
             if (sleepComponent != null) {
@@ -2119,7 +2151,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             tickDancing();
         }
 
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             syncClientSitProgress();
             tickClientRotationAnimationState();
         }
@@ -2193,7 +2225,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     protected boolean isAirborneForSitCommandProtection() {
-        return !onGround() && !isInWaterOrBubble();
+        return !onGround() && !isInWater();
     }
 
     public void applyCommandState(int command) {
@@ -2240,7 +2272,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             return false;
         }
         if (this.getHappiness() <= 30) {
-            if (!this.level().isClientSide && this.level() instanceof ServerLevel serverLevel) {
+            if (!this.level().isClientSide() && this.level() instanceof ServerLevel serverLevel) {
                 serverLevel.sendParticles(
                         ParticleTypes.ANGRY_VILLAGER,
                         this.getX(),
@@ -2266,16 +2298,28 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return 10.0F;
     }
 
+    @Override
+    public double leashSnapDistance() {
+        return ignoresLeashPull() ? getLeashBreakDistance() : super.leashSnapDistance();
+    }
+
+    @Override
+    public boolean checkElasticInteractions(Entity leashHolder, Leashable.LeashData leashData) {
+        return !ignoresLeashPull() && super.checkElasticInteractions(leashHolder, leashData);
+    }
+
+    @Override
+    public void closeRangeLeashBehaviour(Entity leashHolder) {
+        if (!ignoresLeashPull()) {
+            super.closeRangeLeashBehaviour(leashHolder);
+        }
+    }
+
     public boolean isAlly(Entity entity) {
         return entity != null
                 && (DragonTargetingHelper.isVillageDefender(entity)
                 || CompanionCombatRules.isTrusted(entity, getOwnerUUID(), level())
                 || super.isAlliedTo(entity));
-    }
-
-    @Override
-    public boolean isAlliedTo(@NotNull Entity entity) {
-        return isAlly(entity);
     }
 
     public boolean canTarget(Entity entity) {
@@ -2307,7 +2351,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             return;
         }
         if (target != null
-                && !level().isClientSide
+                && !level().isClientSide()
                 && (isSleeping() || isSleepingEntering() || isSleepTransitioning())) {
             startSleepExit();
             suppressSleep(DAMAGE_SLEEP_SUPPRESSION_TICKS);
@@ -2335,8 +2379,8 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
-        var advancement = serverPlayer.server.getAdvancements()
-                .getAdvancement(SaintsDragonsCommon.rl("encounter_dragon"));
+        var advancement = serverPlayer.level().getServer().getAdvancements()
+                .get(SaintsDragonsCommon.rl("encounter_dragon"));
         if (advancement != null) {
             serverPlayer.getAdvancements().award(advancement, "encounter_dragon");
         }
@@ -2356,7 +2400,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     private void spawnClientEventParticles(ParticleOptions particle) {
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             return;
         }
         for (int i = 0; i < 7; ++i) {
@@ -2376,7 +2420,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         if (commandComponent != null) {
             commandComponent.saveToNBT(tag);
@@ -2406,7 +2450,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         tag.putBoolean("BoundInBinder", this.boundInBinder);
         tag.putBoolean("GrowthStunted", this.growthStunted);
         if (assignedParentUuid != null) {
-            tag.putUUID("AssignedParentUuid", assignedParentUuid);
+            tag.store("AssignedParentUuid", UUIDUtil.CODEC, assignedParentUuid);
         }
         if (hasPendingFamilyBabies()) {
             tag.putBoolean("FamilySpawnPending", true);
@@ -2417,7 +2461,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
 
         if (commandComponent != null) {
@@ -2439,33 +2483,33 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             sleepComponent.loadFromNBT(tag);
         }
         Identifier storedTextureVariant = null;
-        if (tag.contains("TextureVariantId")) {
-            storedTextureVariant = parseVariantId(tag.getString("TextureVariantId"), SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId()));
+        if (tag.getString("TextureVariantId").isPresent()) {
+            storedTextureVariant = parseVariantId(tag.getStringOr("TextureVariantId", ""), SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId()));
             setTextureVariantId(storedTextureVariant);
-        } else if (tag.contains("TextureVariant")) {
-            storedTextureVariant = SaintsDragonVariantRegistry.legacyToVariantId(getDragonVariantTypeId(), tag.getInt("TextureVariant"));
+        } else if (tag.getInt("TextureVariant").isPresent()) {
+            storedTextureVariant = SaintsDragonVariantRegistry.legacyToVariantId(getDragonVariantTypeId(), tag.getIntOr("TextureVariant", 0));
             setTextureVariantId(storedTextureVariant);
         }
-        if (tag.contains("PendingAdultTextureVariantId")) {
-            setPendingAdultTextureVariantId(parseVariantId(tag.getString("PendingAdultTextureVariantId"), null));
-        } else if (tag.contains("PendingAdultTextureVariant")) {
-            setPendingAdultTextureVariant(tag.getInt("PendingAdultTextureVariant"));
+        if (tag.getString("PendingAdultTextureVariantId").isPresent()) {
+            setPendingAdultTextureVariantId(parseVariantId(tag.getStringOr("PendingAdultTextureVariantId", ""), null));
+        } else if (tag.getInt("PendingAdultTextureVariant").isPresent()) {
+            setPendingAdultTextureVariant(tag.getIntOr("PendingAdultTextureVariant", -1));
         }
         Identifier defaultVariant = SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId());
         if (isBaby() && storedTextureVariant != null && !storedTextureVariant.equals(defaultVariant)) {
             setPendingAdultTextureVariantId(storedTextureVariant);
             setCurrentTextureVariantId(defaultVariant);
         }
-        this.assignedParentUuid = tag.hasUUID("AssignedParentUuid") ? tag.getUUID("AssignedParentUuid") : null;
-        this.boundInBinder = tag.getBoolean("BoundInBinder");
-        this.growthStunted = tag.getBoolean("GrowthStunted");
+        this.assignedParentUuid = tag.read("AssignedParentUuid", UUIDUtil.CODEC).orElse(null);
+        this.boundInBinder = tag.getBooleanOr("BoundInBinder", false);
+        this.growthStunted = tag.getBooleanOr("GrowthStunted", false);
         if (this.growthStunted && !this.isBaby()) {
             this.setAge(-24000);
             this.setBaby(true);
         }
-        if (tag.contains("FamilySpawnPending")) {
-            this.familySpawnPending = tag.getBoolean("FamilySpawnPending");
-            this.pendingFamilyBabyCount = Math.max(0, tag.getInt("FamilySpawnCount"));
+        if (tag.read("FamilySpawnPending", com.mojang.serialization.Codec.BOOL).isPresent()) {
+            this.familySpawnPending = tag.getBooleanOr("FamilySpawnPending", false);
+            this.pendingFamilyBabyCount = Math.max(0, tag.getIntOr("FamilySpawnCount", 0));
         } else {
             this.familySpawnPending = false;
             this.pendingFamilyBabyCount = 0;
@@ -2505,11 +2549,11 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         super.setAge(age);
         boolean isNowBaby = this.isBaby();
 
-        if (wasBaby && !isNowBaby && !level().isClientSide) {
+        if (wasBaby && !isNowBaby && !level().isClientSide()) {
             applyPendingAdultTextureVariant();
         }
 
-        if (wasBaby != isNowBaby && !level().isClientSide && this.tickCount > 0) {
+        if (wasBaby != isNowBaby && !level().isClientSide() && this.tickCount > 0) {
             level().broadcastEntityEvent(this, (byte) 7);
         }
     }
@@ -2521,7 +2565,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         }
         super.setBaby(baby);
 
-        if (level().isClientSide || !shouldPersistAdultTextureVariantOnBabies()) {
+        if (level().isClientSide() || !shouldPersistAdultTextureVariantOnBabies()) {
             return;
         }
 
@@ -2553,7 +2597,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         if (baby != null) {
            BlockPos safePos = findSafeBabySpawnPos(level, this.blockPosition());
             baby.setBaby(true);
-            baby.moveTo(this.getX(), safePos != null ? safePos.getY() : this.getY(), this.getZ(), 0.0F, 0.0F);
+            baby.setPos(this.getX(), safePos != null ? safePos.getY() : this.getY(), this.getZ());
             level.addFreshEntityWithPassengers(baby);
         }
     }
@@ -2562,7 +2606,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     protected BlockPos findSafeBabySpawnPos(LevelAccessor level, BlockPos start) {
         if (level == null || start == null) return null;
         BlockPos.MutableBlockPos cursor = start.mutable();
-        int minY = level.getMinBuildHeight();
+        int minY = level.getMinY();
 
         while (cursor.getY() >= minY) {
             BlockState state = level.getBlockState(cursor);
@@ -2583,6 +2627,6 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         if (state.isAir() || !state.getFluidState().isEmpty()) {
             return false;
         }
-        return state.isSolidRender(level, pos) || state.isFaceSturdy(level, pos, Direction.UP);
+        return state.isSolidRender() || state.isFaceSturdy(level, pos, Direction.UP);
     }
 }

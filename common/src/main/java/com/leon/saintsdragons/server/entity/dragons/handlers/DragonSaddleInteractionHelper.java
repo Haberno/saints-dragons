@@ -27,30 +27,30 @@ public final class DragonSaddleInteractionHelper {
         }
 
         if (heldItem.is(Items.SADDLE) && !carrier.hasSaddle()) {
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 carrier.setSaddle(true);
                 consumeOne(player, heldItem);
-                dragon.playSound(SoundEvents.HORSE_SADDLE, 1.0F, 1.0F);
+                dragon.playSound(SoundEvents.HORSE_SADDLE.value(), 1.0F, 1.0F);
             }
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (heldItem.is(Items.CHEST) && !carrier.hasAttachedChest()) {
             if (!carrier.hasSaddle()) {
                 sendMessage(player, "entity.saintsdragons.all.chest_requires_saddle", dragon.getName());
-                return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+                return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             }
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 carrier.setAttachedChest(true);
                 consumeOne(player, heldItem);
                 dragon.playSound(SoundEvents.DONKEY_CHEST, 1.0F, 1.0F);
             }
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (!player.isCrouching() && !carrier.hasSaddle()) {
             sendMessage(player, "entity.saintsdragons.all.mount_requires_saddle", dragon.getName());
-            return InteractionResult.sidedSuccess(dragon.level().isClientSide);
+            return dragon.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         return InteractionResult.PASS;

@@ -5,10 +5,15 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.fabricmc.fabric.api.networking.v1.PacketByteBufs;
+import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.FriendlyByteBuf;
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
@@ -26,14 +31,20 @@ public final class FabricNetworkHelper implements NetworkHelper {
 
     private static final class Binding<T> {
         final Identifier id;
+        final CustomPacketPayload.Type<RawPayload> payloadType;
         final PacketEncoder<T> encoder;
         final Direction direction;
 
         Binding(Identifier id, PacketEncoder<T> encoder, Direction direction) {
             this.id = id;
+            this.payloadType = new CustomPacketPayload.Type<>(id);
             this.encoder = encoder;
             this.direction = direction;
         }
+    }
+
+    private record RawPayload(CustomPacketPayload.Type<RawPayload> type, byte[] data)
+            implements CustomPacketPayload {
     }
 
     private final Map<Class<?>, Binding<?>> bindings = new ConcurrentHashMap<>();
@@ -44,10 +55,12 @@ public final class FabricNetworkHelper implements NetworkHelper {
                                         PacketEncoder<T> encoder,
                                         PacketDecoder<T> decoder,
                                         ServerboundHandler<T> handler) {
-        bindings.put(type, new Binding<>(id, encoder, Direction.SERVERBOUND));
-        ServerPlayNetworking.registerGlobalReceiver(id, (server, player, handlerAccessor, buf, responseSender) -> {
-            T message = decoder.decode(buf);
-            server.execute(() -> handler.handle(message, player));
+        Binding<T> binding = new Binding<>(id, encoder, Direction.SERVERBOUND);
+        bindings.put(type, binding);
+        PayloadTypeRegistry.playC2S().register(binding.payloadType, codec(binding.payloadType));
+        ServerPlayNetworking.registerGlobalReceiver(binding.payloadType, (payload, context) -> {
+            T message = decoder.decode(readBuffer(payload));
+            context.server().execute(() -> handler.handle(message, context.player()));
         });
     }
 
@@ -57,9 +70,11 @@ public final class FabricNetworkHelper implements NetworkHelper {
                                         PacketEncoder<T> encoder,
                                         PacketDecoder<T> decoder,
                                         ClientboundHandler<T> handler) {
-        bindings.put(type, new Binding<>(id, encoder, Direction.CLIENTBOUND));
+        Binding<T> binding = new Binding<>(id, encoder, Direction.CLIENTBOUND);
+        bindings.put(type, binding);
+        PayloadTypeRegistry.playS2C().register(binding.payloadType, codec(binding.payloadType));
         if (FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
-            ClientAccess.register(id, decoder, handler);
+            ClientAccess.register(binding.payloadType, decoder, handler);
         }
     }
 
@@ -72,8 +87,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
         if (binding.direction != Direction.SERVERBOUND) {
             throw new IllegalStateException("Attempted to send clientbound packet to server: " + message.getClass());
         }
-        FriendlyByteBuf buffer = createBuffer(binding, message);
-        ClientAccess.send(binding.id, buffer);
+        ClientAccess.send(createPayload(binding, message));
     }
 
     @Override
@@ -82,8 +96,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
         if (binding.direction != Direction.CLIENTBOUND) {
             throw new IllegalStateException("Attempted to send serverbound packet to player: " + message.getClass());
         }
-        FriendlyByteBuf buffer = createBuffer(binding, message);
-        ServerPlayNetworking.send(player, binding.id, buffer);
+        ServerPlayNetworking.send(player, createPayload(binding, message));
     }
 
     @Override
@@ -93,8 +106,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
             throw new IllegalStateException("Attempted to send serverbound packet to tracking players: " + message.getClass());
         }
         for (ServerPlayer tracking : PlayerLookup.tracking(entity)) {
-            FriendlyByteBuf buffer = createBuffer(binding, message);
-            ServerPlayNetworking.send(tracking, binding.id, buffer);
+            ServerPlayNetworking.send(tracking, createPayload(binding, message));
         }
     }
 
@@ -108,8 +120,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
             throw new IllegalStateException("Attempted to send serverbound packet to dimension: " + message.getClass());
         }
         for (ServerPlayer player : PlayerLookup.world(serverLevel)) {
-            FriendlyByteBuf buffer = createBuffer(binding, message);
-            ServerPlayNetworking.send(player, binding.id, buffer);
+            ServerPlayNetworking.send(player, createPayload(binding, message));
         }
     }
 
@@ -123,29 +134,45 @@ public final class FabricNetworkHelper implements NetworkHelper {
         return binding;
     }
 
-    private FriendlyByteBuf createBuffer(Binding<Object> binding, Object message) {
+    private RawPayload createPayload(Binding<Object> binding, Object message) {
         FriendlyByteBuf buffer = PacketByteBufs.create();
         @SuppressWarnings("unchecked")
         PacketEncoder<Object> encoder = (PacketEncoder<Object>) binding.encoder;
         encoder.encode(message, buffer);
-        return buffer;
+        byte[] data = new byte[buffer.readableBytes()];
+        buffer.readBytes(data);
+        buffer.release();
+        return new RawPayload(binding.payloadType, data);
+    }
+
+    private static FriendlyByteBuf readBuffer(RawPayload payload) {
+        return new FriendlyByteBuf(io.netty.buffer.Unpooled.wrappedBuffer(payload.data()));
+    }
+
+    private static StreamCodec<RegistryFriendlyByteBuf, RawPayload> codec(
+            CustomPacketPayload.Type<RawPayload> payloadType) {
+        return StreamCodec.composite(
+                ByteBufCodecs.BYTE_ARRAY,
+                RawPayload::data,
+                data -> new RawPayload(payloadType, data)
+        );
     }
 
     @Environment(EnvType.CLIENT)
     private static final class ClientAccess {
         private ClientAccess() {}
 
-        private static <T> void register(Identifier id,
+        private static <T> void register(CustomPacketPayload.Type<RawPayload> payloadType,
                                          PacketDecoder<T> decoder,
                                          ClientboundHandler<T> handler) {
-            ClientPlayNetworking.registerGlobalReceiver(id, (client, handlerAccessor, buf, responseSender) -> {
-                T message = decoder.decode(buf);
-                client.execute(() -> handler.handle(message));
+            ClientPlayNetworking.registerGlobalReceiver(payloadType, (payload, context) -> {
+                T message = decoder.decode(readBuffer(payload));
+                context.client().execute(() -> handler.handle(message));
             });
         }
 
-        private static void send(Identifier id, FriendlyByteBuf buffer) {
-            ClientPlayNetworking.send(id, buffer);
+        private static void send(RawPayload payload) {
+            ClientPlayNetworking.send(payload);
         }
     }
 }

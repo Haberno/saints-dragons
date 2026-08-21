@@ -83,7 +83,6 @@ public final class DragonForwardMovementComponent {
         state.start(ticks, velocity, dash, dodge, clampDrag(horizontalDrag));
         dragon.getNavigation().stop();
         dragon.setDeltaMovement(dragon.getDeltaMovement().multiply(0.0D, 1.0D, 0.0D));
-        dragon.hasImpulse = true;
         dragon.hurtMarked = true;
         return true;
     }
@@ -159,7 +158,6 @@ public final class DragonForwardMovementComponent {
         } else {
             dragon.setDeltaMovement(nudge.x, currentMotion.y, nudge.z);
         }
-        dragon.hasImpulse = true;
         dragon.hurtMarked = true;
     }
 
@@ -172,7 +170,6 @@ public final class DragonForwardMovementComponent {
         moveInStepFriendlySlices(motion);
         Vec3 current = dragon.getDeltaMovement();
         dragon.setDeltaMovement(0.0D, current.y, 0.0D);
-        dragon.hasImpulse = true;
         dragon.hurtMarked = true;
     }
 
@@ -184,7 +181,6 @@ public final class DragonForwardMovementComponent {
         lastVelocity = motion;
         moveInStepFriendlySlices(motion);
         dragon.setDeltaMovement(Vec3.ZERO);
-        dragon.hasImpulse = true;
         dragon.hurtMarked = true;
     }
 

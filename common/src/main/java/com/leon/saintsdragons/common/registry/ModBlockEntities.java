@@ -15,6 +15,7 @@ import com.leon.saintsdragons.platform.Services;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
+import java.util.Set;
 
 import java.util.function.Supplier;
 
@@ -24,58 +25,58 @@ public final class ModBlockEntities {
                     .create(Registries.BLOCK_ENTITY_TYPE, () -> BuiltInRegistries.BLOCK_ENTITY_TYPE, SaintsDragonsCommon.MOD_ID);
 
     public static final Supplier<BlockEntityType<RaevyxEggBlockEntity>> RAEVYX_EGG =
-            REGISTER.register("raevyx_egg", () -> BlockEntityType.Builder.of(
+            REGISTER.register("raevyx_egg", () -> new BlockEntityType<>(
                     RaevyxEggBlockEntity::new,
-                    ModBlocks.RAEVYX_EGG.get()
-            ).build(null));
+                    Set.of(ModBlocks.RAEVYX_EGG.get())
+            ));
 
     public static final Supplier<BlockEntityType<IgnivorusEggBlockEntity>> IGNIVORUS_EGG =
-            REGISTER.register("ignivorus_egg", () -> BlockEntityType.Builder.of(
+            REGISTER.register("ignivorus_egg", () -> new BlockEntityType<>(
                     IgnivorusEggBlockEntity::new,
-                    ModBlocks.IGNIVORUS_EGG.get()
-            ).build(null));
+                    Set.of(ModBlocks.IGNIVORUS_EGG.get())
+            ));
 
     public static final Supplier<BlockEntityType<CindervaneEggBlockEntity>> CINDERVANE_EGG =
-            REGISTER.register("cindervane_egg", () -> BlockEntityType.Builder.of(
+            REGISTER.register("cindervane_egg", () -> new BlockEntityType<>(
                     CindervaneEggBlockEntity::new,
-                    ModBlocks.CINDERVANE_EGG.get()
-            ).build(null));
+                    Set.of(ModBlocks.CINDERVANE_EGG.get())
+            ));
 
     public static final Supplier<BlockEntityType<VarasuchusEggBlockEntity>> VARASUCHUS_EGG =
-            REGISTER.register("varasuchus_egg", () -> BlockEntityType.Builder.of(
+            REGISTER.register("varasuchus_egg", () -> new BlockEntityType<>(
                     VarasuchusEggBlockEntity::new,
-                    ModBlocks.VARASUCHUS_EGG.get()
-            ).build(null));
+                    Set.of(ModBlocks.VARASUCHUS_EGG.get())
+            ));
 
     public static final Supplier<BlockEntityType<StegonautEggBlockEntity>> STEGONAUT_EGG =
-            REGISTER.register("stegonaut_egg", () -> BlockEntityType.Builder.of(
+            REGISTER.register("stegonaut_egg", () -> new BlockEntityType<>(
                     StegonautEggBlockEntity::new,
-                    ModBlocks.STEGONAUT_EGG.get()
-            ).build(null));
+                    Set.of(ModBlocks.STEGONAUT_EGG.get())
+            ));
 
     public static final Supplier<BlockEntityType<VolitansEggBlockEntity>> VOLITANS_EGG =
-            REGISTER.register("volitans_egg", () -> BlockEntityType.Builder.of(
+            REGISTER.register("volitans_egg", () -> new BlockEntityType<>(
                     VolitansEggBlockEntity::new,
-                    ModBlocks.VOLITANS_EGG.get()
-            ).build(null));
+                    Set.of(ModBlocks.VOLITANS_EGG.get())
+            ));
 
     public static final Supplier<BlockEntityType<AtroxiiaEggBlockEntity>> ATROXIIA_EGG =
-            REGISTER.register("atroxiia_egg", () -> BlockEntityType.Builder.of(
+            REGISTER.register("atroxiia_egg", () -> new BlockEntityType<>(
                     AtroxiiaEggBlockEntity::new,
-                    ModBlocks.ATROXIIA_EGG.get()
-            ).build(null));
+                    Set.of(ModBlocks.ATROXIIA_EGG.get())
+            ));
 
     public static final Supplier<BlockEntityType<DraconianNucleusBlockEntity>> DRACONIAN_NUCLEUS =
-            REGISTER.register("draconian_nucleus", () -> BlockEntityType.Builder.of(
+            REGISTER.register("draconian_nucleus", () -> new BlockEntityType<>(
                     DraconianNucleusBlockEntity::new,
-                    ModBlocks.DRACONIAN_NUCLEUS.get()
-            ).build(null));
+                    Set.of(ModBlocks.DRACONIAN_NUCLEUS.get())
+            ));
 
     public static final Supplier<BlockEntityType<DraconicCrucibleBlockEntity>> DRACONIC_CRUCIBLE =
-            REGISTER.register("draconic_crucible", () -> BlockEntityType.Builder.of(
+            REGISTER.register("draconic_crucible", () -> new BlockEntityType<>(
                     DraconicCrucibleBlockEntity::new,
-                    ModBlocks.DRACONIC_CRUCIBLE.get()
-            ).build(null));
+                    Set.of(ModBlocks.DRACONIC_CRUCIBLE.get())
+            ));
 
     public static void register() {
         REGISTER.register();

@@ -90,7 +90,7 @@ public class VolitansUltimateAbility extends DragonAbility<Volitans> {
             dragon.setGoingUp(false);
             dragon.setGoingDown(false);
             forcedSlamSpeed = 0.0D;
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.triggerAnim(AnimationHelper.FLIGHT_CONTROLLER, "slamming");
                 dragon.getSoundHandler().playMovingEntitySound(
                         ModSounds.VOLITANS_SLAMMING.get(),
@@ -101,14 +101,12 @@ public class VolitansUltimateAbility extends DragonAbility<Volitans> {
             }
             Vec3 current = dragon.getDeltaMovement();
             dragon.setDeltaMovement(current.x * HORIZONTAL_DAMPING, 0.0D, current.z * HORIZONTAL_DAMPING);
-            dragon.hasImpulse = true;
         } else if (section.sectionType == ACTIVE) {
             dragon.setGoingUp(false);
             dragon.setGoingDown(true);
             forcedSlamSpeed = SLAM_INITIAL_SPEED;
             Vec3 current = dragon.getDeltaMovement();
             dragon.setDeltaMovement(current.x * HORIZONTAL_DAMPING, forcedSlamSpeed, current.z * HORIZONTAL_DAMPING);
-            dragon.hasImpulse = true;
         }
     }
 
@@ -125,7 +123,6 @@ public class VolitansUltimateAbility extends DragonAbility<Volitans> {
             dragon.setGoingDown(false);
             Vec3 current = dragon.getDeltaMovement();
             dragon.setDeltaMovement(current.x * HORIZONTAL_DAMPING, 0.0D, current.z * HORIZONTAL_DAMPING);
-            dragon.hasImpulse = true;
             return;
         }
 
@@ -142,9 +139,8 @@ public class VolitansUltimateAbility extends DragonAbility<Volitans> {
         forcedSlamSpeed -= SLAM_EXTRA_PULL_PER_TICK;
         Vec3 current = dragon.getDeltaMovement();
         dragon.setDeltaMovement(current.x, forcedSlamSpeed, current.z);
-        dragon.hasImpulse = true;
 
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         boolean impacted = dragon.onGround() && wasAirborne;
@@ -161,7 +157,7 @@ public class VolitansUltimateAbility extends DragonAbility<Volitans> {
             dragon.setGoingUp(false);
             dragon.setGoingDown(false);
             dragon.setDeltaMovement(0.0D, 0.0D, 0.0D);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.triggerAnim(AnimationHelper.FLIGHT_CONTROLLER, "slammed");
                 dragon.playSound(ModSounds.VOLITANS_SLAMMED.get(), 1.9f, 1.0f);
             }
@@ -233,7 +229,6 @@ public class VolitansUltimateAbility extends DragonAbility<Volitans> {
             }
             push = push.normalize().scale(1.0D);
             target.push(push.x, 0.45D, push.z);
-            target.hasImpulse = true;
         }
     }
 
@@ -244,7 +239,7 @@ public class VolitansUltimateAbility extends DragonAbility<Volitans> {
         mob.getNavigation().stop();
         target.setDeltaMovement(Vec3.ZERO);
         target.hurtMarked = true;
-        target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, STUN_TICKS, 6, false, true));
+        target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, STUN_TICKS, 6, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.WEAKNESS, STUN_TICKS, 1, false, true));
         target.addEffect(new MobEffectInstance(MobEffects.BLINDNESS, 20, 0, false, true));
     }

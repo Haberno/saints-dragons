@@ -38,7 +38,7 @@ public class DieAbility<T extends DragonEntity> extends DragonAbility<T> {
         }
         dragon.triggerAnim(controllerId, animationTrigger);
 
-        if (!getLevel().isClientSide) {
+        if (!getLevel().isClientSide()) {
             playDeathSound(dragon, abilityId);
         }
     }

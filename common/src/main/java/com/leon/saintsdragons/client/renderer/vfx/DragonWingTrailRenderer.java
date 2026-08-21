@@ -7,6 +7,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
@@ -17,7 +18,7 @@ import org.joml.Vector3f;
 
 public final class DragonWingTrailRenderer {
     private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/particle/trail.png");
-    private static final RenderType RENDER_TYPE = RenderType.entityTranslucent(TEXTURE);
+    private static final RenderType RENDER_TYPE = RenderTypes.entityTranslucent(TEXTURE);
     private static final float WIDTH = 0.25F;
 
     private DragonWingTrailRenderer() {
@@ -30,7 +31,7 @@ public final class DragonWingTrailRenderer {
         }
 
         Camera camera = Minecraft.getInstance().gameRenderer.getMainCamera();
-        Vec3 cameraPos = camera.getPosition();
+        Vec3 cameraPos = camera.position();
         VertexConsumer consumer = bufferSource.getBuffer(RENDER_TYPE);
         Matrix3f normal = pose.normal();
         int light = LightTexture.FULL_BRIGHT;
@@ -112,13 +113,12 @@ public final class DragonWingTrailRenderer {
     private static void vertex(VertexConsumer consumer, Matrix3f normal, Vector3f pos,
                                float u, float v, float alpha, int light) {
         normal.transform(pos);
-        consumer.vertex(pos.x(), pos.y(), pos.z())
-                .color(1.0F, 1.0F, 1.0F, alpha)
-                .uv(u, v)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(light)
-                .normal(normal, 1.0F, 0.0F, 0.0F)
-                .endVertex();
+        consumer.addVertex(pos.x(), pos.y(), pos.z())
+                .setColor(1.0F, 1.0F, 1.0F, alpha)
+                .setUv(u, v)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(light)
+                .setNormal(1.0F, 0.0F, 0.0F);
     }
 
     private static void addNormalized(Vector3f target, Vector3f from, Vector3f to) {

@@ -31,7 +31,7 @@ public final class DragonlordSwordAbility {
 
         ItemStack stack = player.getMainHandItem();
         Item sword = ModItems.DRAGONLORD_SWORD.get();
-        if (!stack.is(sword) || player.getCooldowns().isOnCooldown(sword)) {
+        if (!stack.is(sword) || player.getCooldowns().isOnCooldown(sword.asItem().getDefaultInstance())) {
             return;
         }
 
@@ -42,7 +42,7 @@ public final class DragonlordSwordAbility {
         }
         forward = forward.normalize();
 
-        ServerLevel level = player.serverLevel();
+        ServerLevel level = player.level();
         float pillarYaw = (float) Math.toDegrees(Math.atan2(forward.z, forward.x)) - 90.0F;
 
         for (int index = 0; index < PILLAR_COUNT; index++) {
@@ -78,6 +78,6 @@ public final class DragonlordSwordAbility {
             );
         }
 
-        player.getCooldowns().addCooldown(sword, ToolsArmorConfig.DRAGONLORD_SWORD_ABILITY_COOLDOWN_TICKS.get());
+        player.getCooldowns().addCooldown(sword.asItem().getDefaultInstance(), ToolsArmorConfig.DRAGONLORD_SWORD_ABILITY_COOLDOWN_TICKS.get());
     }
 }

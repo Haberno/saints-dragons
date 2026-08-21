@@ -1,32 +1,25 @@
 package com.leon.saintsdragons.client.model.block;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.minecraft.client.animation.AnimationDefinition;
-import net.minecraft.client.animation.KeyframeAnimations;
-import net.minecraft.client.model.HierarchicalModel;
+import com.leon.saintsdragons.client.renderer.block.DraconicCrucibleRenderer;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 
-public class DraconicCrucibleEntity extends HierarchicalModel<Entity> {
-	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new Identifier("saintsdragons", "draconic_crucible"), "main");
-	private final ModelPart root;
+public class DraconicCrucibleEntity extends Model<DraconicCrucibleRenderer.RenderState> {
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Identifier.fromNamespaceAndPath("saintsdragons", "draconic_crucible"), "main");
 	private final ModelPart neck;
 	private final ModelPart upperjaw;
 	private final ModelPart lowerjaw;
-	private final Vector3f animationVector = new Vector3f();
 
 	public DraconicCrucibleEntity(ModelPart root) {
-		this.root = root.getChild("root");
-		this.neck = this.root.getChild("neck");
-		this.upperjaw = this.root.getChild("upperjaw");
-		this.lowerjaw = this.root.getChild("lowerjaw");
+		super(root.getChild("root"), RenderTypes::entityCutoutNoCull);
+		this.neck = root().getChild("neck");
+		this.upperjaw = root().getChild("upperjaw");
+		this.lowerjaw = root().getChild("lowerjaw");
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -56,26 +49,9 @@ public class DraconicCrucibleEntity extends HierarchicalModel<Entity> {
 	}
 
 	@Override
-	public @NotNull ModelPart root() {
-		return this.root;
-	}
-
-	@Override
-	public void setupAnim(@NotNull Entity entity, float limbSwing, float limbSwingAmount, float ageInTicks, float netHeadYaw, float headPitch) {
-
-	}
-
-	public void resetPose() {
-		this.root.getAllParts().forEach(ModelPart::resetPose);
-	}
-
-	public void animate(AnimationDefinition animation, long timeMillis) {
+	public void setupAnim(DraconicCrucibleRenderer.RenderState state) {
 		resetPose();
-		KeyframeAnimations.animate(this, animation, timeMillis, 1.0F, this.animationVector);
-	}
-
-	@Override
-	public void renderToBuffer(@NotNull PoseStack poseStack, @NotNull VertexConsumer vertexConsumer, int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-		root.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+		(state.open ? DraconicCrucibleAnimations.OPEN : DraconicCrucibleAnimations.CLOSE)
+				.bake(root()).apply(state.animationTimeMillis, 1.0F);
 	}
 }

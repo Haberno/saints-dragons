@@ -181,7 +181,7 @@ public class VolitansAirCombatBehaviour extends AirCombatMovementBehaviour<Volit
     private boolean canUseAirCombat(Volitans dragon) {
         return !dragon.isBaby()
                 && !dragon.isInWater()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && !dragon.isInLava()
                 && !dragon.isAiSpecialCombatActive()
                 && !dragon.isAiSpecialCombatReserved();

@@ -159,7 +159,7 @@ public final class DragonGroundFollowOwnerBehaviour<T extends RideableDragonBase
     private boolean canFollow(T dragon, LivingEntity owner) {
         if (!dragon.isTame() || dragon.getCommand() != 0 || dragon.isOrderedToSit()
                 || dragon.isInLove() || dragon.isPassenger() || dragon.isSittingDownAnimation()
-                || dragon.isInWaterOrBubble()) {
+                || dragon.isInWater()) {
             return false;
         }
         if (dragon.getTarget() != null && dragon.getTarget().isAlive()) return false;

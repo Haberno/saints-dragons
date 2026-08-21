@@ -68,10 +68,4 @@ public class StegonautBinderItem extends AbstractDragonBinderItem<Stegonaut> {
         return BinderComponentUtil.getBoundDragonName(stack);
     }
 
-    @Override
-    @Environment(EnvType.CLIENT)
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
-                                @NotNull TooltipFlag flag) {
-        super.appendHoverText(stack, level, tooltip, flag);
-    }
 }

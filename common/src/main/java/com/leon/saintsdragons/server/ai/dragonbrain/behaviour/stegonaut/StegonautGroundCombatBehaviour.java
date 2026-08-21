@@ -83,7 +83,7 @@ public class StegonautGroundCombatBehaviour extends DragonBehaviour<Stegonaut> {
     }
 
     public static double attackRange(Stegonaut dragon) {
-        return dragon.isInWaterOrBubble() ? WATER_ATTACK_RANGE : GROUND_ATTACK_RANGE;
+        return dragon.isInWater() ? WATER_ATTACK_RANGE : GROUND_ATTACK_RANGE;
     }
 
     private static double attackReachSqr(Stegonaut dragon, LivingEntity target) {

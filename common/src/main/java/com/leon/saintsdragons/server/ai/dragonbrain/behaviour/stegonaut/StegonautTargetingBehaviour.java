@@ -226,7 +226,7 @@ public final class StegonautTargetingBehaviour extends DragonTargetingBehaviour<
         double range = followRange(dragon);
         TargetingConditions conditions = TargetingConditions.forCombat()
                 .range(range)
-                .selector(entity -> predicate.test(type.cast(entity)) && dragon.canTarget(entity));
+                .selector((entity, ignoredLevel) -> predicate.test(type.cast(entity)) && dragon.canTarget(entity));
         return level.getNearestEntity(type, conditions, dragon,
                 dragon.getX(), dragon.getEyeY(), dragon.getZ(), dragon.getBoundingBox().inflate(range));
     }

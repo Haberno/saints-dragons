@@ -2,6 +2,7 @@ package com.leon.saintsdragons.server.entity.otheranimals;
 
 import com.leon.saintsdragons.common.registry.ModItems;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.RandomSource;
@@ -72,9 +73,10 @@ public class Moop extends AbstractFish implements GeoEntity {
     }
 
     @Override
-    protected void dropCustomDeathLoot(@NotNull DamageSource damageSource, int looting, boolean recentlyHit) {
-        super.dropCustomDeathLoot(damageSource, looting, recentlyHit);
-        this.spawnAtLocation(this.isOnFire() || this.getRemainingFireTicks() > 0
+    protected void dropCustomDeathLoot(@NotNull ServerLevel level, @NotNull DamageSource damageSource,
+                                       boolean recentlyHit) {
+        super.dropCustomDeathLoot(level, damageSource, recentlyHit);
+        this.spawnAtLocation(level, this.isOnFire() || this.getRemainingFireTicks() > 0
                 ? ModItems.COOKED_MOOP.get()
                 : ModItems.RAW_MOOP.get());
     }
@@ -90,7 +92,7 @@ public class Moop extends AbstractFish implements GeoEntity {
     }
 
     private PlayState movementPredicate(AnimationTest<Moop> state) {
-        if (!isInWaterOrBubble()) {
+        if (!isInWater()) {
             state.setAndContinue(ON_LAND);
             return PlayState.CONTINUE;
         }

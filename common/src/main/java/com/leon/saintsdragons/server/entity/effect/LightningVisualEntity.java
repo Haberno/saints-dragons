@@ -2,7 +2,7 @@ package com.leon.saintsdragons.server.entity.effect;
 
 import com.leon.saintsdragons.common.registry.ModEntities;
 import net.minecraft.core.Rotations;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -13,6 +13,9 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 
@@ -34,7 +37,6 @@ public class LightningVisualEntity extends Entity {
         super(type, level);
         this.blocksBuilding = false;
         this.noPhysics = true;
-        this.noCulling = true;
     }
 
     public LightningVisualEntity(Level level, Vec3 start, Vec3 end, float visualScale, int maxAge, long seed) {
@@ -57,13 +59,13 @@ public class LightningVisualEntity extends Entity {
     }
 
     @Override
-    protected void defineSynchedData() {
-        this.entityData.define(START_OFFSET, new Rotations(0.0F, 0.0F, 0.0F));
-        this.entityData.define(END_OFFSET, new Rotations(0.0F, 0.0F, 0.0F));
-        this.entityData.define(VISUAL_SCALE, 0.5F);
-        this.entityData.define(MAX_AGE, 4);
-        this.entityData.define(RENDER_SEED, 0);
-        this.entityData.define(VISUAL_STYLE, VisualStyle.RAEVYX.ordinal());
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        builder.define(START_OFFSET, new Rotations(0.0F, 0.0F, 0.0F));
+        builder.define(END_OFFSET, new Rotations(0.0F, 0.0F, 0.0F));
+        builder.define(VISUAL_SCALE, 0.5F);
+        builder.define(MAX_AGE, 4);
+        builder.define(RENDER_SEED, 0);
+        builder.define(VISUAL_STYLE, VisualStyle.RAEVYX.ordinal());
     }
 
     public void setSegment(Vec3 startOffset, Vec3 endOffset) {
@@ -145,7 +147,7 @@ public class LightningVisualEntity extends Entity {
     }
 
     @Override
-    protected void addAdditionalSaveData(CompoundTag tag) {
+    protected void addAdditionalSaveData(ValueOutput tag) {
         Vec3 startOffset = this.getStartOffset();
         Vec3 endOffset = this.getEndOffset();
         tag.putFloat("StartX", (float)startOffset.x);
@@ -161,22 +163,21 @@ public class LightningVisualEntity extends Entity {
     }
 
     @Override
-    protected void readAdditionalSaveData(CompoundTag tag) {
+    protected void readAdditionalSaveData(ValueInput tag) {
         this.setSegment(
-                new Vec3(tag.getFloat("StartX"), tag.getFloat("StartY"), tag.getFloat("StartZ")),
-                new Vec3(tag.getFloat("EndX"), tag.getFloat("EndY"), tag.getFloat("EndZ"))
+                new Vec3(tag.getFloatOr("StartX", 0.0F), tag.getFloatOr("StartY", 0.0F), tag.getFloatOr("StartZ", 0.0F)),
+                new Vec3(tag.getFloatOr("EndX", 0.0F), tag.getFloatOr("EndY", 0.0F), tag.getFloatOr("EndZ", 0.0F))
         );
-        this.setVisualScale(tag.getFloat("Scale"));
-        this.setMaxAge(tag.getInt("MaxAge"));
-        this.setRenderSeed(tag.getInt("Seed"));
-        this.setVisualStyle(VisualStyle.byId(tag.getInt("VisualStyle")));
+        this.setVisualScale(tag.getFloatOr("Scale", 0.5F));
+        this.setMaxAge(tag.getIntOr("MaxAge", 4));
+        this.setRenderSeed(tag.getIntOr("Seed", 0));
+        this.setVisualStyle(VisualStyle.byId(tag.getIntOr("VisualStyle", 0)));
         this.noPhysics = true;
-        this.noCulling = true;
     }
 
     @Override
-    public @NotNull Packet<ClientGamePacketListener> getAddEntityPacket() {
-        return new ClientboundAddEntityPacket(this);
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        return false;
     }
 
     private static Rotations toRotations(Vec3 vec) {
@@ -184,7 +185,7 @@ public class LightningVisualEntity extends Entity {
     }
 
     private static Vec3 fromRotations(Rotations rotations) {
-        return new Vec3(rotations.getX(), rotations.getY(), rotations.getZ());
+        return new Vec3(rotations.x(), rotations.y(), rotations.z());
     }
 
     public enum VisualStyle {

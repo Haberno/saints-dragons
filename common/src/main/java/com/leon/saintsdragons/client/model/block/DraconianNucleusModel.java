@@ -1,10 +1,8 @@
 package com.leon.saintsdragons.client.model.block;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
+import com.leon.saintsdragons.client.renderer.block.DraconianNucleusRenderer;
 import net.minecraft.client.animation.AnimationDefinition;
-import net.minecraft.client.animation.KeyframeAnimations;
-import net.minecraft.client.model.HierarchicalModel;
+import net.minecraft.client.model.Model;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
@@ -13,22 +11,15 @@ import net.minecraft.client.model.geom.builders.CubeListBuilder;
 import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Entity;
-import org.jetbrains.annotations.NotNull;
-import org.joml.Vector3f;
 
-public class DraconianNucleusModel extends HierarchicalModel<Entity> {
+public class DraconianNucleusModel extends Model<DraconianNucleusRenderer.RenderState> {
     public static final ModelLayerLocation LAYER_LOCATION =
-            new ModelLayerLocation(new Identifier("saintsdragons", "draconian_nucleus"), "main");
-
-    private final ModelPart root;
-    private final Vector3f animationVector = new Vector3f();
+            new ModelLayerLocation(Identifier.fromNamespaceAndPath("saintsdragons", "draconian_nucleus"), "main");
 
     public DraconianNucleusModel(ModelPart bakedRoot) {
-        super(RenderType::entityTranslucent);
-        this.root = bakedRoot.getChild("root");
+        super(bakedRoot.getChild("root"), RenderTypes::entityTranslucent);
     }
 
     public static LayerDefinition createBodyLayer() {
@@ -48,24 +39,12 @@ public class DraconianNucleusModel extends HierarchicalModel<Entity> {
         return LayerDefinition.create(mesh, 48, 48);
     }
 
-    public void animate(AnimationDefinition animation, long timeMillis) {
-        this.root.getAllParts().forEach(ModelPart::resetPose);
-        KeyframeAnimations.animate(this, animation, timeMillis, 1.0F, this.animationVector);
-    }
-
     @Override
-    public @NotNull ModelPart root() {
-        return this.root;
-    }
-
-    @Override
-    public void setupAnim(@NotNull Entity entity, float limbSwing, float limbSwingAmount,
-                          float ageInTicks, float netHeadYaw, float headPitch) {
-    }
-
-    @Override
-    public void renderToBuffer(@NotNull PoseStack poseStack, @NotNull VertexConsumer vertexConsumer,
-                               int packedLight, int packedOverlay, float red, float green, float blue, float alpha) {
-        this.root.render(poseStack, vertexConsumer, packedLight, packedOverlay, red, green, blue, alpha);
+    public void setupAnim(DraconianNucleusRenderer.RenderState state) {
+        resetPose();
+        AnimationDefinition animation = state.active
+                ? DraconianNucleusAnimations.SPAWN
+                : DraconianNucleusAnimations.IDLE;
+        animation.bake(root()).apply(state.animationTimeMillis, 1.0F);
     }
 }

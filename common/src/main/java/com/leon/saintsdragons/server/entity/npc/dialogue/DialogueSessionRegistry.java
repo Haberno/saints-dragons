@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.mojang.serialization.JsonOps;
 import com.leon.saintsdragons.common.network.MessageDialogueClose;
 import com.leon.saintsdragons.common.network.MessageDialogueOpen;
 import com.leon.saintsdragons.common.network.NetworkHandler;
@@ -12,6 +13,7 @@ import com.leon.saintsdragons.common.registry.ModItems;
 import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -159,7 +161,7 @@ public final class DialogueSessionRegistry {
             return;
         }
         if (target.node().usesPlayerName()) {
-            String chosenName = player.getGameProfile().getName();
+            String chosenName = player.getGameProfile().name();
             ivy.rememberDialogueName(player, chosenName);
             continueWithChosenName(player, entityId, target.dialogue(), target.node(), chosenName, nextFlags);
             return;
@@ -191,7 +193,7 @@ public final class DialogueSessionRegistry {
         }
         String name = sanitizeName(rawName);
         if (name.isBlank()) {
-            name = player.getGameProfile().getName();
+            name = player.getGameProfile().name();
         }
         ivy.rememberDialogueName(player, name);
         continueWithChosenName(player, entityId, dialogue, currentNode, name, session.flags());
@@ -458,11 +460,11 @@ public final class DialogueSessionRegistry {
 
     private static Set<String> collectFlags(ServerPlayer player, IvyTheDragonMerchant ivy, Set<String> baseFlags) {
         Set<String> flags = new HashSet<>(baseFlags);
-        flags.add("dimension:" + player.serverLevel().dimension().location());
+        flags.add("dimension:" + player.level().dimension().identifier());
         if (flags.containsAll(IVY_WORK_TOPIC_FLAGS)) {
             flags.add("known_work_done");
         }
-        List<DragonCodexSavedData.DragonCodexEntry> entries = DragonCodexSavedData.get(player.serverLevel()).getEntriesFor(player);
+        List<DragonCodexSavedData.DragonCodexEntry> entries = DragonCodexSavedData.get(player.level()).getEntriesFor(player);
         boolean hasCindervane = false;
         boolean hasAdvanced = false;
         boolean hasBasicExtra = false;
@@ -530,9 +532,16 @@ public final class DialogueSessionRegistry {
     }
 
     private static Component resolveName(Component component, String chosenName) {
-        JsonElement resolvedJson = replaceNamePlaceholder(Component.Serializer.toJsonTree(component), chosenName);
-        Component resolved = Component.Serializer.fromJson(resolvedJson);
-        return resolved == null ? component : resolved;
+        JsonElement componentJson = ComponentSerialization.CODEC.encodeStart(JsonOps.INSTANCE, component)
+                .result()
+                .orElse(null);
+        if (componentJson == null) {
+            return component;
+        }
+        JsonElement resolvedJson = replaceNamePlaceholder(componentJson, chosenName);
+        return ComponentSerialization.CODEC.parse(JsonOps.INSTANCE, resolvedJson)
+                .result()
+                .orElse(component);
     }
 
     private static JsonElement replaceNamePlaceholder(JsonElement element, String chosenName) {

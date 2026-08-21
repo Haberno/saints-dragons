@@ -67,7 +67,7 @@ public class AtroxiiaGungnirStabAbility extends DragonAbility<Atroxiia> {
         Atroxiia dragon = getUser();
         committedAiYaw = dragon.getYRot();
         dragon.triggerAnim(AnimationHelper.MOVEMENT_CONTROLLER, "gungnir_stab");
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             dragon.getSoundHandler().playMovingEntitySound(
                     ModSounds.ATROXIIA_GUNGNIR_STAB.get(), 1.0F, 1.0F, 60
             );
@@ -77,7 +77,7 @@ public class AtroxiiaGungnirStabAbility extends DragonAbility<Atroxiia> {
     @Override
     public void tickUsing() {
         Atroxiia dragon = getUser();
-        if (dragon.level().isClientSide
+        if (dragon.level().isClientSide()
                 || getCurrentSection() == null
                 || getCurrentSection().sectionType != STARTUP) {
             return;

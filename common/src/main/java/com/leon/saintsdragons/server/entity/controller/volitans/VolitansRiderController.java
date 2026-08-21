@@ -46,7 +46,7 @@ public final class VolitansRiderController {
         if (dragon.isFlying()) {
             return DragonRiderControllerHelper.riddenInput(rider, true, 0.4D, 0.8D, 0.45D, 0.9D);
         }
-        if (dragon.isInWaterOrBubble()) {
+        if (dragon.isInWater()) {
             return DragonRiderControllerHelper.riddenInput(rider, true, 0.4D, 0.8D, 0.6D, 1.0D);
         }
         return DragonRiderControllerHelper.riddenInput(rider, false, 0.4D, 0.8D, 0.45D, 0.9D);
@@ -55,7 +55,7 @@ public final class VolitansRiderController {
     public void tickRidden(Player rider) {
         DragonRiderControllerHelper.clearRiderFallAndTarget(dragon, rider);
 
-        if ((dragon.isFlying() || dragon.isInWaterOrBubble()) && !dragon.isRiderPitchKeyMode()) {
+        if ((dragon.isFlying() || dragon.isInWater()) && !dragon.isRiderPitchKeyMode()) {
             syncRiderLook(rider);
         } else {
             syncRiderYaw(rider);
@@ -89,7 +89,7 @@ public final class VolitansRiderController {
                 passenger,
                 moveFunction,
                 DragonRiderSeatOffsets.VOLITANS,
-                dragon.level().isClientSide ? dragon.getClientLocatorPosition("passengerLocator") : null
+                dragon.level().isClientSide() ? dragon.getClientLocatorPosition("passengerLocator") : null
         );
     }
 

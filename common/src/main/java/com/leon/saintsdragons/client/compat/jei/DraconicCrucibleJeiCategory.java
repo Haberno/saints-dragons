@@ -15,8 +15,11 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
+import net.minecraft.core.Holder;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 import java.util.Locale;
+import java.util.stream.StreamSupport;
 
 import static com.leon.saintsdragons.common.block.crucible.DraconicCrucibleUiLayout.*;
 
@@ -65,11 +68,13 @@ abstract class DraconicCrucibleJeiCategory<T> implements IRecipeCategory<T> {
     }
 
     protected final void addFuelSlot(IRecipeLayoutBuilder builder, int requiredHeatLevel) {
-        var fuelSlot = builder.addSlot(RecipeIngredientRole.CATALYST, FUEL_SLOT_X, FUEL_SLOT_Y)
+        var fuelSlot = builder.addSlot(RecipeIngredientRole.RENDER_ONLY, FUEL_SLOT_X, FUEL_SLOT_Y)
                 .setSlotName("fuel");
         for (DraconicCrucibleFuelTier tier : DraconicCrucibleFuelTier.values()) {
             if (tier.canProcess(requiredHeatLevel) && tier.tag() != null) {
-                fuelSlot.addIngredients(Ingredient.of(tier.tag()));
+                fuelSlot.addIngredients(Ingredient.of(StreamSupport.stream(
+                        BuiltInRegistries.ITEM.getTagOrEmpty(tier.tag()).spliterator(), false)
+                        .map(Holder::value)));
             }
         }
         fuelSlot.addRichTooltipCallback((recipeSlotView, tooltip) -> tooltip.add(

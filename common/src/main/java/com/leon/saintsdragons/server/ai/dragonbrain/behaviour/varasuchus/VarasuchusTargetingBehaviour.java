@@ -172,7 +172,7 @@ public final class VarasuchusTargetingBehaviour extends DragonTargetingBehaviour
         if (Source.RETALIATION.debugName.equals(source)
                 || Source.OWNER_HURT.debugName.equals(source)
                 || Source.OWNER_ATTACKED.debugName.equals(source)
-                || dragon.isInWaterOrBubble() && target.isInWaterOrBubble()) {
+                || dragon.isInWater() && target.isInWater()) {
             range *= COMMITTED_RETENTION_MULTIPLIER;
         }
         return dragon.distanceToSqr(target) <= range * range;
@@ -317,7 +317,7 @@ public final class VarasuchusTargetingBehaviour extends DragonTargetingBehaviour
         double range = Math.max(16.0D, dragon.getAttributeValue(Attributes.FOLLOW_RANGE));
         TargetingConditions conditions = TargetingConditions.forCombat()
                 .range(range)
-                .selector(entity -> predicate.test(type.cast(entity)) && dragon.canTarget(entity));
+                .selector((entity, ignoredLevel) -> predicate.test(type.cast(entity)) && dragon.canTarget(entity));
         return level.getNearestEntity(type, conditions, dragon,
                 dragon.getX(), dragon.getEyeY(), dragon.getZ(), dragon.getBoundingBox().inflate(range));
     }

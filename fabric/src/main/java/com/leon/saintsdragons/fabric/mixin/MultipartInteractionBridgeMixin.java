@@ -28,7 +28,7 @@ public abstract class MultipartInteractionBridgeMixin {
 
     @Inject(method = "handleInteract", at = @At("HEAD"), cancellable = true)
     private void saintsdragons$onHandleInteract(ServerboundInteractPacket packet, CallbackInfo ci) {
-        ServerLevel level = this.player.serverLevel();
+        ServerLevel level = this.player.level();
         int entityId = ((ServerboundInteractPacketIdAccessor) packet).getEntityId();
         Entity vanillaEntity = level.getEntity(entityId);
 
@@ -44,7 +44,7 @@ public abstract class MultipartInteractionBridgeMixin {
 
                 @Override
                 public void onAttack() {
-                    player.server.execute(() -> {
+                    player.level().getServer().execute(() -> {
                         if (!player.isRemoved() && directPart.isAlive() && directPart.level() == player.level()) {
                             player.attack(directPart);
                         }
@@ -69,7 +69,7 @@ public abstract class MultipartInteractionBridgeMixin {
                     }
                     @Override
                     public void onAttack() {
-                        player.server.execute(() -> {
+                        player.level().getServer().execute(() -> {
                             if (!player.isRemoved() && hitPart.isAlive() && hitPart.level() == player.level()) {
                                 player.attack(hitPart);
                             }

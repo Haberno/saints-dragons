@@ -72,7 +72,7 @@ public final class AtroxiiaSlitherAbility extends DragonAbility<Atroxiia> {
                 && !dragon.isBaby()
                 && !dragon.isDying()
                 && !dragon.isTamingStunned()
-                && !dragon.isInWaterOrBubble()
+                && !dragon.isInWater()
                 && !dragon.areRiderControlsLocked();
     }
 
@@ -88,7 +88,7 @@ public final class AtroxiiaSlitherAbility extends DragonAbility<Atroxiia> {
         contactHitCooldowns.clear();
         Atroxiia dragon = getUser();
         dragon.startSlitherAnimation();
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             dragon.getSoundHandler().playMovingEntitySound(
                     ModSounds.ATROXIIA_SLITHER.get(), 1.4F, 1.0F, 80
             );
@@ -98,7 +98,7 @@ public final class AtroxiiaSlitherAbility extends DragonAbility<Atroxiia> {
     @Override
     public void tickUsing() {
         Atroxiia dragon = getUser();
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
 
@@ -155,7 +155,8 @@ public final class AtroxiiaSlitherAbility extends DragonAbility<Atroxiia> {
             if (contactHitCooldowns.containsKey(target.getId())) {
                 continue;
             }
-            if (!target.hurt(dragon.level().damageSources().mobAttack(dragon), contactDamage)) {
+            if (!target.hurtServer((net.minecraft.server.level.ServerLevel) dragon.level(),
+                    dragon.level().damageSources().mobAttack(dragon), contactDamage)) {
                 continue;
             }
 

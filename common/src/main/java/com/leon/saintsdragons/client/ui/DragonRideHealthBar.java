@@ -16,20 +16,20 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.resources.Identifier;
 
 public class DragonRideHealthBar {
-    private static final Identifier RAEVYX_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/raevyx/raevyx_base.png");
-    private static final Identifier RAEVYX_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/raevyx/raevyx_overlay.png");
-    private static final Identifier IGNIVORUS_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/ignivorus/ignivorus_base.png");
-    private static final Identifier IGNIVORUS_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/ignivorus/ignivorus_overlay.png");
-    private static final Identifier CINDERVANE_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/cindervane/cindervane_base.png");
-    private static final Identifier CINDERVANE_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/cindervane/cindervane_overlay.png");
-    private static final Identifier VARASUCHUS_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/varasuchus/varasuchus_base.png");
-    private static final Identifier VARASUCHUS_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/varasuchus/varasuchus_overlay.png");
-    private static final Identifier STEGONAUT_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/stegonaut/stegonaut_base.png");
-    private static final Identifier STEGONAUT_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/stegonaut/stegonaut_overlay.png");
-    private static final Identifier VOLITANS_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/volitans/volitans_base.png");
-    private static final Identifier VOLITANS_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/volitans/volitans_overlay.png");
-    private static final Identifier ATROXIIA_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/atroxiia/atroxiia_base.png");
-    private static final Identifier ATROXIIA_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/atroxiia/atroxiia_overlay.png");
+    private static final Identifier RAEVYX_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/raevyx/raevyx_base.png");
+    private static final Identifier RAEVYX_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/raevyx/raevyx_overlay.png");
+    private static final Identifier IGNIVORUS_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/ignivorus/ignivorus_base.png");
+    private static final Identifier IGNIVORUS_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/ignivorus/ignivorus_overlay.png");
+    private static final Identifier CINDERVANE_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/cindervane/cindervane_base.png");
+    private static final Identifier CINDERVANE_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/cindervane/cindervane_overlay.png");
+    private static final Identifier VARASUCHUS_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/varasuchus/varasuchus_base.png");
+    private static final Identifier VARASUCHUS_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/varasuchus/varasuchus_overlay.png");
+    private static final Identifier STEGONAUT_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/stegonaut/stegonaut_base.png");
+    private static final Identifier STEGONAUT_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/stegonaut/stegonaut_overlay.png");
+    private static final Identifier VOLITANS_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/volitans/volitans_base.png");
+    private static final Identifier VOLITANS_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/volitans/volitans_overlay.png");
+    private static final Identifier ATROXIIA_BASE = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/atroxiia/atroxiia_base.png");
+    private static final Identifier ATROXIIA_OVERLAY = Identifier.fromNamespaceAndPath(SaintsDragonsCommon.MOD_ID, "textures/gui/healthbar/atroxiia/atroxiia_overlay.png");
     private static final int BAR_WIDTH = 182;
     private static final int BAR_HEIGHT = 22;
     private DragonEntity dragon;
@@ -70,8 +70,6 @@ public class DragonRideHealthBar {
         if (dragon instanceof Cindervane || dragon instanceof Varasuchus) {
             y += 6;
         }
-        RenderSystem.enableBlend();
-        RenderSystem.defaultBlendFunc();
 
         if (dragon instanceof Raevyx) {
             renderTexturedHealthBar(guiGraphics, x, y, RAEVYX_BASE, RAEVYX_OVERLAY);
@@ -92,8 +90,6 @@ public class DragonRideHealthBar {
         }
 
         renderHealthText(guiGraphics, x, y);
-        RenderSystem.setShaderColor(1.0f, 1.0f, 1.0f, 1.0f);
-        RenderSystem.disableBlend();
     }
 
     private void renderTexturedHealthBar(GuiGraphics guiGraphics, int x, int y, Identifier baseTexture, Identifier overlayTexture) {

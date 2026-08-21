@@ -16,7 +16,7 @@ public final class DragonRiderFlight {
         boolean isTakeoff();
         boolean isGoingUp();
         boolean isUnderWater();
-        boolean isInWaterOrBubble();
+        boolean isInWater();
         boolean isInLava();
         boolean isTame();
         boolean hasControllingRider();
@@ -96,7 +96,7 @@ public final class DragonRiderFlight {
     }
 
     public boolean requestRiderTakeoff() {
-        if (host.level().isClientSide) {
+        if (host.level().isClientSide()) {
             return false;
         }
         if (!host.isTame() || !host.hasControllingRider() || host.isFlying()) {
@@ -113,7 +113,7 @@ public final class DragonRiderFlight {
         }
 
         boolean breachAttempt = config.allowWaterBreachTakeoff()
-                && (host.isInWaterOrBubble() || host.isInLava())
+                && (host.isInWater() || host.isInLava())
                 && !host.isUnderWater();
         if (breachAttempt && !hasBreachTakeoffClearance()) {
             return false;
@@ -135,13 +135,13 @@ public final class DragonRiderFlight {
     }
 
     public boolean tryAutoBreachTakeoff() {
-        if (host.level().isClientSide) {
+        if (host.level().isClientSide()) {
             return false;
         }
         if (host.isFlying()) {
             return false;
         }
-        if ((!host.isInWaterOrBubble() && !host.isInLava()) || host.isUnderWater()) {
+        if ((!host.isInWater() && !host.isInLava()) || host.isUnderWater()) {
             return false;
         }
         if (!host.isGoingUp()) {

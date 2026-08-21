@@ -52,7 +52,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.util.RandomSource;
 import net.minecraft.util.Mth;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
@@ -78,11 +77,14 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.pathfinder.PathType;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.particles.ParticleTypes;
 import software.bernie.geckolib.animatable.instance.AnimatableInstanceCache;
+import software.bernie.geckolib.animatable.manager.AnimatableManager;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animation.RawAnimation;
 import software.bernie.geckolib.animation.state.AnimationTest;
@@ -406,12 +408,12 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     public void handleAiLandingComplete() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             suppressSleep(60);
             completeTouchdownLanding(LandingSource.AI);
             return;
         }
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             triggerAnim(AnimationHelper.MOVEMENT_CONTROLLER, AnimationHelper.LANDED);
             getSoundHandler().playMovingEntitySound(ModSounds.RAEVYX_LANDED.get(), 1.0f, 1.0f, 72);
             suppressSleep(60);
@@ -431,9 +433,9 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     @Override
-    protected void customServerAiStep() {
+    protected void customServerAiStep(ServerLevel serverLevel) {
         DragonBrain.tick(DRAGON_BRAIN, this);
-        super.customServerAiStep();
+        super.customServerAiStep(serverLevel);
     }
 
     @Override
@@ -477,7 +479,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         setupAnimationControllers();
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
 
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             applyConfiguredAttributes();
         }
     }
@@ -503,8 +505,8 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         if (!(rider instanceof ServerPlayer serverPlayer)) {
             return;
         }
-        var advancement = serverPlayer.server.getAdvancements()
-                .getAdvancement(SaintsDragonsCommon.rl("raevyx_dive_exit"));
+        var advancement = serverPlayer.level().getServer().getAdvancements()
+                .get(SaintsDragonsCommon.rl("raevyx_dive_exit"));
         if (advancement != null) {
             serverPlayer.getAdvancements().award(advancement, "raevyx_dive_exit");
         }
@@ -529,42 +531,42 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
     private int hurtSoundCooldown = 0;
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
-        this.entityData.define(DATA_BEAMING, false);
-        this.entityData.define(DATA_BEAM_GLOW, false);
-        this.entityData.define(DATA_RIDER_LANDING_BLEND, false);
-        this.entityData.define(DATA_BEAM_END_SET, false);
-        this.entityData.define(DATA_BEAM_END_X, 0f);
-        this.entityData.define(DATA_BEAM_END_Y, 0f);
-        this.entityData.define(DATA_BEAM_END_Z, 0f);
-        this.entityData.define(DATA_BEAM_START_SET, false);
-        this.entityData.define(DATA_BEAM_START_X, 0f);
-        this.entityData.define(DATA_BEAM_START_Y, 0f);
-        this.entityData.define(DATA_BEAM_START_Z, 0f);
-        this.entityData.define(DATA_FEEDING_COOLDOWN, 0);
-        this.entityData.define(DATA_TAMING_STUNNED, false);
-        this.entityData.define(DATA_FLIGHT_PITCH, 0f);
-        this.entityData.define(DATA_PITCH_KEY_MODE, false);
-        this.entityData.define(DATA_BEAM_ENERGY, 1.0f); // Start with full energy
-        this.entityData.define(DATA_BEAM_DEPLETED, false); // Start unlocked
-        this.entityData.define(DATA_ACCUMULATED_ROLL, 0.0f); // Start upright
-        this.entityData.define(DATA_CUSTOM_DIVE_LOOP_ENABLED, true);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
+        builder.define(DATA_BEAMING, false);
+        builder.define(DATA_BEAM_GLOW, false);
+        builder.define(DATA_RIDER_LANDING_BLEND, false);
+        builder.define(DATA_BEAM_END_SET, false);
+        builder.define(DATA_BEAM_END_X, 0f);
+        builder.define(DATA_BEAM_END_Y, 0f);
+        builder.define(DATA_BEAM_END_Z, 0f);
+        builder.define(DATA_BEAM_START_SET, false);
+        builder.define(DATA_BEAM_START_X, 0f);
+        builder.define(DATA_BEAM_START_Y, 0f);
+        builder.define(DATA_BEAM_START_Z, 0f);
+        builder.define(DATA_FEEDING_COOLDOWN, 0);
+        builder.define(DATA_TAMING_STUNNED, false);
+        builder.define(DATA_FLIGHT_PITCH, 0f);
+        builder.define(DATA_PITCH_KEY_MODE, false);
+        builder.define(DATA_BEAM_ENERGY, 1.0f); // Start with full energy
+        builder.define(DATA_BEAM_DEPLETED, false); // Start unlocked
+        builder.define(DATA_ACCUMULATED_ROLL, 0.0f); // Start upright
+        builder.define(DATA_CUSTOM_DIVE_LOOP_ENABLED, true);
     }
 
     @Override
-    protected void defineRideableDragonData() {
-        this.entityData.define(DATA_LANDED, false);
-        this.entityData.define(DATA_DODGING, false);
-        this.entityData.define(DATA_DASHING, false);
-        this.entityData.define(DATA_RIDER_NUDGE_TICKS, 0);
-        this.entityData.define(DATA_RIDER_NUDGE_X, 0.0F);
-        this.entityData.define(DATA_RIDER_NUDGE_Z, 0.0F);
-        this.entityData.define(DATA_RIDER_NUDGE_DRAG, 1.0F);
-        this.entityData.define(DATA_RIDER_NUDGE_STEER_OFFSET, 0.0F);
-        this.entityData.define(DATA_LAST_DASH_RIGHT, false);
-        this.entityData.define(DATA_GROUND_RENDING, false);
+    protected void defineRideableDragonData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_LANDED, false);
+        builder.define(DATA_DODGING, false);
+        builder.define(DATA_DASHING, false);
+        builder.define(DATA_RIDER_NUDGE_TICKS, 0);
+        builder.define(DATA_RIDER_NUDGE_X, 0.0F);
+        builder.define(DATA_RIDER_NUDGE_Z, 0.0F);
+        builder.define(DATA_RIDER_NUDGE_DRAG, 1.0F);
+        builder.define(DATA_RIDER_NUDGE_STEER_OFFSET, 0.0F);
+        builder.define(DATA_LAST_DASH_RIGHT, false);
+        builder.define(DATA_GROUND_RENDING, false);
     }
 
     @Override
@@ -648,7 +650,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
                 && !isFlying()
                 && !isTakeoff()
                 && !isLanding()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !isGroundRending()
                 && !isBeaming();
     }
@@ -920,7 +922,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
 
     public boolean isActuallyRunning() {
         if (isFlying()) return false;
-        int s = level().isClientSide ? getEffectiveGroundState() : this.entityData.get(DATA_GROUND_MOVE_STATE);
+        int s = level().isClientSide() ? getEffectiveGroundState() : this.entityData.get(DATA_GROUND_MOVE_STATE);
         return s == 2;
     }
 
@@ -1025,7 +1027,6 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     // ===== RIDING SUPPORT =====
-    @Override
     public double getPassengersRidingOffset() {
         return riderController.getPassengersRidingOffset();
     }
@@ -1147,7 +1148,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         if (isGroundRending() || (isTamingStunned() && !isTame())) {
             return;
         }
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return;
         }
         if (isDashing()) {
@@ -1187,7 +1188,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         if (isGroundRending() || (isTamingStunned() && !isTame())) {
             return;
         }
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return;
         }
         if (isDashing()) {
@@ -1217,14 +1218,14 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     public boolean canStartAiAirDodge() {
-        return !level().isClientSide
+        return !level().isClientSide()
                 && !isVehicle()
                 && isAlive()
                 && !isDying()
                 && (isFlying() || isHovering())
                 && !isLanding()
                 && !isTakeoff()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !isInLava()
                 && !isDodging()
                 && !isDashing()
@@ -1275,7 +1276,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     public boolean tryAIGroundDodge(@Nullable LivingEntity threat) {
-        if (isFlying() || isInWaterOrBubble() || isDodging() || (isTamingStunned() && !isTame())) {
+        if (isFlying() || isInWater() || isDodging() || (isTamingStunned() && !isTame())) {
             return false;
         }
 
@@ -1320,7 +1321,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     private boolean tryReactiveHitDodge(@Nonnull DamageSource damageSource, float amount) {
-        if (level().isClientSide || amount <= 0.0F || aiDodgeCooldownTicks > 0 || isVehicle() || !isAlive() || isDying() || (isTamingStunned() && !isTame())) {
+        if (level().isClientSide() || amount <= 0.0F || aiDodgeCooldownTicks > 0 || isVehicle() || !isAlive() || isDying() || (isTamingStunned() && !isTame())) {
             return false;
         }
 
@@ -1422,7 +1423,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         if (isGroundRending()) {
             return;
         }
-        if (isAerial() || isInWaterOrBubble()) {
+        if (isAerial() || isInWater()) {
             return;
         }
         if (dashDodgeNudge.getDashCooldownTicks() > 0) {
@@ -1473,14 +1474,14 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         tickStandardPitchingLogic();
         tickBarrelRollLogic();
         tickScreenShake();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             diveImpactAbility.tickServer();
         }
         tickFlightLifecycle();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             syncCustomDiveLoopEnabled();
         }
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         tickSittingState();
@@ -1509,7 +1510,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
             tickRiderControlLockMovement();
         }
         tickFeedingCooldown();
-        if (!level().isClientSide && isTamingStunned()) {
+        if (!level().isClientSide() && isTamingStunned()) {
             if (getTarget() != null) {
                 super.setTarget(null);
             }
@@ -1556,12 +1557,12 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
 
                 wakeUpImmediately();
                 suppressSleep(200);
-            } else if (this.isInWaterOrBubble() || this.isInLava()) {
+            } else if (this.isInWater() || this.isInLava()) {
                 wakeUpImmediately();
                 suppressSleep(200);
             }
         }
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             tickAnimationStates();
         }
         if (this.isDodging()) {
@@ -1572,7 +1573,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
             tickBeamLook();
         }
 
-        if (!level().isClientSide && isBaby()) {
+        if (!level().isClientSide() && isBaby()) {
             if (getTarget() != null) {
                 super.setTarget(null);
             }
@@ -1586,7 +1587,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     private void tickFlightLifecycle() {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             boolean onGroundNow = this.onGround() && !this.isInWater();
 
             if (isFlying()) {
@@ -1623,7 +1624,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     private void tickFlightPhysics() {
-        if (level().isClientSide) return;
+        if (level().isClientSide()) return;
         if (isFlying() && !isLanding() && getDeltaMovement().y < 0 && isAlive()) {
             setDeltaMovement(getDeltaMovement().multiply(1, 0.6, 1));
         }
@@ -1646,7 +1647,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     private void tickSittingState() {
-        if (!this.level().isClientSide && this.isVehicle() && this.isOrderedToSit()) {
+        if (!this.level().isClientSide() && this.isVehicle() && this.isOrderedToSit()) {
             this.setOrderedToSit(false);
         }
     }
@@ -1678,7 +1679,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         if (!riderControlled) {
             applyBeamLook(aimDir);
         }
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             updateBeamPathFromAim();
         }
     }
@@ -1716,7 +1717,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         if (riderLook != null) {
             return riderLook;
         }
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             tickBeamTargeting(start);
         }
 
@@ -1851,7 +1852,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     private void tickClientSideUpdates() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             this.prevClientBeamEnd = this.clientBeamEnd;
             this.clientBeamEnd = getBeamEndPosition();
         }
@@ -1861,7 +1862,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     private void updateSittingProgress() {
-        if (!level().isClientSide && super.isInSittingPose() && !isOrderedToSit()) {
+        if (!level().isClientSide() && super.isInSittingPose() && !isOrderedToSit()) {
             setInSittingPose(false);
         }
         tickSitTransition(
@@ -1919,7 +1920,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
     
     private void tickFeedingCooldown() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         int cooldownTicks = this.entityData.get(DATA_FEEDING_COOLDOWN);
@@ -1971,7 +1972,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
 
     private void triggerRiderLandingBlend() {
         triggerRiderLandingBlendTicks(RIDER_LANDING_BLEND_DURATION);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             this.entityData.set(DATA_RIDER_LANDING_BLEND, true);
         }
     }
@@ -2055,7 +2056,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     @Override
     public void travel(@NotNull Vec3 motion) {
         if (dashDodgeNudge.isActive()) {
-            if (this.isVehicle() && this.getControllingPassenger() instanceof Player player && !isFlying() && !isInWaterOrBubble() && !isInLava()) {
+            if (this.isVehicle() && this.getControllingPassenger() instanceof Player player && !isFlying() && !isInWater() && !isInLava()) {
                 this.setSpeed(this.getRiddenSpeed(player));
                 super.travel(motion);
             }
@@ -2087,7 +2088,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
             super.travel(motion);
             return;
         }
-        boolean inWater = this.isInWater() || this.isInWaterOrBubble() || this.isInLava();
+        boolean inWater = this.isInWater() || this.isInWater() || this.isInLava();
 
         if (inWater) {
             clearRiderFlightStateInWaterIfNeeded();
@@ -2131,10 +2132,9 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
             @Nonnull ServerLevelAccessor level,
             @Nonnull DifficultyInstance difficulty,
             @Nonnull EntitySpawnReason spawnReason,
-            @Nullable SpawnGroupData spawnData,
-            @Nullable CompoundTag dataTag
+            @Nullable SpawnGroupData spawnData
     ) {
-        spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData, dataTag);
+        spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData);
         if (spawnReason == EntitySpawnReason.CHUNK_GENERATION) {
             if (!(spawnData instanceof RaevyxFamilyData)) {
                 if (this.random.nextFloat() < 0.05F) {
@@ -2194,7 +2194,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     @Override
-    public boolean hurt(@Nonnull DamageSource damageSource, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @Nonnull DamageSource damageSource, float amount) {
         if (isDying()) {
             return false;
         }
@@ -2222,7 +2222,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
 
         if (isTamingStunned() && !isTame()) {
 
-            return super.hurt(damageSource, amount);
+            return super.hurtServer(level, damageSource, amount);
         }
 
         if (tryReactiveHitDodge(damageSource, amount)) {
@@ -2231,7 +2231,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
 
         boolean wasFlying = isFlying();
         boolean wasRidden = isVehicle();
-        boolean result = super.hurt(damageSource, amount);
+        boolean result = super.hurtServer(level, damageSource, amount);
 
         if (result && wasRidden && wasFlying && isVehicle()) {
             setFlying(true);
@@ -2662,7 +2662,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
             this.setRunning(false);
             this.getNavigation().stop();
         } else if (wasSitting) {
-            if (!level().isClientSide) {
+            if (!level().isClientSide()) {
                 clearAerialStateForInterrupt();
                 switchToGroundNavigation();
                 postStandUnlockTicks = Math.max(postStandUnlockTicks, 20);
@@ -2679,7 +2679,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         saveRideableData(tag);
         tag.putInt("TimeFlying", timeFlying);
@@ -2700,49 +2700,34 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
         loadRideableData(tag);
-        boolean savedFlying = tag.getBoolean("Flying");
-        this.timeFlying = tag.getInt("TimeFlying");
-        boolean savedUsingAirNav = tag.getBoolean("UsingAirNav");
-        this.lastLandingGameTime = tag.contains("LastLandingGameTime") ? tag.getLong("LastLandingGameTime") : Long.MIN_VALUE;
-        this.landingFlag = tag.contains("LandingFlag") && tag.getBoolean("LandingFlag");
-        this.landingTimer = tag.contains("LandingTimer") ? tag.getInt("LandingTimer") : 0;
-        this.landedFlag = tag.contains("LandedFlag") && tag.getBoolean("LandedFlag");
-        this.landedTimer = tag.contains("LandedTimer") ? tag.getInt("LandedTimer") : 0;
+        boolean savedFlying = tag.getBooleanOr("Flying", false);
+        this.timeFlying = tag.getIntOr("TimeFlying", 0);
+        boolean savedUsingAirNav = tag.getBooleanOr("UsingAirNav", false);
+        this.lastLandingGameTime = tag.getLongOr("LastLandingGameTime", Long.MIN_VALUE);
+        this.landingFlag = tag.getBooleanOr("LandingFlag", false);
+        this.landingTimer = tag.getIntOr("LandingTimer", 0);
+        this.landedFlag = tag.getBooleanOr("LandedFlag", false);
+        this.landedTimer = tag.getIntOr("LandedTimer", 0);
         if (!savedFlying) {
             landingTimer = 0;
         }
         this.clearRiderControlLock();
         this.takeoffLockTicks = 0;
         this.combatManager.loadFromNBT(tag);
-        if (tag.contains("SuperchargeTicks")) {
-            this.superchargeTicks = Math.max(0, tag.getInt("SuperchargeTicks"));
-        }
-        if (tag.contains("TempInvulnTicks")) {
-            this.tempInvulnTicks = Math.max(0, tag.getInt("TempInvulnTicks"));
-            if (this.tempInvulnTicks > 0) {
-                this.setInvulnerable(true);
-            }
+        this.superchargeTicks = Math.max(0, tag.getIntOr("SuperchargeTicks", 0));
+        this.tempInvulnTicks = Math.max(0, tag.getIntOr("TempInvulnTicks", 0));
+        if (this.tempInvulnTicks > 0) {
+            this.setInvulnerable(true);
         }
 
-        if (tag.contains("AllowGroundBeamStorm")) {
-            this.allowGroundBeamDuringStorm = tag.getBoolean("AllowGroundBeamStorm");
-        }
-        if (tag.contains("FeedingCooldownTicks")) {
-            this.entityData.set(DATA_FEEDING_COOLDOWN, Math.max(0, tag.getInt("FeedingCooldownTicks")));
-        }
-        if (tag.contains("BeamEnergy")) {
-            setBeamEnergy(tag.getFloat("BeamEnergy"));
-        } else {
-            setBeamEnergy(1.0f);
-        }
-        if (tag.contains("BeamDepleted")) {
-            setBeamDepleted(tag.getBoolean("BeamDepleted"));
-        } else {
-            setBeamDepleted(false);
-        }
+        this.allowGroundBeamDuringStorm = tag.getBooleanOr("AllowGroundBeamStorm", false);
+        this.entityData.set(DATA_FEEDING_COOLDOWN,
+                Math.max(0, tag.getIntOr("FeedingCooldownTicks", 0)));
+        setBeamEnergy(tag.getFloatOr("BeamEnergy", 1.0F));
+        setBeamDepleted(tag.getBooleanOr("BeamDepleted", false));
         tamingController.load(tag);
         if (savedUsingAirNav) {
             switchToAirNavigation();
@@ -2831,7 +2816,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
 
     @Override
     public void stopDrinkingAnimation() {
-        stopTriggeredAnimation(
+        stopTriggeredAnim(
                 RaevyxAnimationHandler.MOVEMENT_CONTROLLER,
                 RaevyxAnimationHandler.DRINKING_TRIGGER
         );
@@ -2844,7 +2829,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         this.setGoingUp(false);
         this.setGoingDown(false);
         this.setDeltaMovement(Vec3.ZERO);
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             this.getNavigation().stop();
             this.setTarget(null);
         }
@@ -2863,7 +2848,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     private final Map<Integer, Long> recentAggroIds = new ConcurrentHashMap<>();
 
     public void noteAggroFrom(LivingEntity target) {
-        if (target == null || target.level().isClientSide) return;
+        if (target == null || target.level().isClientSide()) return;
         recentAggroIds.put(target.getId(), this.level().getGameTime() + AGGRO_TTL_TICKS);
     }
 
@@ -2931,7 +2916,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     @Override
     protected void tickRidden(@Nonnull Player player, @Nonnull Vec3 travelVector) {
         super.tickRidden(player, travelVector);
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             tickTakeoffLock();
         }
         if (!areRiderControlsLocked()) {
@@ -3001,7 +2986,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
     
     @Override
     public boolean canTakeoff() {
-        return !isBaby() && !isGroundRending() && !isInWaterOrBubble() && onGround();
+        return !isBaby() && !isGroundRending() && !isInWater() && onGround();
     }
 
     private boolean shouldStaySeatedCommand() {
@@ -3029,7 +3014,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
 
     @Override
     protected void dropAdditionalDeathLootAfterBase(@NotNull DamageSource source) {
-        if (!level().isClientSide && getGender() == DragonGender.FEMALE) {
+        if (!level().isClientSide() && getGender() == DragonGender.FEMALE) {
             DragonLootTables.dropEntityLoot(this, DragonLootTables.RAEVYX_FEMALE_DEATH, source);
         }
     }

@@ -75,7 +75,7 @@ public final class DragonSetVariantCommand {
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher) {
         dispatcher.register(Commands.literal("setvariant")
-            .requires(source -> source.hasPermission(2))
+            .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
             .then(Commands.argument("dragon", uuidArgument())
                 .suggests(DRAGON_UUID_SUGGESTIONS)
                 .then(Commands.argument("variant", StringArgumentType.greedyString())
@@ -152,7 +152,8 @@ public final class DragonSetVariantCommand {
             start,
             end,
             box,
-            target -> target instanceof DragonEntity && target.isPickable()
+            target -> target instanceof DragonEntity && target.isPickable(),
+            1.0F
         );
 
         if (result != null && result.getEntity() instanceof DragonEntity dragon) {

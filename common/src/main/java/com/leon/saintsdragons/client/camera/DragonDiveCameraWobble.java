@@ -52,7 +52,7 @@ public final class DragonDiveCameraWobble {
             return 0.0F;
         }
 
-        if (!dragon.isFlying() || dragon.isInWaterOrBubble()) {
+        if (!dragon.isFlying() || dragon.isInWater()) {
             return 0.0F;
         }
 

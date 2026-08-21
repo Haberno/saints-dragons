@@ -1,9 +1,11 @@
 package com.leon.saintsdragons.client.renderer.raevyx;
 
 import com.leon.saintsdragons.server.entity.effect.raevyx.RaevyxLightningChainEntity;
-import net.minecraft.client.renderer.entity.EntityRenderer;
+import com.leon.saintsdragons.client.renderer.SaintsDragonsDeferredEntityRenderer;
+import com.mojang.blaze3d.vertex.PoseStack;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import org.jetbrains.annotations.NotNull;
@@ -14,15 +16,16 @@ import org.jetbrains.annotations.NotNull;
  * we don't need to render anything here - just prevent the null renderer crash.
  */
 @Environment(EnvType.CLIENT)
-public class RaevyxLightningChainRenderer extends EntityRenderer<RaevyxLightningChainEntity> {
+public class RaevyxLightningChainRenderer extends SaintsDragonsDeferredEntityRenderer<RaevyxLightningChainEntity> {
 
     public RaevyxLightningChainRenderer(EntityRendererProvider.Context context) {
         super(context);
     }
 
     @Override
-    public @NotNull Identifier getTextureLocation(@NotNull RaevyxLightningChainEntity entity) {
-        // Return a dummy texture since we don't actually render the entity
-        return new Identifier("minecraft", "textures/entity/lightning_bolt.png");
+    protected void submitEntity(RaevyxLightningChainEntity entity, RenderState<RaevyxLightningChainEntity> renderState,
+                                PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                                CameraRenderState cameraState) {
+        // Particle-only visual entity.
     }
 }

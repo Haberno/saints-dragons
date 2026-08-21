@@ -2,6 +2,7 @@ package com.leon.saintsdragons.fabric.mixin.fabric;
 
 import com.leon.saintsdragons.common.item.DragonlordArmorSetBonus;
 import com.leon.saintsdragons.common.item.tools.DragonMeleeHitContext;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffects;
@@ -15,13 +16,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
 @Mixin(LivingEntity.class)
 public abstract class LivingEntityMixin {
-    @ModifyVariable(method = "hurt", at = @At("HEAD"), argsOnly = true, ordinal = 0)
-    private float saintsdragons$modifyDirectMeleeDamage(float damage, DamageSource source) {
+    @ModifyVariable(method = "hurtServer", at = @At("HEAD"), argsOnly = true, ordinal = 0)
+    private float saintsdragons$modifyDirectMeleeDamage(float damage, ServerLevel level, DamageSource source) {
         return DragonMeleeHitContext.modifyDamage((LivingEntity) (Object) this, source, damage);
     }
 
-    @Inject(method = "hurt", at = @At("RETURN"))
-    private void saintsdragons$observeDirectMeleeResult(DamageSource source, float damage,
+    @Inject(method = "hurtServer", at = @At("RETURN"))
+    private void saintsdragons$observeDirectMeleeResult(ServerLevel level, DamageSource source, float damage,
                                                         CallbackInfoReturnable<Boolean> callback) {
         DragonMeleeHitContext.observeResult((LivingEntity) (Object) this, source, callback.getReturnValue());
     }

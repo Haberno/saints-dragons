@@ -468,7 +468,7 @@ public final class AtroxiiaGroundCombatBehaviour extends DragonBehaviour<Atroxii
 
     private boolean isGroundedTarget(LivingEntity target) {
         if (target.isPassenger()
-                || target.isInWaterOrBubble()
+                || target.isInWater()
                 || target.getDeltaMovement().y > 0.08D
                 || (target instanceof Player player && player.getAbilities().flying)) {
             return false;

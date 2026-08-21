@@ -24,7 +24,7 @@ public final class DragonGroundedAerialRecovery {
             double upwardVelocityTolerance,
             Runnable markLandedNow
     ) {
-        if (level.isClientSide || !onGround || inWaterOrBubble || inLava) {
+        if (level.isClientSide() || !onGround || inWaterOrBubble || inLava) {
             return 0;
         }
 

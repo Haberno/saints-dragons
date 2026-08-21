@@ -62,7 +62,7 @@ public class IgnivorusBodySlamAbility extends DragonAbility<Ignivorus> {
         if (section.sectionType == STARTUP) {
             impactApplied = false;
             dragon.triggerAnim(IgnivorusAnimationHandler.MOVEMENT_CONTROLLER, "body_slam");
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_BODY_SLAM.get(), 1.0f, 1.0f, 53);
             }
             dragon.lockRiderControls(CONTROL_LOCK_TICKS);
@@ -127,7 +127,6 @@ public class IgnivorusBodySlamAbility extends DragonAbility<Ignivorus> {
             push = push.normalize();
             double scaledPush = PUSH_STRENGTH + dragon.getBbWidth() * 0.15D;
             target.push(push.x * scaledPush, LIFT_FORCE, push.z * scaledPush);
-            target.hasImpulse = true;
         }
     }
 
@@ -286,10 +285,10 @@ public class IgnivorusBodySlamAbility extends DragonAbility<Ignivorus> {
 
     private BlockPos findGroundLevel(ServerLevel level, Ignivorus dragon, BlockPos startPos) {
         int dragonY = dragon.blockPosition().getY();
-        for (int y = dragonY; y > level.getMinBuildHeight(); y--) {
+        for (int y = dragonY; y > level.getMinY(); y--) {
             BlockPos checkPos = new BlockPos(startPos.getX(), y, startPos.getZ());
             BlockState state = level.getBlockState(checkPos);
-            if (!state.isAir() && !state.liquid() && state.isSolidRender(level, checkPos)) {
+            if (!state.isAir() && !state.liquid() && state.isSolidRender()) {
                 return checkPos;
             }
         }

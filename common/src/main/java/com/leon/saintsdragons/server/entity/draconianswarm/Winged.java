@@ -2,13 +2,14 @@ package com.leon.saintsdragons.server.entity.draconianswarm;
 
 import com.leon.saintsdragons.server.ai.goals.draconianswarm.WingedDiveBombGoal;
 import com.leon.saintsdragons.server.ai.goals.draconianswarm.WingedPullAttackGoal;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeSupplier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.animation.AnimationController;
 import software.bernie.geckolib.animatable.manager.AnimatableManager;
@@ -162,14 +163,14 @@ public class Winged extends AbstractDraconianSwarmEntity {
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("PullAttackHits", this.pullAttackHits);
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        this.pullAttackHits = Mth.clamp(tag.getInt("PullAttackHits"), 0, 2);
+        this.pullAttackHits = Mth.clamp(tag.getIntOr("PullAttackHits", 0), 0, 2);
     }
 }

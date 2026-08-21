@@ -63,7 +63,7 @@ public class RaevyxModel extends DragonGeoModel<Raevyx> {
             if (entity.isDeadOrDying()){
                 return;
             }
-            if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
+            if (!entity.isVehicle() && !entity.isInWater()) {
                 applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);

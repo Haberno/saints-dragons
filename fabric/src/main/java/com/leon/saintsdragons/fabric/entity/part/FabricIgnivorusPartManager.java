@@ -94,7 +94,7 @@ public class FabricIgnivorusPartManager {
     }
 
     private void addClientPartIfMissing(FabricDragonPart part) {
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             return;
         }
         if (dragon.level().getEntity(part.getId()) != null) {
@@ -104,7 +104,7 @@ public class FabricIgnivorusPartManager {
     }
 
     public void updatePartPositions() {
-        boolean isClient = dragon.level().isClientSide;
+        boolean isClient = dragon.level().isClientSide();
         if (isClient && (dragon.tickCount % 20 == 0)) {
             cleanupStaleClientParts();
         }
@@ -176,7 +176,7 @@ public class FabricIgnivorusPartManager {
      * Removes orphaned parts and stale parts from older Ignivorus instances.
      */
     private void cleanupStaleClientParts() {
-        if (!dragon.level().isClientSide) {
+        if (!dragon.level().isClientSide()) {
             return;
         }
 
@@ -214,7 +214,7 @@ public class FabricIgnivorusPartManager {
             part.remove(net.minecraft.world.entity.Entity.RemovalReason.DISCARDED);
 
             // Clean up client-side tracking
-            if (dragon.level().isClientSide && FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
+            if (dragon.level().isClientSide() && FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT) {
                 FabricPartClientHooks.removeClientPart(dragon.level(), part);
             }
         }

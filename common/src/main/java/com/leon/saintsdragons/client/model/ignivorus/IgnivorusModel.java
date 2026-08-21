@@ -65,7 +65,7 @@ public class IgnivorusModel extends DragonGeoModel<Ignivorus> {
             if (entity.isDeadOrDying()){
                 return;
             }
-            if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
+            if (!entity.isVehicle() && !entity.isInWater()) {
                 applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
@@ -110,7 +110,7 @@ public class IgnivorusModel extends DragonGeoModel<Ignivorus> {
     }
 
     private void applyDiveWingPose(Ignivorus entity, float partialTick) {
-        if (entity.isInWaterOrBubble()) {
+        if (entity.isInWater()) {
             return;
         }
 

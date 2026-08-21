@@ -4,12 +4,14 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.item.StegonautBinderItem;
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
 import com.leon.saintsdragons.server.menu.IvyInventoryMenu;
-import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.pipeline.RenderPipeline;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
+import net.minecraft.client.renderer.RenderPipelines;
+import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
@@ -18,8 +20,11 @@ import net.minecraft.world.effect.MobEffectUtil;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.item.ArmorItem;
+import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.component.ItemAttributeModifiers;
+import net.minecraft.world.item.equipment.Equippable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -81,7 +86,6 @@ public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        RenderSystem.setShaderColor(1.0F, 1.0F, 1.0F, 1.0F);
         int x = this.leftPos;
         int y = this.topPos;
         guiGraphics.blit(TEXTURE, x, y, 0, 0, BASE_W, IMAGE_H, TEX_W, TEX_H);
@@ -98,9 +102,12 @@ public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu
         int renderY = y + PREVIEW_Y;
         InventoryScreen.renderEntityInInventoryFollowsMouse(
                 guiGraphics,
-                renderX,
-                renderY,
+                x + 7,
+                y + 7,
+                x + 79,
+                y + 80,
                 PREVIEW_SCALE,
+                0.0F,
                 (float) renderX - mouseX,
                 (float) (renderY - PREVIEW_MOUSE_Y_OFFSET) - mouseY,
                 ivy
@@ -171,7 +178,12 @@ public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu
 
     private int getArmorDefense(int slotIndex) {
         ItemStack stack = this.menu.getSlot(slotIndex).getItem();
-        return stack.getItem() instanceof ArmorItem armor ? armor.getDefense() : 0;
+        Equippable equippable = stack.get(DataComponents.EQUIPPABLE);
+        if (equippable == null) {
+            return 0;
+        }
+        return (int) Math.round(stack.getOrDefault(DataComponents.ATTRIBUTE_MODIFIERS,
+                ItemAttributeModifiers.EMPTY).compute(Attributes.ARMOR, 0.0D, equippable.slot()));
     }
 
     private void renderIvyEffects(GuiGraphics guiGraphics, int mouseX, int mouseY) {
@@ -181,25 +193,24 @@ public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu
             effects.addAll(ivy.getActiveEffects());
         }
         if (hasBoundStegonautBinder()) {
-            addMissingEffect(effects, MobEffects.DAMAGE_RESISTANCE);
+            addMissingEffect(effects, MobEffects.RESISTANCE);
             addMissingEffect(effects, MobEffects.ABSORPTION);
         }
         if (effects.isEmpty()) {
             return;
         }
 
-        effects.sort(Comparator.comparing(effect -> effect.getEffect().getDescriptionId()));
+        effects.sort(Comparator.comparing(effect -> effect.getEffect().value().getDescriptionId()));
 
         int x = this.leftPos - EFFECT_ICON_SIZE - EFFECTS_LEFT_GAP;
         int y = this.topPos + EFFECTS_TOP_Y;
         MobEffectInstance hoveredEffect = null;
 
-        Minecraft minecraft = Minecraft.getInstance();
         for (int i = 0; i < effects.size(); i++) {
             MobEffectInstance effect = effects.get(i);
             int iconY = y + i * (EFFECT_ICON_SIZE + EFFECT_ICON_GAP);
-            TextureAtlasSprite sprite = minecraft.getMobEffectTextures().get(effect.getEffect());
-            guiGraphics.blit(x, iconY, 0, EFFECT_ICON_SIZE, EFFECT_ICON_SIZE, sprite);
+            guiGraphics.blitSprite(RenderPipelines.GUI_TEXTURED, Gui.getMobEffectSprite(effect.getEffect()),
+                    x, iconY, EFFECT_ICON_SIZE, EFFECT_ICON_SIZE);
 
             if (mouseX >= x && mouseX < x + EFFECT_ICON_SIZE
                     && mouseY >= iconY && mouseY < iconY + EFFECT_ICON_SIZE) {
@@ -208,13 +219,14 @@ public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu
         }
 
         if (hoveredEffect != null) {
-            guiGraphics.renderTooltip(this.font, getEffectTooltip(hoveredEffect), Optional.empty(), mouseX, mouseY);
+            guiGraphics.setTooltipForNextFrame(this.font, getEffectTooltip(hoveredEffect),
+                    Optional.empty(), mouseX, mouseY);
         }
     }
 
     private List<Component> getEffectTooltip(MobEffectInstance effect) {
         List<Component> lines = new ArrayList<>();
-        Component name = effect.getEffect().getDisplayName();
+        Component name = effect.getEffect().value().getDisplayName();
         if (effect.getAmplifier() > 0) {
             name = Component.translatable(
                     "potion.withAmplifier",
@@ -224,14 +236,14 @@ public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu
         }
         lines.add(name);
         if (effect.getDuration() > 0) {
-            lines.add(MobEffectUtil.formatDuration(effect, 1.0F));
+            lines.add(MobEffectUtil.formatDuration(effect, 1.0F, 20.0F));
         }
         return lines;
     }
 
-    private void addMissingEffect(List<MobEffectInstance> effects, MobEffect mobEffect) {
+    private void addMissingEffect(List<MobEffectInstance> effects, Holder<MobEffect> mobEffect) {
         for (MobEffectInstance effect : effects) {
-            if (effect.getEffect() == mobEffect) {
+            if (effect.getEffect().equals(mobEffect)) {
                 return;
             }
         }
@@ -263,7 +275,7 @@ public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         renderIvyEffects(guiGraphics, mouseX, mouseY);
         this.renderTooltip(guiGraphics, mouseX, mouseY);

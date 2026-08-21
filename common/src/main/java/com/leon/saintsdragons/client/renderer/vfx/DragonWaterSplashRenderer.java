@@ -1,14 +1,15 @@
 package com.leon.saintsdragons.client.renderer.vfx;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import com.leon.saintsdragons.client.renderer.SaintsDragonsDeferredEntityRenderer;
 import com.leon.saintsdragons.server.entity.effect.DragonWaterSplashEntity;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.math.Axis;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
-import net.minecraft.client.renderer.entity.EntityRenderer;
+import net.minecraft.client.renderer.SubmitNodeCollector;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
+import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
@@ -16,7 +17,7 @@ import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
-public class DragonWaterSplashRenderer extends EntityRenderer<DragonWaterSplashEntity> {
+public class DragonWaterSplashRenderer extends SaintsDragonsDeferredEntityRenderer<DragonWaterSplashEntity> {
     private static final Identifier[] TEXTURES = {
             SaintsDragonsCommon.rl("textures/particle/watersplash0.png"),
             SaintsDragonsCommon.rl("textures/particle/watersplash1.png"),
@@ -30,8 +31,10 @@ public class DragonWaterSplashRenderer extends EntityRenderer<DragonWaterSplashE
     }
 
     @Override
-    public void render(@NotNull DragonWaterSplashEntity entity, float entityYaw, float partialTicks,
-                       @NotNull PoseStack poseStack, @NotNull MultiBufferSource bufferSource, int packedLight) {
+    protected void submitEntity(DragonWaterSplashEntity entity, RenderState<DragonWaterSplashEntity> renderState,
+                                PoseStack poseStack, SubmitNodeCollector submitNodeCollector,
+                                CameraRenderState cameraState) {
+        float partialTicks = renderState.partialTick;
         float opacity = entity.getOpacity(partialTicks);
         if (opacity <= 0.001F) {
             return;
@@ -39,14 +42,11 @@ public class DragonWaterSplashRenderer extends EntityRenderer<DragonWaterSplashE
 
         poseStack.pushPose();
         poseStack.mulPose(Axis.YP.rotationDegrees(-entity.getYRot()));
-        PoseStack.Pose pose = poseStack.last();
-        Matrix4f matrix = pose.pose();
-        Matrix3f normalMatrix = pose.normal();
         int frame = entity.getAnimationFrame(partialTicks);
-        VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(TEXTURES[frame]));
-        renderFrame(consumer, matrix, normalMatrix, frame, entity.getScale(partialTicks), opacity);
+        submitNodeCollector.submitCustomGeometry(poseStack, RenderTypes.entityTranslucent(TEXTURES[frame]),
+                (pose, consumer) -> renderFrame(consumer, pose.pose(), pose.normal(), frame,
+                        entity.getScale(partialTicks), opacity));
         poseStack.popPose();
-        super.render(entity, entityYaw, partialTicks, poseStack, bufferSource, packedLight);
     }
 
     private void renderFrame(VertexConsumer consumer, Matrix4f matrix, Matrix3f normalMatrix,
@@ -68,38 +68,30 @@ public class DragonWaterSplashRenderer extends EntityRenderer<DragonWaterSplashE
         normalMatrix.transform(normal);
         float y = 0.035F;
 
-        consumer.vertex(matrix, centerX - size, y, centerZ - size)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(0.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normal.x(), normal.y(), normal.z())
-                .endVertex();
-        consumer.vertex(matrix, centerX - size, y, centerZ + size)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(0.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normal.x(), normal.y(), normal.z())
-                .endVertex();
-        consumer.vertex(matrix, centerX + size, y, centerZ + size)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(1.0F, 1.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normal.x(), normal.y(), normal.z())
-                .endVertex();
-        consumer.vertex(matrix, centerX + size, y, centerZ - size)
-                .color(1.0F, 1.0F, 1.0F, opacity)
-                .uv(1.0F, 0.0F)
-                .overlayCoords(OverlayTexture.NO_OVERLAY)
-                .uv2(240)
-                .normal(normal.x(), normal.y(), normal.z())
-                .endVertex();
+        consumer.addVertex(matrix, centerX - size, y, centerZ - size)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(0.0F, 0.0F)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(matrix, centerX - size, y, centerZ + size)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(0.0F, 1.0F)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(matrix, centerX + size, y, centerZ + size)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(1.0F, 1.0F)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(normal.x(), normal.y(), normal.z());
+        consumer.addVertex(matrix, centerX + size, y, centerZ - size)
+                .setColor(1.0F, 1.0F, 1.0F, opacity)
+                .setUv(1.0F, 0.0F)
+                .setOverlay(OverlayTexture.NO_OVERLAY)
+                .setLight(240)
+                .setNormal(normal.x(), normal.y(), normal.z());
     }
 
-    @Override
-    public @NotNull Identifier getTextureLocation(@NotNull DragonWaterSplashEntity entity) {
-        return TEXTURES[0];
-    }
 }

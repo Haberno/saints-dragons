@@ -11,8 +11,12 @@ import com.leon.saintsdragons.common.registry.ModSounds;
 import com.leon.saintsdragons.server.entity.dragons.util.DragonUtilities;
 import com.leon.saintsdragons.server.entity.draconianswarm.AbstractDraconianSwarmEntity;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -91,7 +95,7 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
 
     public static void tick(Level level, BlockPos pos, BlockState state, DraconianNucleusBlockEntity nucleus) {
         nucleus.animationTicks++;
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             if (nucleus.summonEffectsActive) {
                 spawnNucleusSmoke(level, pos);
             }
@@ -238,7 +242,7 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
         }
 
         EntityType<? extends AbstractDraconianSwarmEntity> type = getNextSwarmType();
-        AbstractDraconianSwarmEntity swarm = type.create(level);
+        AbstractDraconianSwarmEntity swarm = type.create(level, EntitySpawnReason.TRIGGERED);
         if (swarm != null && spawnSwarm(level, pos, swarm)) {
             if (this.currentWave == 1 && this.spawnedThisWave == 0) {
                 awardNearbyAdvancement(level, pos, "encounter_draconian_swarm", "encounter_draconian_swarm");
@@ -263,13 +267,14 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
         int offsetStart = this.spawnedThisWave % SPAWN_OFFSETS.length;
         for (int index = 0; index < SPAWN_OFFSETS.length; index++) {
             BlockPos spawnPos = nucleusPos.offset(SPAWN_OFFSETS[(offsetStart + index) % SPAWN_OFFSETS.length]);
-            swarm.moveTo(spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D,
-                    level.random.nextFloat() * 360.0F, 0.0F);
+            swarm.setPos(spawnPos.getX() + 0.5D, spawnPos.getY(), spawnPos.getZ() + 0.5D);
+            swarm.setYRot(level.random.nextFloat() * 360.0F);
+            swarm.setXRot(0.0F);
             if (!level.noCollision(swarm, swarm.getBoundingBox())) {
                 continue;
             }
 
-            swarm.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), EntitySpawnReason.TRIGGERED, null, null);
+            swarm.finalizeSpawn(level, level.getCurrentDifficultyAt(spawnPos), EntitySpawnReason.TRIGGERED, null);
             swarm.assignNucleusEncounter(
                     nucleusPos,
                     this.encounterId,
@@ -368,7 +373,7 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
 
     private static boolean claimSummonSound(ServerLevel level, BlockPos pos, SoundEvent sound) {
         long gameTime = level.getGameTime();
-        Identifier soundId = sound.getLocation();
+        Identifier soundId = sound.location();
         double mergeRadiusSqr = SUMMON_SOUND_MERGE_RADIUS * SUMMON_SOUND_MERGE_RADIUS;
 
         synchronized (RECENT_SUMMON_SOUNDS) {
@@ -435,11 +440,11 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
     }
 
     @Override
-    protected void saveAdditional(@NotNull CompoundTag tag) {
+    protected void saveAdditional(@NotNull ValueOutput tag) {
         super.saveAdditional(tag);
         tag.putString("EncounterState", this.encounterState.name());
         if (this.encounterId != null) {
-            tag.putUUID("EncounterId", this.encounterId);
+            tag.store("EncounterId", UUIDUtil.CODEC, this.encounterId);
         }
         tag.putInt("CurrentWave", this.currentWave);
         tag.putInt("SpawnedThisWave", this.spawnedThisWave);
@@ -453,48 +458,39 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
         tag.putBoolean("DeactivatedByController", this.deactivatedByController);
         tag.putBoolean("SummonEffectsActive", this.summonEffectsActive);
         if (this.ownerId != null) {
-            tag.putUUID("OwnerId", this.ownerId);
+            tag.store("OwnerId", UUIDUtil.CODEC, this.ownerId);
         }
-        long[] swarmIds = new long[this.activeSwarms.size() * 2];
-        int index = 0;
-        for (UUID id : this.activeSwarms) {
-            swarmIds[index++] = id.getMostSignificantBits();
-            swarmIds[index++] = id.getLeastSignificantBits();
-        }
-        tag.putLongArray("ActiveSwarms", swarmIds);
+        tag.store("ActiveSwarms", UUIDUtil.CODEC.listOf(), List.copyOf(this.activeSwarms));
     }
 
     @Override
-    public void load(@NotNull CompoundTag tag) {
-        super.load(tag);
+    protected void loadAdditional(@NotNull ValueInput tag) {
+        super.loadAdditional(tag);
         try {
-            this.encounterState = EncounterState.valueOf(tag.getString("EncounterState"));
+            this.encounterState = EncounterState.valueOf(tag.getStringOr("EncounterState", "DORMANT"));
         } catch (IllegalArgumentException ignored) {
             this.encounterState = EncounterState.DORMANT;
         }
-        this.encounterId = tag.hasUUID("EncounterId") ? tag.getUUID("EncounterId") : null;
-        this.currentWave = tag.getInt("CurrentWave");
-        this.spawnedThisWave = tag.getInt("SpawnedThisWave");
-        this.remainingThisWave = tag.getInt("RemainingThisWave");
-        this.nextActionGameTime = tag.getLong("NextActionGameTime");
-        this.summonEffectsGameTime = tag.getLong("SummonEffectsGameTime");
-        this.controllerCooldownUntilGameTime = tag.getLong("ControllerCooldownUntilGameTime");
-        this.battleMusicStartGameTime = tag.getLong("BattleMusicStartGameTime");
-        this.controllerActivationOnly = tag.getBoolean("ControllerActivationOnly");
-        this.harvestUnlocked = tag.getBoolean("HarvestUnlocked") || this.encounterState == EncounterState.COMPLETE;
-        this.deactivatedByController = tag.getBoolean("DeactivatedByController");
-        this.summonEffectsActive = tag.getBoolean("SummonEffectsActive");
-        this.ownerId = tag.hasUUID("OwnerId") ? tag.getUUID("OwnerId") : null;
+        this.encounterId = tag.read("EncounterId", UUIDUtil.CODEC).orElse(null);
+        this.currentWave = tag.getIntOr("CurrentWave", 0);
+        this.spawnedThisWave = tag.getIntOr("SpawnedThisWave", 0);
+        this.remainingThisWave = tag.getIntOr("RemainingThisWave", 0);
+        this.nextActionGameTime = tag.getLongOr("NextActionGameTime", 0L);
+        this.summonEffectsGameTime = tag.getLongOr("SummonEffectsGameTime", 0L);
+        this.controllerCooldownUntilGameTime = tag.getLongOr("ControllerCooldownUntilGameTime", 0L);
+        this.battleMusicStartGameTime = tag.getLongOr("BattleMusicStartGameTime", 0L);
+        this.controllerActivationOnly = tag.getBooleanOr("ControllerActivationOnly", false);
+        this.harvestUnlocked = tag.getBooleanOr("HarvestUnlocked", false) || this.encounterState == EncounterState.COMPLETE;
+        this.deactivatedByController = tag.getBooleanOr("DeactivatedByController", false);
+        this.summonEffectsActive = tag.getBooleanOr("SummonEffectsActive", false);
+        this.ownerId = tag.read("OwnerId", UUIDUtil.CODEC).orElse(null);
         this.activeSwarms.clear();
-        long[] swarmIds = tag.getLongArray("ActiveSwarms");
-        for (int index = 0; index + 1 < swarmIds.length; index += 2) {
-            this.activeSwarms.add(new UUID(swarmIds[index], swarmIds[index + 1]));
-        }
+        this.activeSwarms.addAll(tag.read("ActiveSwarms", UUIDUtil.CODEC.listOf()).orElse(List.of()));
     }
 
     @Override
-    public @NotNull CompoundTag getUpdateTag() {
-        return saveWithoutMetadata();
+    public @NotNull CompoundTag getUpdateTag(@NotNull HolderLookup.Provider registries) {
+        return saveWithoutMetadata(registries);
     }
 
     @Override
@@ -504,7 +500,7 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
 
     private void syncChanged() {
         setChanged();
-        if (this.level != null && !this.level.isClientSide) {
+        if (this.level != null && !this.level.isClientSide()) {
             BlockState state = getBlockState();
             this.level.sendBlockUpdated(this.worldPosition, state, state, 3);
         }

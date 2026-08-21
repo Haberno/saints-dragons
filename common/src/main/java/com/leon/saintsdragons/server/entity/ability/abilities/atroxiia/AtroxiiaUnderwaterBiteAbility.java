@@ -44,7 +44,7 @@ public final class AtroxiiaUnderwaterBiteAbility extends DragonAbility<Atroxiia>
     @Override
     public boolean tryAbility() {
         Atroxiia dragon = getUser();
-        if (dragon.isBaby() || !dragon.isInWaterOrBubble()) {
+        if (dragon.isBaby() || !dragon.isInWater()) {
             return false;
         }
         if (dragon.getControllingPassenger() != null) {

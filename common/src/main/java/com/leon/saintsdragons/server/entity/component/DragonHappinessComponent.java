@@ -3,8 +3,10 @@ package com.leon.saintsdragons.server.entity.component;
 import com.leon.saintsdragons.common.config.SaintsDragonsConfig;
 import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import java.util.UUID;
-import net.minecraft.nbt.CompoundTag;
+import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import net.minecraft.resources.Identifier;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -26,8 +28,8 @@ public final class DragonHappinessComponent {
     private static final int HAPPINESS_SLOW_THRESHOLD = 60;
     private static final int HAPPINESS_SPEED_MIN_THRESHOLD = 30;
     private static final float HAPPINESS_SPEED_MIN_MULTIPLIER = 0.5f;
-    private static final UUID HAPPINESS_SLOW_GROUND_UUID = UUID.fromString("e4a2e52c-f311-4c35-9cf2-7dd0b6c0c4a8");
-    private static final UUID HAPPINESS_SLOW_FLY_UUID = UUID.fromString("b51a7bd2-8c8a-4ea9-9a6f-7f40e1b7b7af");
+    private static final Identifier HAPPINESS_SLOW_GROUND_ID = SaintsDragonsCommon.rl("happiness_slow_ground");
+    private static final Identifier HAPPINESS_SLOW_FLY_ID = SaintsDragonsCommon.rl("happiness_slow_fly");
 
     private final DragonEntity dragon;
     private final EntityDataAccessor<Integer> dataAccessor;
@@ -41,7 +43,7 @@ public final class DragonHappinessComponent {
     }
 
     public int getHappiness() {
-        return dragon.level() != null && dragon.level().isClientSide
+        return dragon.level() != null && dragon.level().isClientSide()
                 ? dragon.getEntityData().get(dataAccessor)
                 : happiness;
     }
@@ -60,7 +62,7 @@ public final class DragonHappinessComponent {
         }
         this.happiness = clamped;
         dragon.getEntityData().set(dataAccessor, clamped);
-        if (!dragon.level().isClientSide && dragon.isTame() && dragon.getOwnerUUID() != null) {
+        if (!dragon.level().isClientSide() && dragon.isTame() && dragon.getOwnerUUID() != null) {
             net.minecraft.server.level.ServerLevel serverLevel = (net.minecraft.server.level.ServerLevel) dragon.level();
             DragonCodexSavedData.get(serverLevel).updateDragonStats(dragon.getOwnerUUID(), dragon);
         }
@@ -137,7 +139,7 @@ public final class DragonHappinessComponent {
     }
 
     public void updateSpeedModifiers() {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         if (!dragon.isTame()) {
@@ -147,22 +149,21 @@ public final class DragonHappinessComponent {
         float mult = getSpeedMultiplier();
         AttributeInstance move = dragon.getAttribute(Attributes.MOVEMENT_SPEED);
         if (move != null) {
-            AttributeModifier existing = move.getModifier(HAPPINESS_SLOW_GROUND_UUID);
+            AttributeModifier existing = move.getModifier(HAPPINESS_SLOW_GROUND_ID);
             if (mult >= 0.999f) {
                 if (existing != null) {
-                    move.removeModifier(HAPPINESS_SLOW_GROUND_UUID);
+                    move.removeModifier(HAPPINESS_SLOW_GROUND_ID);
                 }
             } else {
                 double amount = mult - 1.0;
-                if (existing == null || Math.abs(existing.getAmount() - amount) > MODIFIER_EPSILON) {
+                if (existing == null || Math.abs(existing.amount() - amount) > MODIFIER_EPSILON) {
                     if (existing != null) {
-                        move.removeModifier(HAPPINESS_SLOW_GROUND_UUID);
+                        move.removeModifier(HAPPINESS_SLOW_GROUND_ID);
                     }
                     move.addPermanentModifier(new AttributeModifier(
-                            HAPPINESS_SLOW_GROUND_UUID,
-                            "Happiness slow (ground)",
+                            HAPPINESS_SLOW_GROUND_ID,
                             amount,
-                            AttributeModifier.Operation.MULTIPLY_TOTAL
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                     ));
                 }
             }
@@ -170,22 +171,21 @@ public final class DragonHappinessComponent {
 
         AttributeInstance fly = dragon.getAttribute(Attributes.FLYING_SPEED);
         if (fly != null) {
-            AttributeModifier existing = fly.getModifier(HAPPINESS_SLOW_FLY_UUID);
+            AttributeModifier existing = fly.getModifier(HAPPINESS_SLOW_FLY_ID);
             if (mult >= 0.999f) {
                 if (existing != null) {
-                    fly.removeModifier(HAPPINESS_SLOW_FLY_UUID);
+                    fly.removeModifier(HAPPINESS_SLOW_FLY_ID);
                 }
             } else {
                 double amount = mult - 1.0;
-                if (existing == null || Math.abs(existing.getAmount() - amount) > MODIFIER_EPSILON) {
+                if (existing == null || Math.abs(existing.amount() - amount) > MODIFIER_EPSILON) {
                     if (existing != null) {
-                        fly.removeModifier(HAPPINESS_SLOW_FLY_UUID);
+                        fly.removeModifier(HAPPINESS_SLOW_FLY_ID);
                     }
                     fly.addPermanentModifier(new AttributeModifier(
-                            HAPPINESS_SLOW_FLY_UUID,
-                            "Happiness slow (fly)",
+                            HAPPINESS_SLOW_FLY_ID,
                             amount,
-                            AttributeModifier.Operation.MULTIPLY_TOTAL
+                            AttributeModifier.Operation.ADD_MULTIPLIED_TOTAL
                     ));
                 }
             }
@@ -194,23 +194,23 @@ public final class DragonHappinessComponent {
 
     public void clearSpeedModifiers() {
         AttributeInstance move = dragon.getAttribute(Attributes.MOVEMENT_SPEED);
-        if (move != null && move.getModifier(HAPPINESS_SLOW_GROUND_UUID) != null) {
-            move.removeModifier(HAPPINESS_SLOW_GROUND_UUID);
+        if (move != null && move.getModifier(HAPPINESS_SLOW_GROUND_ID) != null) {
+            move.removeModifier(HAPPINESS_SLOW_GROUND_ID);
         }
         AttributeInstance fly = dragon.getAttribute(Attributes.FLYING_SPEED);
-        if (fly != null && fly.getModifier(HAPPINESS_SLOW_FLY_UUID) != null) {
-            fly.removeModifier(HAPPINESS_SLOW_FLY_UUID);
+        if (fly != null && fly.getModifier(HAPPINESS_SLOW_FLY_ID) != null) {
+            fly.removeModifier(HAPPINESS_SLOW_FLY_ID);
         }
     }
 
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         tag.putInt("Happiness", this.happiness);
         tag.putInt("HappinessDecayTicks", this.happinessDecayTicks);
     }
 
-    public void loadFromNBT(CompoundTag tag) {
-        this.happiness = tag.contains("Happiness") ? Mth.clamp(tag.getInt("Happiness"), 0, HAPPINESS_MAX) : HAPPINESS_MAX;
-        this.happinessDecayTicks = tag.contains("HappinessDecayTicks") ? Math.max(0, tag.getInt("HappinessDecayTicks")) : 0;
+    public void loadFromNBT(ValueInput tag) {
+        this.happiness = Mth.clamp(tag.getIntOr("Happiness", HAPPINESS_MAX), 0, HAPPINESS_MAX);
+        this.happinessDecayTicks = Math.max(0, tag.getIntOr("HappinessDecayTicks", 0));
         dragon.getEntityData().set(dataAccessor, this.happiness);
     }
 }

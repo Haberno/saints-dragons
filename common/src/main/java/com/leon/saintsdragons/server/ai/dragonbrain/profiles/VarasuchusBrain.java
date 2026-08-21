@@ -160,7 +160,7 @@ public class VarasuchusBrain implements DragonBrainOwner<Varasuchus> {
                                                 0.85D,
                                                 100,
                                                 10,
-                                                dragon -> !dragon.isInWaterOrBubble()
+                                                dragon -> !dragon.isInWater()
                                                         && !dragon.shouldSuspendRoostWandering(),
                                                 Varasuchus::isWithinRoostTerritory
                                         )
@@ -227,7 +227,7 @@ public class VarasuchusBrain implements DragonBrainOwner<Varasuchus> {
                 || owner == null
                 || !owner.isAlive()
                 || owner.level() != dragon.level()
-                || !owner.isInWaterOrBubble();
+                || !owner.isInWater();
     }
 
 }

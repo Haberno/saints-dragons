@@ -54,17 +54,17 @@ public record AtroxiiaAnimationHandler(Atroxiia dragon) {
             return PlayState.CONTINUE;
         }
         if (dragon.isTamingStunned()) {
-            state.controller().transitionLength(GROUND_TRANSITIONS.stunned());
+            state.controller().setTransitionTicks(GROUND_TRANSITIONS.stunned());
             state.setAndContinue(STUNNED);
             return PlayState.CONTINUE;
         }
         if (dragon.isScentAssessing()) {
-            state.controller().transitionLength(GROUND_TRANSITIONS.idle());
+            state.controller().setTransitionTicks(GROUND_TRANSITIONS.idle());
             state.setAndContinue(INVESTIGATING);
             return PlayState.CONTINUE;
         }
-        if (dragon.isInWaterOrBubble()) {
-            state.controller().transitionLength(GROUND_TRANSITIONS.water());
+        if (dragon.isInWater()) {
+            state.controller().setTransitionTicks(GROUND_TRANSITIONS.water());
             boolean moving = dragon.getDeltaMovement().lengthSqr() > 0.0025D
                     || Math.abs(dragon.getLastRiderForward()) > 0.02F
                     || Math.abs(dragon.getLastRiderStrafe()) > 0.02F;
@@ -109,7 +109,7 @@ public record AtroxiiaAnimationHandler(Atroxiia dragon) {
     }
 
     public PlayState fastActionPredicate(AnimationTest<Atroxiia> state) {
-        state.controller().transitionLength(1);
+        state.controller().setTransitionTicks(1);
         return PlayState.STOP;
     }
 
@@ -133,13 +133,13 @@ public record AtroxiiaAnimationHandler(Atroxiia dragon) {
     }
 
     public void triggerSitDownAnimation() {
-        if (!dragon.isInWaterOrBubble()) {
+        if (!dragon.isInWater()) {
             AnimationHelper.triggerRestAnimation(dragon, AnimationHelper.SIT_DOWN);
         }
     }
 
     public void triggerSitUpAnimation() {
-        if (!dragon.isInWaterOrBubble()) {
+        if (!dragon.isInWater()) {
             AnimationHelper.triggerRestAnimation(dragon, AnimationHelper.SIT_UP);
         }
     }

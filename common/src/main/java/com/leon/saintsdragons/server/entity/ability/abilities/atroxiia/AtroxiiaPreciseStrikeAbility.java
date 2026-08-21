@@ -97,7 +97,7 @@ public class AtroxiiaPreciseStrikeAbility extends DragonAbility<Atroxiia> {
 
     private void steerTowardAiTarget() {
         Atroxiia dragon = getUser();
-        if (dragon.level().isClientSide || dragon.getControllingPassenger() != null) {
+        if (dragon.level().isClientSide() || dragon.getControllingPassenger() != null) {
             return;
         }
 

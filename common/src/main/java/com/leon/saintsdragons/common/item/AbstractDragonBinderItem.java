@@ -7,8 +7,10 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
@@ -19,14 +21,19 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import net.minecraft.util.ProblemReporter;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
 
 public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends Item {
 
@@ -109,15 +116,15 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
 
     private ItemStack captureDragon(ItemStack stack, T dragon, Player player) {
         ItemStack copied = stack.copy();
-        CompoundTag tag = copied.getOrCreateTag();
+        CompoundTag tag = BinderComponentUtil.getTag(copied);
 
-        tag.putUUID(BinderComponentUtil.BOUND_DRAGON_UUID, dragon.getUUID());
+        tag.store(BinderComponentUtil.BOUND_DRAGON_UUID, UUIDUtil.CODEC, dragon.getUUID());
         tag.putString(BinderComponentUtil.BOUND_DRAGON_NAME, dragon.getName().getString());
 
         if (dragon.hasCustomName()) {
             Component customName = dragon.getCustomName();
             if (customName != null) {
-                tag.putString(BinderComponentUtil.BOUND_CUSTOM_NAME, Component.Serializer.toJson(customName));
+                tag.store(BinderComponentUtil.BOUND_CUSTOM_NAME, ComponentSerialization.CODEC, customName);
             } else {
                 tag.remove(BinderComponentUtil.BOUND_CUSTOM_NAME);
             }
@@ -128,19 +135,20 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
 
         LivingEntity owner = dragon.getOwner();
         if (owner instanceof Player ownerPlayer) {
-            tag.putUUID(BinderComponentUtil.BOUND_OWNER_UUID, ownerPlayer.getUUID());
+            tag.store(BinderComponentUtil.BOUND_OWNER_UUID, UUIDUtil.CODEC, ownerPlayer.getUUID());
             tag.putString(BinderComponentUtil.BOUND_OWNER_NAME, ownerPlayer.getName().getString());
         } else {
             tag.remove(BinderComponentUtil.BOUND_OWNER_UUID);
             tag.remove(BinderComponentUtil.BOUND_OWNER_NAME);
         }
 
-        CompoundTag dragonData = new CompoundTag();
         prepareDragonForCapture(dragon, player);
         dragon.setBoundInBinder(true);
-        dragon.saveWithoutId(dragonData);
-        tag.put(getDragonDataKey(), dragonData);
-        copied.setTag(tag);
+        TagValueOutput dragonOutput = TagValueOutput.createWithContext(
+                ProblemReporter.DISCARDING, dragon.level().registryAccess());
+        dragon.saveWithoutId(dragonOutput);
+        tag.put(getDragonDataKey(), dragonOutput.buildResult());
+        BinderComponentUtil.setTag(copied, tag);
 
         if (player.level() instanceof ServerLevel serverLevel) {
             DragonCodexSavedData.get(serverLevel).updateDragonBoundState(player.getUUID(), dragon.getUUID(), true);
@@ -160,20 +168,20 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
         if (!(player instanceof ServerPlayer serverPlayer)) {
             return;
         }
-        var advancement = serverPlayer.server.getAdvancements()
-                .getAdvancement(SaintsDragonsCommon.rl("pocket_dragon"));
+        var advancement = serverPlayer.level().getServer().getAdvancements()
+                .get(SaintsDragonsCommon.rl("pocket_dragon"));
         if (advancement != null) {
             serverPlayer.getAdvancements().award(advancement, "bind_dragon");
         }
     }
 
     protected final boolean releaseDragon(ItemStack stack, Player player, Vec3 position, boolean airborne) {
-        CompoundTag tag = stack.getTag();
-        if (tag == null || !tag.contains(BinderComponentUtil.BOUND_DRAGON_UUID)) {
+        CompoundTag tag = BinderComponentUtil.getTag(stack);
+        if (!tag.contains(BinderComponentUtil.BOUND_DRAGON_UUID)) {
             return false;
         }
 
-        UUID ownerUUID = tag.contains(BinderComponentUtil.BOUND_OWNER_UUID) ? tag.getUUID(BinderComponentUtil.BOUND_OWNER_UUID) : null;
+        UUID ownerUUID = tag.read(BinderComponentUtil.BOUND_OWNER_UUID, UUIDUtil.CODEC).orElse(null);
         if (ownerUUID != null && !player.getUUID().equals(ownerUUID)) {
             player.displayClientMessage(Component.translatable(getReleaseNotOwnerMessageKey()), true);
             return false;
@@ -183,14 +191,18 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
             return false;
         }
 
-        String dragonName = tag.getString(BinderComponentUtil.BOUND_DRAGON_NAME);
-        UUID originalUUID = tag.getUUID(BinderComponentUtil.BOUND_DRAGON_UUID);
+        String dragonName = tag.getStringOr(BinderComponentUtil.BOUND_DRAGON_NAME, "Dragon");
+        UUID originalUUID = tag.read(BinderComponentUtil.BOUND_DRAGON_UUID, UUIDUtil.CODEC).orElse(null);
+        if (originalUUID == null) {
+            return false;
+        }
         T newDragon = createDragon(serverLevel);
 
         if (tag.contains(getDragonDataKey())) {
             try {
-                CompoundTag dragonData = tag.getCompound(getDragonDataKey());
-                newDragon.load(dragonData);
+                CompoundTag dragonData = tag.getCompoundOrEmpty(getDragonDataKey());
+                newDragon.load(TagValueInput.create(ProblemReporter.DISCARDING,
+                        serverLevel.registryAccess(), dragonData));
                 newDragon.setBoundInBinder(false);
             } catch (Exception e) {
                 player.displayClientMessage(Component.translatable("saintsdragons.message.binder_data_corrupted"), true);
@@ -203,7 +215,7 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
         prepareDragonForRelease(newDragon, player);
 
         if (ownerUUID != null) {
-            newDragon.setTame(true);
+            newDragon.setTame(true, true);
             newDragon.setOwnerUUID(ownerUUID);
         } else {
             newDragon.tame(player);
@@ -211,7 +223,8 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
 
         if (tag.contains(BinderComponentUtil.BOUND_CUSTOM_NAME)) {
             try {
-                Component customName = Component.Serializer.fromJson(tag.getString(BinderComponentUtil.BOUND_CUSTOM_NAME));
+                Component customName = tag.read(BinderComponentUtil.BOUND_CUSTOM_NAME,
+                        ComponentSerialization.CODEC).orElse(null);
                 if (customName != null) {
                     newDragon.setCustomName(customName);
                 }
@@ -234,6 +247,7 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
 
         DragonCodexSavedData.get(serverLevel).updateDragonBoundState(ownerUUID != null ? ownerUUID : player.getUUID(), originalUUID, false);
         clearBinderData(tag);
+        BinderComponentUtil.setTag(stack, tag);
         onDragonReleased(newDragon, player, stack);
         player.displayClientMessage(Component.translatable(getReleasedMessageKey(), dragonName), true);
         return true;
@@ -296,22 +310,25 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
 
     @Override
     @Environment(EnvType.CLIENT)
-    public void appendHoverText(@NotNull ItemStack stack, @Nullable Level level, @NotNull List<Component> tooltip,
+    public void appendHoverText(@NotNull ItemStack stack, @NotNull TooltipContext context,
+                                @NotNull TooltipDisplay display, @NotNull Consumer<Component> tooltip,
                                 @NotNull TooltipFlag flag) {
-        tooltip.add(Component.translatable(getTooltipDescriptionKey()));
+        List<Component> lines = new java.util.ArrayList<>();
+        lines.add(Component.translatable(getTooltipDescriptionKey()));
         if (BinderComponentUtil.isBound(stack)) {
             String dragonName = BinderComponentUtil.getBoundDragonName(stack);
             if (dragonName != null && !dragonName.isEmpty()) {
-                tooltip.add(Component.translatable(getTooltipBoundKey(), dragonName));
+                lines.add(Component.translatable(getTooltipBoundKey(), dragonName));
             }
-            appendExtraBoundTooltip(tooltip, dragonName);
+            appendExtraBoundTooltip(lines, dragonName);
             if (shouldShowReleaseTooltipWhenBound()) {
-                tooltip.add(Component.translatable(getBoundReleaseTooltipKey()));
+                lines.add(Component.translatable(getBoundReleaseTooltipKey()));
             }
         } else {
-            tooltip.add(Component.translatable(getTooltipEmptyKey()));
-            tooltip.add(Component.translatable(getTooltipBindHintKey()));
+            lines.add(Component.translatable(getTooltipEmptyKey()));
+            lines.add(Component.translatable(getTooltipBindHintKey()));
         }
+        lines.forEach(tooltip);
     }
 
     @Override

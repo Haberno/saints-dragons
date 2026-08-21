@@ -43,7 +43,7 @@ public class VarasuchusHornGoreAbility extends DragonAbility<Varasuchus> {
         if (section == null) return;
         if (section.sectionType == AbilitySectionType.STARTUP) {
             getUser().triggerAnim(VarasuchusAnimationHandler.ACTION_CONTROLLER, "horn_gore");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 getUser().getSoundHandler().playMovingEntitySound(ModSounds.VARASUCHUS_HORNGORE.get(), 1.0f, 1.0f, 24);
             }
             hitIdsThisUse.clear();

@@ -59,7 +59,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
             if (entity.isDeadOrDying()){
                 return;
             }
-            if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
+            if (!entity.isVehicle() && !entity.isInWater()) {
                 applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, animationState.renderState().getPartialTick());
@@ -110,7 +110,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
     }
 
     private void applyDiveWingPose(Volitans entity, float partialTick) {
-        if (entity.isInWaterOrBubble()) {
+        if (entity.isInWater()) {
             return;
         }
 
@@ -171,7 +171,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
     }
 
     private void applySwimPitch(Volitans entity, float partialTick) {
-        if (!entity.isInWaterOrBubble() || !entity.isFlying()) {
+        if (!entity.isInWater() || !entity.isFlying()) {
             return;
         }
 
@@ -186,7 +186,7 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
     }
 
     private void applySwimRoll(Volitans entity, float partialTick) {
-        if (!entity.isInWaterOrBubble() || !entity.isFlying()) {
+        if (!entity.isInWater() || !entity.isFlying()) {
             return;
         }
 

@@ -216,14 +216,14 @@ public final class DragonHuntAndEatBehaviour<T extends RideableDragonBase> exten
 
     private void requestExistingMovement(DragonBrainContext<T> context, ItemEntity food) {
         T dragon = context.dragon();
-        if (dragon.isAerial() && !food.isInWaterOrBubble()) {
+        if (dragon.isAerial() && !food.isInWater()) {
             context.memories().set(
                     DragonMemories.MOVEMENT_INTENT,
                     DragonMovementIntent.transitionToGround(food.position(), LANDING_SPEED)
             );
             return;
         }
-        double speed = dragon.isInWaterOrBubble() || food.isInWaterOrBubble()
+        double speed = dragon.isInWater() || food.isInWater()
                 ? WATER_MOVE_SPEED
                 : GROUND_MOVE_SPEED;
         context.memories().set(
@@ -245,7 +245,7 @@ public final class DragonHuntAndEatBehaviour<T extends RideableDragonBase> exten
 
         dragon.getLookControl().setLookAt(food, 30.0F, 30.0F);
         dragon.triggerAnim("interaction", "eat");
-        dragon.playSound(SoundEvents.GENERIC_EAT, 1.0F, dragon.isBaby() ? 1.4F : 1.0F);
+        dragon.playSound(SoundEvents.GENERIC_EAT.value(), 1.0F, dragon.isBaby() ? 1.4F : 1.0F);
         ItemStack eaten = food.getItem().copy();
         eaten.setCount(1);
         spawnEatingParticles(context, eaten);

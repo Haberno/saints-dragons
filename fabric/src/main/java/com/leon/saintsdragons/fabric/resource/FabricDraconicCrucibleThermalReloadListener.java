@@ -5,8 +5,6 @@ import com.leon.saintsdragons.common.block.crucible.DraconicCrucibleThermalReloa
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
-import net.minecraft.server.packs.resources.ResourceManager;
-import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
@@ -23,13 +21,10 @@ public final class FabricDraconicCrucibleThermalReloadListener implements Identi
     }
 
     @Override
-    public @NotNull CompletableFuture<Void> reload(PreparableReloadListener.@NotNull PreparationBarrier barrier,
-                                                   @NotNull ResourceManager manager,
-                                                   @NotNull ProfilerFiller prepareProfiler,
-                                                   @NotNull ProfilerFiller applyProfiler,
+    public @NotNull CompletableFuture<Void> reload(PreparableReloadListener.@NotNull SharedState state,
                                                    @NotNull Executor prepareExecutor,
+                                                   PreparableReloadListener.@NotNull PreparationBarrier barrier,
                                                    @NotNull Executor applyExecutor) {
-        return this.delegate.reload(
-                barrier, manager, prepareProfiler, applyProfiler, prepareExecutor, applyExecutor);
+        return this.delegate.reload(state, prepareExecutor, barrier, applyExecutor);
     }
 }

@@ -47,3 +47,11 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+sourceSets {
+    main {
+        // GeckoLib 5 removed the portrait-rendering hooks used by this implementation.
+        // Keep the source in-tree for the later render-state port without compiling it now.
+        java.exclude 'com/leon/saintsdragons/client/ui/codex/CodexStaticPortraitRenderer.java'
+    }
+}

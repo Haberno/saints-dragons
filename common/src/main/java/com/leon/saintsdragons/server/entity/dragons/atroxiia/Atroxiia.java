@@ -38,7 +38,8 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -211,7 +212,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
         this.setPathfindingMalus(PathType.DANGER_POWDER_SNOW, 0.0F);
         this.screenShakeComponent = new ScreenShakeComponent(this, DATA_SCREEN_SHAKE_AMOUNT, 0.18F);
         seedAmbientSoundTimer(MIN_AMBIENT_DELAY, MAX_AMBIENT_DELAY, 80);
-        if (!level.isClientSide) {
+        if (!level.isClientSide()) {
             applyConfiguredAttributes();
             this.setHealth(this.getMaxHealth());
         }
@@ -227,31 +228,31 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     @Override
-    protected void defineSynchedData() {
-        super.defineSynchedData();
-        this.entityData.defineId(DATA_TAMING_STUNNED, false);
-        this.entityData.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
-        this.entityData.define(DATA_PRECISE_STRIKE_NUDGE_TICKS, 0);
-        this.entityData.define(DATA_PRECISE_STRIKE_NUDGE_X, 0.0F);
-        this.entityData.define(DATA_PRECISE_STRIKE_NUDGE_Z, 0.0F);
-        this.entityData.define(DATA_SLITHERING, false);
-        this.entityData.define(DATA_SLITHER_MOVEMENT_TICKS, 0);
-        this.entityData.define(DATA_SLITHER_MOVEMENT_X, 0.0F);
-        this.entityData.define(DATA_SLITHER_MOVEMENT_Z, 0.0F);
-        this.entityData.define(DATA_FEEDING_COOLDOWN, 0);
-        this.entityData.define(DATA_PITCH_KEY_MODE, false);
-        this.entityData.define(DATA_SWIM_PITCH_RAD, 0.0F);
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
+        super.defineSynchedData(builder);
+        builder.define(DATA_TAMING_STUNNED, false);
+        builder.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
+        builder.define(DATA_PRECISE_STRIKE_NUDGE_TICKS, 0);
+        builder.define(DATA_PRECISE_STRIKE_NUDGE_X, 0.0F);
+        builder.define(DATA_PRECISE_STRIKE_NUDGE_Z, 0.0F);
+        builder.define(DATA_SLITHERING, false);
+        builder.define(DATA_SLITHER_MOVEMENT_TICKS, 0);
+        builder.define(DATA_SLITHER_MOVEMENT_X, 0.0F);
+        builder.define(DATA_SLITHER_MOVEMENT_Z, 0.0F);
+        builder.define(DATA_FEEDING_COOLDOWN, 0);
+        builder.define(DATA_PITCH_KEY_MODE, false);
+        builder.define(DATA_SWIM_PITCH_RAD, 0.0F);
     }
 
     @Override
     public void registerControllers(AnimatableManager.ControllerRegistrar controllers) {
-        var movementController = new AnimationController<>(AnimationHelper.MOVEMENT_CONTROLLER, MOVEMENT_TRANSITION_TICKS,
+        AnimationController<Atroxiia> movementController = new AnimationController<>(AnimationHelper.MOVEMENT_CONTROLLER, MOVEMENT_TRANSITION_TICKS,
                 animationHandler::movementPredicate);
-        var interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1,
+        AnimationController<Atroxiia> interactionController = new AnimationController<>(AnimationHelper.INTERACTION_CONTROLLER, 1,
                 AnimationHelper::interactionIdle);
-        var fastActionController = new AnimationController<>(AtroxiiaAnimationHandler.FAST_ACTION_CONTROLLER, 1,
+        AnimationController<Atroxiia> fastActionController = new AnimationController<>(AtroxiiaAnimationHandler.FAST_ACTION_CONTROLLER, 1,
                 animationHandler::fastActionPredicate);
-        var vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2,
+        AnimationController<Atroxiia> vocalController = new AnimationController<>(AnimationHelper.VOCAL_CONTROLLER, 2,
                 AnimationHelper::vocalIdle);
         AnimationHelper.registerStepKeyframes(this, movementController);
         AnimationHelper.registerSoundKeyframes(this, movementController, vocalController, interactionController);
@@ -321,7 +322,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
                 && !isBaby()
                 && !isDying()
                 && isGroundedForAction()
-                && !isInWaterOrBubble()
+                && !isInWater()
                 && !isOrderedToSit()
                 && !isInSitTransition()
                 && !isSleeping()
@@ -361,9 +362,9 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     @Override
-    protected void customServerAiStep() {
+    protected void customServerAiStep(ServerLevel serverLevel) {
         DragonBrain.tick(DRAGON_BRAIN, this);
-        super.customServerAiStep();
+        super.customServerAiStep(serverLevel);
     }
 
     @Override
@@ -382,7 +383,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
         }
 
         Vec3 input = riderController.getRiddenInput(player, deltaIn);
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             float forward = (float) Math.max(-1.0D, Math.min(1.0D, input.z));
             float strafe = (float) Math.max(-1.0D, Math.min(1.0D, input.x));
             setLastRiderForward(Math.abs(forward) > 0.02F ? forward : 0.0F);
@@ -404,7 +405,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
     @Override
     protected void applyRiderVerticalInput(Player player, boolean goingUp, boolean goingDown, boolean locked) {
-        if (locked || !isInWaterOrBubble()) {
+        if (locked || !isInWater()) {
             setGoingUp(false);
             setGoingDown(false);
             return;
@@ -441,7 +442,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
                 return;
             }
             Vec3 input = getRiddenInput(player, motion);
-            if (isInWaterOrBubble()) {
+            if (isInWater()) {
                 riderController.handleRiddenSwimming(player, input);
             } else {
                 travelStandardRiddenGround(player, input, riderController.getRiddenSpeed(player));
@@ -475,7 +476,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     public boolean canUseGroundCombatAbility() {
-        if (isBaby() || isTamingStunned() || isInWaterOrBubble() || !isGroundedForAction()) {
+        if (isBaby() || isTamingStunned() || isInWater() || !isGroundedForAction()) {
             return false;
         }
         if (getControllingPassenger() != null) {
@@ -519,7 +520,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     private void setSlitherMovement(double speed, int durationTicks) {
-        if (level().isClientSide || !isSlithering()) {
+        if (level().isClientSide() || !isSlithering()) {
             return;
         }
         Vec3 velocity = DragonMotionMath.horizontalForward(getYRot()).scale(speed);
@@ -534,7 +535,6 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
         slitherMovement.cancelActive();
         Vec3 current = getDeltaMovement();
         setDeltaMovement(0.0D, current.y, 0.0D);
-        hasImpulse = true;
         hurtMarked = true;
     }
 
@@ -569,7 +569,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
     @Override
     public DragonAbilityType<?, ?> getPrimaryAttackAbility() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return ModAbilities.ATROXIIA_UNDERWATER_BITE;
         }
         return getMeleeMode() == 0
@@ -584,7 +584,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
     @Override
     public RiderAbilityBinding getAttackRiderAbility() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return new RiderAbilityBinding(
                     ModAbilities.ATROXIIA_UNDERWATER_BITE.getName(),
                     RiderAbilityBinding.Activation.PRESS
@@ -643,7 +643,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
     @Override
     protected boolean isRidingAbilityAllowed(DragonAbilityType<?, ?> abilityType) {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             return abilityType == ModAbilities.ATROXIIA_UNDERWATER_BITE;
         }
         return abilityType == ModAbilities.ATROXIIA_SLAM
@@ -657,14 +657,14 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
     @Override
     protected void onRiderToggleMelee(Player player) {
-        if (!isInWaterOrBubble()) {
+        if (!isInWater()) {
             super.onRiderToggleMelee(player);
         }
     }
 
     @Override
     public boolean hasSecondaryMelee() {
-        return !isInWaterOrBubble();
+        return !isInWater();
     }
 
     @Override
@@ -689,7 +689,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
         tickRiderControlLock();
         tickPreciseStrikeNudge();
         tickSwimPitchVisual();
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             slitherMovement.tickServerState();
             tamingController.tickServer();
             if (isTamingStunned()) {
@@ -722,19 +722,19 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource damageSource, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel serverLevel, @NotNull DamageSource damageSource, float amount) {
         if (isDying()) {
             return false;
         }
         if (tamingController.tryEnterHoldStateFromDamage(damageSource, amount)) {
             return true;
         }
-        return super.hurt(damageSource, amount);
+        return super.hurtServer(serverLevel, damageSource, amount);
     }
 
     @Override
     protected void dropAdditionalDeathLootAfterBase(@NotNull DamageSource source) {
-        if (!level().isClientSide && getGender() == DragonGender.FEMALE) {
+        if (!level().isClientSide() && getGender() == DragonGender.FEMALE) {
             DragonLootTables.dropEntityLoot(this, DragonLootTables.ATROXIIA_FEMALE_DEATH, source);
         }
     }
@@ -866,14 +866,14 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     public void setOrderedToSit(boolean sitting) {
         boolean wasSitting = isOrderedToSit();
         super.setOrderedToSit(sitting);
-        if (level().isClientSide || wasSitting == sitting || isSleeping() || isSleepTransitioning()) {
+        if (level().isClientSide() || wasSitting == sitting || isSleeping() || isSleepTransitioning()) {
             return;
         }
         setGroundMoveStateFromAI(0);
     }
 
     private void tickAtroxiiaAnimationStates() {
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             clearSitTransitionFlags();
             if (getSitProgress() != 0.0F || getPrevSitProgress() != 0.0F) {
                 clearSitProgress();
@@ -901,7 +901,6 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
         this.entityData.set(DATA_PRECISE_STRIKE_NUDGE_TICKS, Math.max(1, durationTicks));
         if (isVehicle()) {
             setDeltaMovement(getDeltaMovement().add(nudgeVector.x, 0.0D, nudgeVector.z));
-            hasImpulse = true;
             hurtMarked = true;
         } else {
             getAIMovement().stopAndClearAllMovement();
@@ -909,7 +908,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     private void tickSwimPitchVisual() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             previousClientSwimPitchRad = clientSwimPitchRad;
             clientSwimPitchRad = Mth.lerp(0.5F, clientSwimPitchRad, this.entityData.get(DATA_SWIM_PITCH_RAD));
             return;
@@ -917,7 +916,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
 
         previousSwimPitchRad = swimPitchRad;
         float targetPitchRad = 0.0F;
-        if (isInWaterOrBubble()) {
+        if (isInWater()) {
             if (isVehicle() && getControllingPassenger() instanceof Player player) {
                 boolean hasMovementInput = Math.abs(getLastRiderForward()) > 0.01F
                         || Math.abs(getLastRiderStrafe()) > 0.01F;
@@ -948,14 +947,14 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     public float getSwimPitchRadians(float partialTick) {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return Mth.lerp(partialTick, previousClientSwimPitchRad, clientSwimPitchRad);
         }
         return Mth.lerp(partialTick, previousSwimPitchRad, swimPitchRad);
     }
 
     public void steerPreciseStrikeNudge(Vec3 direction) {
-        if (level().isClientSide || getPreciseStrikeNudgeTicks() <= 0) {
+        if (level().isClientSide() || getPreciseStrikeNudgeTicks() <= 0) {
             return;
         }
 
@@ -977,7 +976,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     private void tickPreciseStrikeNudge() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         int ticks = getPreciseStrikeNudgeTicks();
@@ -1011,7 +1010,6 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
         );
         move(MoverType.SELF, nudgeDelta);
         setDeltaMovement(getDeltaMovement().add(nudgeDelta.x, 0.0D, nudgeDelta.z));
-        hasImpulse = true;
         hurtMarked = true;
     }
 
@@ -1025,7 +1023,6 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
         move(MoverType.SELF, nudgeDelta);
         Vec3 current = getDeltaMovement();
         setDeltaMovement(0.0D, current.y, 0.0D);
-        hasImpulse = true;
         hurtMarked = true;
     }
 
@@ -1094,7 +1091,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     public void playEatMovingSound() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         getSoundHandler().playMovingEntitySound(ModSounds.ATROXIIA_EAT.get(), 1.0F, 1.0F, EAT_SOUND_TICKS);
@@ -1160,7 +1157,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         saveRideableData(tag);
         tag.putInt("FeedingCooldownTicks", Math.max(0, this.entityData.get(DATA_FEEDING_COOLDOWN)));
@@ -1168,12 +1165,10 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
         loadRideableData(tag);
-        if (tag.contains("FeedingCooldownTicks")) {
-            setFeedingCooldown(tag.getInt("FeedingCooldownTicks"));
-        }
+        setFeedingCooldown(tag.getIntOr("FeedingCooldownTicks", 0));
         tamingController.load(tag);
         applyConfiguredAttributes();
     }

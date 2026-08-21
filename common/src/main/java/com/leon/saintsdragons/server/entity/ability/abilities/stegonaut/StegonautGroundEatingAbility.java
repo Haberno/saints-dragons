@@ -60,7 +60,7 @@ public class StegonautGroundEatingAbility extends DragonAbility<Stegonaut> {
             releaseTicks = 0;
             shootAnimTriggered = false;
             getUser().triggerAnim(StegonautAnimationHandler.ACTION_CONTROLLER, "ground_eating");
-            if (!getUser().level().isClientSide) {
+            if (!getUser().level().isClientSide()) {
                 getUser().getSoundHandler().playMovingEntitySound(ModSounds.STEGONAUT_GROUND_EATING.get(), 1.0f, getUser().isBaby() ? 1.6f : 1.0f, 37);
             }
         }
@@ -69,7 +69,7 @@ public class StegonautGroundEatingAbility extends DragonAbility<Stegonaut> {
     @Override
     protected boolean canContinueUsing() {
         Stegonaut dragon = getUser();
-        return dragon.isAlive() && !dragon.isRemoved() && !dragon.isInWaterOrBubble();
+        return dragon.isAlive() && !dragon.isRemoved() && !dragon.isInWater();
     }
 
     @Override
@@ -81,7 +81,7 @@ public class StegonautGroundEatingAbility extends DragonAbility<Stegonaut> {
         if (releaseRequested) {
             if (cancelRequested) {
                 getUser().triggerAnim(StegonautAnimationHandler.ACTION_CONTROLLER, "ground_eating_cancel");
-                if (!getUser().level().isClientSide) {
+                if (!getUser().level().isClientSide()) {
                     getUser().getSoundHandler().playMovingEntitySound(ModSounds.STEGONAUT_GROUND_EATING_CANCEL.get(), 1.0f, getUser().isBaby() ? 1.6f : 1.0f, 22);
                 }
                 resolved = true;
@@ -91,7 +91,7 @@ public class StegonautGroundEatingAbility extends DragonAbility<Stegonaut> {
 
             if (!shootAnimTriggered) {
                 getUser().triggerAnim(StegonautAnimationHandler.ACTION_CONTROLLER, "ground_eating_shoot");
-                if (!getUser().level().isClientSide) {
+                if (!getUser().level().isClientSide()) {
                     getUser().getSoundHandler().playMovingEntitySound(ModSounds.STEGONAUT_GROUND_EATING_SHOOT.get(), 1.0f, getUser().isBaby() ? 1.6f : 1.0f, 75);
                 }
                 shootAnimTriggered = true;
@@ -158,7 +158,6 @@ public class StegonautGroundEatingAbility extends DragonAbility<Stegonaut> {
         );
         projectile.setVisualScale(PROJECTILE_SCALE);
         projectile.setDeltaMovement(direction.scale(PROJECTILE_SPEED));
-        projectile.hasImpulse = true;
         server.addFreshEntity(projectile);
     }
 

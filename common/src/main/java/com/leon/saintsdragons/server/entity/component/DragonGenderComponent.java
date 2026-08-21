@@ -3,8 +3,8 @@ package com.leon.saintsdragons.server.entity.component;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.base.DragonGender;
 import javax.annotation.Nullable;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.network.syncher.EntityDataAccessor;
 
 public final class DragonGenderComponent {
@@ -40,7 +40,7 @@ public final class DragonGenderComponent {
     }
 
     public void ensureInitialized() {
-        if (dragon.level().isClientSide) {
+        if (dragon.level().isClientSide()) {
             return;
         }
         if (!genderInitialized) {
@@ -48,22 +48,22 @@ public final class DragonGenderComponent {
         }
     }
 
-    public void saveToNBT(CompoundTag tag) {
+    public void saveToNBT(ValueOutput tag) {
         byte genderId = dragon.getEntityData().get(dataAccessor);
         tag.putByte("Gender", genderId);
         tag.putBoolean("IsFemale", genderId == DragonGender.FEMALE.getId());
         tag.putBoolean("GenderInitialized", genderInitialized);
     }
 
-    public void loadFromNBT(CompoundTag tag) {
-        if (tag.contains("Gender", Tag.TAG_BYTE)) {
-            byte savedGenderId = tag.getByte("Gender");
-            boolean savedGenderInit = !tag.contains("GenderInitialized") || tag.getBoolean("GenderInitialized");
+    public void loadFromNBT(ValueInput tag) {
+        byte savedGenderId = tag.getByteOr("Gender", (byte)-1);
+        if (savedGenderId >= 0) {
+            boolean savedGenderInit = tag.getBooleanOr("GenderInitialized", true);
             setGender(DragonGender.fromId(savedGenderId));
             this.genderInitialized = savedGenderInit;
-        } else if (tag.contains("IsFemale")) {
-            setFemale(tag.getBoolean("IsFemale"));
-            this.genderInitialized = !tag.contains("GenderInitialized") || tag.getBoolean("GenderInitialized");
+        } else if (tag.read("IsFemale", com.mojang.serialization.Codec.BOOL).isPresent()) {
+            setFemale(tag.getBooleanOr("IsFemale", false));
+            this.genderInitialized = tag.getBooleanOr("GenderInitialized", true);
         } else {
             this.genderInitialized = false;
             ensureInitialized();

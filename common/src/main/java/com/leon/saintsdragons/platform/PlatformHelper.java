@@ -5,7 +5,7 @@ import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Tier;
+import net.minecraft.world.item.ToolMaterial;
 import net.minecraft.world.level.material.Fluid;
 
 import java.nio.file.Path;
@@ -30,7 +30,7 @@ public interface PlatformHelper {
                                       int primaryColor,
                                       int secondaryColor,
                                       Item.Properties properties);
-    Item createDragonheartSword(Tier tier,
+    Item createDragonheartSword(ToolMaterial tier,
                                 int attackDamageModifier,
                                 float attackSpeedModifier,
                                 double entityReach,

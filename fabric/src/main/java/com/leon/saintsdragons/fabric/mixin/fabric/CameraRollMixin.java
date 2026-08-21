@@ -3,7 +3,7 @@ package com.leon.saintsdragons.fabric.mixin.fabric;
 import com.leon.saintsdragons.fabric.client.camera.DragonCameraState;
 import net.minecraft.client.Camera;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.level.BlockGetter;
+import net.minecraft.world.level.Level;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -27,7 +27,7 @@ public class CameraRollMixin {
             require = 0
     )
     private void saintsdragons$prepareFirstRotationRoll(
-            BlockGetter area,
+            Level area,
             Entity focusedEntity,
             boolean thirdPerson,
             boolean inverseView,
@@ -48,7 +48,7 @@ public class CameraRollMixin {
             require = 0
     )
     private void saintsdragons$prepareSecondRotationRoll(
-            BlockGetter area,
+            Level area,
             Entity focusedEntity,
             boolean thirdPerson,
             boolean inverseView,
@@ -69,7 +69,7 @@ public class CameraRollMixin {
             require = 0
     )
     private void saintsdragons$prepareThirdRotationRoll(
-            BlockGetter area,
+            Level area,
             Entity focusedEntity,
             boolean thirdPerson,
             boolean inverseView,

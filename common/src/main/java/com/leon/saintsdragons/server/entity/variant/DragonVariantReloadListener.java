@@ -6,10 +6,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
+import net.minecraft.resources.FileToIdConverter;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
+import net.minecraft.util.ExtraCodecs;
 import net.minecraft.util.profiling.ProfilerFiller;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,12 +20,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class DragonVariantReloadListener extends SimpleJsonResourceReloadListener {
+public final class DragonVariantReloadListener extends SimpleJsonResourceReloadListener<JsonElement> {
     private static final Gson GSON = new GsonBuilder().create();
     private static final DragonVariantReloadListener INSTANCE = new DragonVariantReloadListener();
 
     private DragonVariantReloadListener() {
-        super(GSON, "dragon_variants");
+        super(ExtraCodecs.JSON, FileToIdConverter.json("dragon_variants"));
     }
 
     public static DragonVariantReloadListener getInstance() {
@@ -57,7 +59,7 @@ public final class DragonVariantReloadListener extends SimpleJsonResourceReloadL
                                                        JsonObject input) {
         String name = GsonHelper.getAsString(input, "name");
         Identifier variantId = input.has("id")
-                ? new Identifier(GsonHelper.getAsString(input, "id"))
+                ? Identifier.parse(GsonHelper.getAsString(input, "id"))
                 : parseVariantId(fileId.getNamespace(), name);
         int weight = GsonHelper.getAsInt(input, "weight");
         DragonVariantDefinition.BiomeRestrictions allowedBiomes = parseBiomes(input, "allowed_biomes");
@@ -77,9 +79,9 @@ public final class DragonVariantReloadListener extends SimpleJsonResourceReloadL
 
     private static Identifier parseVariantId(String namespace, String name) {
         if (name.indexOf(':') >= 0) {
-            return new Identifier(name);
+            return Identifier.parse(name);
         }
-        return new Identifier(namespace, name);
+        return Identifier.fromNamespaceAndPath(namespace, name);
     }
 
     private static DragonVariantDefinition.BiomeRestrictions parseBiomes(JsonObject input, String key) {
@@ -99,7 +101,7 @@ public final class DragonVariantReloadListener extends SimpleJsonResourceReloadL
         }
         JsonArray array = GsonHelper.getAsJsonArray(object, key);
         for (JsonElement element : array) {
-            result.add(new Identifier(element.getAsString()));
+            result.add(Identifier.parse(element.getAsString()));
         }
         return result;
     }

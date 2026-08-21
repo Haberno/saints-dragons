@@ -75,7 +75,7 @@ public class StegonautGroundSlamAbility extends DragonAbility<Stegonaut> {
     @Override
     public boolean tryAbility() {
         Stegonaut dragon = getUser();
-        return dragon.isAlive() && !dragon.isBaby() && !dragon.isInWaterOrBubble();
+        return dragon.isAlive() && !dragon.isBaby() && !dragon.isInWater();
     }
 
     @Override
@@ -353,7 +353,7 @@ public class StegonautGroundSlamAbility extends DragonAbility<Stegonaut> {
         double maxDistanceSqr = DUST_VIEW_DISTANCE * DUST_VIEW_DISTANCE;
         for (ServerPlayer player : server.players()) {
             if (player.distanceToSqr(x, y, z) <= maxDistanceSqr || player.distanceToSqr(dragon) <= maxDistanceSqr) {
-                server.sendParticles(player, ModParticles.DRAGON_DUST.get(), true,
+                server.sendParticles(player, ModParticles.DRAGON_DUST.get(), true, false,
                         x, y, z, 0, xSpeed, ySpeed, zSpeed, 1.0D);
             }
         }

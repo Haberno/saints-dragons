@@ -71,7 +71,7 @@ public final class DragonPathDebugTracker {
             player.displayClientMessage(Component.literal("Dragon debug: OFF"), true);
             SaintsDragonsCommon.LOGGER.info(
                     "[Dragon Path Debug] event=unselected player={} id={} uuid={}",
-                    player.getGameProfile().getName(),
+                    player.getGameProfile().name(),
                     dragon.getId(),
                     dragon.getUUID()
             );
@@ -86,7 +86,7 @@ public final class DragonPathDebugTracker {
         );
         SaintsDragonsCommon.LOGGER.info(
                 "[Dragon Path Debug] event=selected player={} id={} uuid={} type={} pos={}",
-                player.getGameProfile().getName(),
+                player.getGameProfile().name(),
                 dragon.getId(),
                 dragon.getUUID(),
                 dragon.getType(),
@@ -111,7 +111,7 @@ public final class DragonPathDebugTracker {
                 continue;
             }
 
-            Entity entity = player.serverLevel().getEntity(tracked.getValue().dragonId);
+            Entity entity = player.level().getEntity(tracked.getValue().dragonId);
             if (!(entity instanceof DragonEntity dragon) || dragon.isRemoved() || !dragon.isAlive()) {
                 NetworkHandler.sendToPlayer(player, MessageDragonPathDebug.clear());
                 NetworkHandler.sendToPlayer(player, MessageDragonBrainDebug.clear());
@@ -163,7 +163,7 @@ public final class DragonPathDebugTracker {
                         + "navigationDone={} navigationStuck={} "
                         + "search={}#{} reached={} closed={} open={} candidates={} searchMicros={} "
                         + "perception={} tactical={} pursuit={} coordination={} activity={} behaviours={}",
-                player.getGameProfile().getName(),
+                player.getGameProfile().name(),
                 dragon.getId(),
                 dragon.blockPosition(),
                 snapshot.locomotionMode(),
@@ -632,7 +632,7 @@ public final class DragonPathDebugTracker {
                 + ",love=" + rideable.isInLove()
                 + ",vehicle=" + rideable.isVehicle()
                 + ",passenger=" + rideable.isPassenger()
-                + ",water=" + rideable.isInWaterOrBubble()
+                + ",water=" + rideable.isInWater()
                 + ",target=" + (target == null ? "none" : target.getName().getString() + "/" + target.isAlive());
     }
 

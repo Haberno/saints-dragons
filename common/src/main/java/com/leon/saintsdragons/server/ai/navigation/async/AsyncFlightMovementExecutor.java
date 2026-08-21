@@ -105,7 +105,6 @@ class AsyncFlightMovementExecutor {
             this.smoothedVelocity = new Vec3(this.smoothedVelocity.x, 0.0D, this.smoothedVelocity.z);
         }
         this.dragon.setDeltaMovement(this.smoothedVelocity);
-        this.dragon.hasImpulse = true;
         this.updateRotation();
     }
 

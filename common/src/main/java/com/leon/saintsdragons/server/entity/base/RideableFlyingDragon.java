@@ -22,7 +22,6 @@ import com.leon.saintsdragons.server.flight.DragonTakeoff;
 import com.leon.saintsdragons.server.entity.effect.DragonWaterSplashEntity;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -42,6 +41,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.tags.FluidTags;
 import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.level.ClipContext;
@@ -213,7 +214,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     private void updateServerRiderDiveInput(Player player, float forward, boolean locked) {
-        if (level().isClientSide || locked || !isFlying()) {
+        if (level().isClientSide() || locked || !isFlying()) {
             updateRiderDivingState(player, false, 0.0D);
             return;
         }
@@ -244,7 +245,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
                 && !isTakeoff()
                 && !isLanding()
                 && !isHovering();
-        return isInWaterOrBubble() || isInLava() || groundedAndStable;
+        return isInWater() || isInLava() || groundedAndStable;
     }
 
     @Override
@@ -278,13 +279,11 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     protected void configureAirNavigation(FlyingPathNavigation navigation) {
         navigation.setCanOpenDoors(false);
         navigation.setCanFloat(false);
-        navigation.setCanPassDoors(false);
     }
 
     protected void afterSwitchToGroundNavigation() {
         if (onGround()) {
             setDeltaMovement(Vec3.ZERO);
-            hasImpulse = false;
         } else {
             Vec3 motion = getDeltaMovement();
             setDeltaMovement(motion.x * 0.25D, motion.y, motion.z * 0.25D);
@@ -329,7 +328,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
             public void setDeltaMovement(Vec3 movement) { RideableFlyingDragon.this.setDeltaMovement(movement); }
 
             @Override
-            public void markImpulse() { RideableFlyingDragon.this.hasImpulse = true; }
+            public void markImpulse() {}
 
             @Override
             public void onTakeoffStarted() { RideableFlyingDragon.this.onTakeoffStarted(); }
@@ -369,7 +368,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
             public boolean isUnderWater() { return RideableFlyingDragon.this.isUnderWater(); }
 
             @Override
-            public boolean isInWaterOrBubble() { return RideableFlyingDragon.this.isInWaterOrBubble(); }
+            public boolean isInWater() { return RideableFlyingDragon.this.isInWater(); }
 
             @Override
             public boolean isInLava() { return RideableFlyingDragon.this.isInLava(); }
@@ -421,7 +420,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
             public void setDeltaMovement(Vec3 movement) { RideableFlyingDragon.this.setDeltaMovement(movement); }
 
             @Override
-            public void markImpulse() { RideableFlyingDragon.this.hasImpulse = true; }
+            public void markImpulse() {}
 
             @Override
             public long getGameTime() { return RideableFlyingDragon.this.level().getGameTime(); }
@@ -491,7 +490,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
                 && !isFlying()
                 && !isPassenger()
                 && getActiveAbility() == null
-                && (isInWaterOrBubble() || isInLava());
+                && (isInWater() || isInLava());
     }
 
     protected boolean isAiWaterBreachTakeoffActive() {
@@ -505,7 +504,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
                 && isVehicle()
                 && !isFlying()
                 && !isRiderTakeoffLocked()
-                && (isInWaterOrBubble() || isInLava())
+                && (isInWater() || isInLava())
                 && !isUnderWater()
                 && isGoingUp()
                 && hasRiderBreachTakeoffClearance()
@@ -628,7 +627,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
 
     @Override
     protected DragonLocomotionMode resolveLocomotionMode() {
-        if (isInWaterOrBubble() || isInLava()) {
+        if (isInWater() || isInLava()) {
             return DragonLocomotionMode.WATER;
         }
         if (isAerial()) {
@@ -641,7 +640,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     protected void onExitLocomotionMode(DragonLocomotionMode previousMode, DragonLocomotionMode nextMode) {
         super.onExitLocomotionMode(previousMode, nextMode);
         if (previousMode == DragonLocomotionMode.AIR && nextMode != DragonLocomotionMode.AIR) {
-            if (!level().isClientSide
+            if (!level().isClientSide()
                     && nextMode == DragonLocomotionMode.WATER
                     && !isVehicle()) {
                 completeAiWaterHandoff();
@@ -652,7 +651,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     public void completeAiWaterHandoff() {
-        if (level().isClientSide || isVehicle()) {
+        if (level().isClientSide() || isVehicle()) {
             return;
         }
         this.asyncAirController.clearAllWaypoints();
@@ -709,7 +708,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
             takeoffComponent.clear();
             return;
         }
-        if (shouldRunTakeoffStateStarted(wasTakeoff, requestedTakeoff) && !level().isClientSide) {
+        if (shouldRunTakeoffStateStarted(wasTakeoff, requestedTakeoff) && !level().isClientSide()) {
             if (shouldSpawnFlightDustEffects()) {
                 spawnGroundDustBurst(48, 0.65D);
             }
@@ -749,7 +748,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     private void tickServerRiderDiveInput() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         if (getControllingPassenger() instanceof Player player) {
@@ -772,7 +771,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected void spawnGroundDustBurst(int count, double radiusScale) {
-        if (!(level() instanceof ServerLevel serverLevel) || isInWaterOrBubble() || isInLava()) {
+        if (!(level() instanceof ServerLevel serverLevel) || isInWater() || isInLava()) {
             return;
         }
 
@@ -793,7 +792,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     private void tickNearGroundFlightDust() {
-        if (level().isClientSide || !shouldSpawnFlightDustEffects() || !isAerial() || isTakeoff() || isLanding() || isInWaterOrBubble() || isInLava()) {
+        if (level().isClientSide() || !shouldSpawnFlightDustEffects() || !isAerial() || isTakeoff() || isLanding() || isInWater() || isInLava()) {
             nearGroundDustCooldown = 0;
             return;
         }
@@ -813,7 +812,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     private void tickNearWaterFlightSplash() {
-        if (level().isClientSide || !shouldSpawnFlightDustEffects() || !isAerial() || isTakeoff() || isLanding() || isInWaterOrBubble() || isInLava()) {
+        if (level().isClientSide() || !shouldSpawnFlightDustEffects() || !isAerial() || isTakeoff() || isLanding() || isInWater() || isInLava()) {
             nearWaterSplashCooldown = 0;
             return;
         }
@@ -837,7 +836,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
         double[] sampleX = {getX(), box.minX + 0.35D, box.maxX - 0.35D};
         double[] sampleZ = {getZ(), box.minZ + 0.35D, box.maxZ - 0.35D};
         int startY = Mth.floor(box.minY);
-        int stopY = Math.max(level().getMinBuildHeight(), startY - Mth.ceil(NEAR_GROUND_DUST_SCAN_DISTANCE));
+        int stopY = Math.max(level().getMinY(), startY - Mth.ceil(NEAR_GROUND_DUST_SCAN_DISTANCE));
 
         Vec3 best = null;
         double bestDistance = Double.POSITIVE_INFINITY;
@@ -874,7 +873,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
         double[] sampleX = {getX(), box.minX + 0.35D, box.maxX - 0.35D};
         double[] sampleZ = {getZ(), box.minZ + 0.35D, box.maxZ - 0.35D};
         int startY = Mth.floor(box.minY);
-        int stopY = Math.max(level().getMinBuildHeight(), startY - Mth.ceil(NEAR_GROUND_DUST_SCAN_DISTANCE));
+        int stopY = Math.max(level().getMinY(), startY - Mth.ceil(NEAR_GROUND_DUST_SCAN_DISTANCE));
 
         Vec3 best = null;
         double bestDistance = Double.POSITIVE_INFINITY;
@@ -972,7 +971,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
         double maxDistanceSqr = DUST_PARTICLE_VIEW_DISTANCE * DUST_PARTICLE_VIEW_DISTANCE;
         for (ServerPlayer player : serverLevel.players()) {
             if (player.distanceToSqr(x, y, z) <= maxDistanceSqr || player.distanceToSqr(this) <= maxDistanceSqr) {
-                serverLevel.sendParticles(player, ModParticles.DRAGON_DUST.get(), true,
+                serverLevel.sendParticles(player, ModParticles.DRAGON_DUST.get(), true, false,
                         x, y, z, 0, xSpeed, ySpeed, zSpeed, 1.0D);
             }
         }
@@ -1030,7 +1029,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
                 : DragonGroundedAerialRecovery.tick(
                         level(),
                         onGround(),
-                        isInWaterOrBubble(),
+                        isInWater(),
                         isInLava(),
                         isTakeoff(),
                         isFlying(),
@@ -1046,7 +1045,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected boolean completeLandingOnGroundContact() {
-        if (level().isClientSide || !isLanding() || !onGround()) {
+        if (level().isClientSide() || !isLanding() || !onGround()) {
             return false;
         }
         completeGroundedAerialRecoveryLanding();
@@ -1062,7 +1061,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected void startStandardLandedRecovery(int ticks) {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         landedRecoveryTicks = Math.max(0, ticks);
@@ -1082,7 +1081,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected void tickStandardLandedRecovery() {
-        if (level().isClientSide || landedRecoveryTicks <= 0) {
+        if (level().isClientSide() || landedRecoveryTicks <= 0) {
             return;
         }
         if (!isStandardLandedRecoveryActive()) {
@@ -1102,7 +1101,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     private void holdStandardLandedRecoveryMovement() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         getNavigation().stop();
@@ -1135,9 +1134,9 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
                 isLanding(),
                 isHovering(),
                 onGround(),
-                isInWaterOrBubble(),
+                isInWater(),
                 isInLava(),
-                this.fallDistance,
+                (float) this.fallDistance,
                 getDeltaMovement()
         );
     }
@@ -1166,7 +1165,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected void tickAsyncFlightNavigation() {
-        if (!level().isClientSide
+        if (!level().isClientSide()
                 && isUsingAirNavigation()
                 && (isFlying() || isTakeoff() || isLanding())
                 && !isVehicle()) {
@@ -1182,7 +1181,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
 
     @Override
     protected void applyRiderVerticalInput(Player player, boolean goingUp, boolean goingDown, boolean locked) {
-        if (isInWater() || isInWaterOrBubble() || isInLava()) {
+        if (isInWater() || isInWater() || isInLava()) {
             setGoingUp(goingUp);
             setGoingDown(goingDown);
             return;
@@ -1240,10 +1239,10 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
                 isLanding(),
                 isHovering(),
                 onGround(),
-                isInWaterOrBubble(),
+                isInWater(),
                 isInLava(),
                 isRiderFallRecoveryBlocked(),
-                this.fallDistance,
+                (float) this.fallDistance,
                 getDeltaMovement()
         );
     }
@@ -1286,7 +1285,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected boolean clearRiderFlightStateInWaterIfNeeded() {
-        if (level().isClientSide || (!isInWaterOrBubble() && !isInLava())) {
+        if (level().isClientSide() || (!isInWater() && !isInLava())) {
             return false;
         }
         if (!shouldClearRiderFlightStateInWater()) {
@@ -1307,7 +1306,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected boolean isRiderWaterFlightTransitionActive() {
-        return (isInWaterOrBubble() || isInLava())
+        return (isInWater() || isInLava())
                 && isVehicle()
                 && isFlying()
                 && !isTakeoff()
@@ -1399,7 +1398,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     private void cacheRiderFlightVelocityBeforeWater(Vec3 velocity) {
-        if (level().isClientSide || !isVehicle() || !isFlying() || isInWaterOrBubble() || isInLava()) {
+        if (level().isClientSide() || !isVehicle() || !isFlying() || isInWater() || isInLava()) {
             return;
         }
         lastRiderFlightVelocityBeforeWater = velocity;
@@ -1407,11 +1406,11 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     private void tickRiderWaterFlightEntrySampling() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
 
-        boolean inWaterOrLava = isInWaterOrBubble() || isInLava();
+        boolean inWaterOrLava = isInWater() || isInLava();
         Vec3 currentPosition = position();
         Vec3 tickMovement = Vec3.ZERO;
         if (hasLastRiderFlightSamplePosition) {
@@ -1546,7 +1545,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected void tickRiderTakeoff() {
-        if (!level().isClientSide && riderTakeoffTicks > 0 && !isDying()) {
+        if (!level().isClientSide() && riderTakeoffTicks > 0 && !isDying()) {
             riderTakeoffTicks--;
         }
     }
@@ -1674,7 +1673,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
         double base = 15.0D + getRandom().nextDouble() * 20.0D;
         double target = groundY + base;
         double cap = groundY + maxHeightAboveGround;
-        double worldCap = level().getMaxBuildHeight() - 10.0D;
+        double worldCap = level().getMaxY() - 10.0D;
         return Math.min(Math.min(target, cap), worldCap);
     }
 
@@ -1776,19 +1775,19 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
             }
         }
 
-        return nearFluid || (!foundSolid && dragonPos.getY() < level().getMinBuildHeight() + 20);
+        return nearFluid || (!foundSolid && dragonPos.getY() < level().getMinY() + 20);
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         tag.putInt("RiderTakeoffTicks", riderTakeoffTicks);
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        this.riderTakeoffTicks = tag.contains("RiderTakeoffTicks") ? tag.getInt("RiderTakeoffTicks") : 0;
+        this.riderTakeoffTicks = tag.getIntOr("RiderTakeoffTicks", 0);
     }
 
     @Override
@@ -1801,7 +1800,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
         resetTimeFlyingAfterLanding();
         resetRiderFlightThrottle();
 
-        if (!level().isClientSide) {
+        if (!level().isClientSide()) {
             if (wasAirborne && shouldSpawnFlightDustEffects()) {
                 spawnGroundDustBurst(56, 0.78D);
             }
@@ -1859,7 +1858,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     protected abstract int getFlightMode();
 
     protected void syncFlightAnimationState() {
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             return;
         }
         int groundState = this.entityData.get(getGroundMoveStateAccessor());
@@ -1921,7 +1920,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
         }
 
         DragonFlightVisuals.beginPitchTick(state);
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             state.flightPitchRad = this.entityData.get(pitchAccessor);
             return;
         }
@@ -2025,7 +2024,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected boolean shouldResetStandardPitch() {
-        boolean inWater = this.isInWater() || this.isInWaterOrBubble() || this.isInLava();
+        boolean inWater = this.isInWater() || this.isInWater() || this.isInLava();
         return inWater
                 || areRiderControlsLocked()
                 || (!isFlying() && !(allowsStandardPitchWhileLanding() && isLanding()))
@@ -2069,9 +2068,9 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
 
     protected void tickBarrelRollLogic() {
         float currentRoll = getAccumulatedRoll();
-        boolean serverSide = !level().isClientSide;
+        boolean serverSide = !level().isClientSide();
         boolean ridden = isVehicle() && getControllingPassenger() != null;
-        boolean barrelRollEnabled = level().isClientSide || SaintsDragonsConfig.BARREL_ROLL_ENABLED.get();
+        boolean barrelRollEnabled = level().isClientSide() || SaintsDragonsConfig.BARREL_ROLL_ENABLED.get();
         boolean canBarrelRoll = barrelRollEnabled && ridden && canUseBarrelRoll();
 
         if (serverSide && canBarrelRoll && isBarrelRollInputActive()) {
@@ -2153,11 +2152,11 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     protected boolean canUseBarrelRoll() {
-        return !isInWaterOrBubble();
+        return !isInWater();
     }
 
     protected boolean shouldForceBarrelRollUpright() {
-        return onGround() || isInWaterOrBubble();
+        return onGround() || isInWater();
     }
 
     protected boolean isBarrelRollRiddenForHelper(boolean ridden, boolean canBarrelRoll) {
@@ -2249,7 +2248,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
     }
 
     @Override
-    public boolean causeFallDamage(float fallDistance, float damageMultiplier, DamageSource source) {
+    public boolean causeFallDamage(double fallDistance, float damageMultiplier, DamageSource source) {
         this.fallDistance = 0.0F;
         for (Entity passenger : this.getPassengers()) {
             if (passenger instanceof LivingEntity living) {
@@ -2291,10 +2290,10 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
 
         trackRiderAirborneForLanding();
 
-        if (isInWaterOrBubble() || isInLava()) {
+        if (isInWater() || isInLava()) {
             clearRiderLandingBlendTicks();
             consumeRiderTouchdownFromAir(hooks.waterTouchdownVelocity());
-            if (!level().isClientSide) {
+            if (!level().isClientSide()) {
                 hooks.clearLandingBlendSync();
                 if (shouldUseRiderFlightMovementInWater()) {
                     tickRiderWaterFlightTransitionFromLandingBlend();
@@ -2314,7 +2313,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
             boolean touchdownFromFlight = consumeRiderTouchdownFromAir(hooks.touchdownVelocity());
             boolean completedLanding = hooks.isCompletedLanding();
             clearRiderLandingBlendTicks();
-            if (!level().isClientSide) {
+            if (!level().isClientSide()) {
                 hooks.clearLandingBlendSync();
                 if ((wasLandingBlend || touchdownFromFlight || completedLanding) && onGround() && isVehicle()) {
                     hooks.onRiderLanded();
@@ -2328,7 +2327,7 @@ public abstract class RideableFlyingDragon extends RideableDragonBase implements
             return;
         }
 
-        if (!level().isClientSide && decrementRiderLandingBlendTicks(hooks::isLandingBlendSynced)) {
+        if (!level().isClientSide() && decrementRiderLandingBlendTicks(hooks::isLandingBlendSynced)) {
             hooks.clearLandingBlendSync();
         }
     }

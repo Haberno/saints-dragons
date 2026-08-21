@@ -40,7 +40,7 @@ public final class DraconianSwarmSpawnEggSpawner {
     }
 
     private static boolean spawn(EntityType<? extends Mob> type, ServerLevel level, BlockPos pos) {
-        Entity entity = type.spawn(level, pos, EntitySpawnReason.SPAWN_EGG);
+        Entity entity = type.spawn(level, pos, EntitySpawnReason.SPAWN_ITEM_USE);
         return entity != null;
     }
 }

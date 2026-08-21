@@ -25,7 +25,7 @@ public final class DragonBreedingInteractionHelper {
                                                    int feedingCooldownTicks,
                                                    Runnable eatFeedback,
                                                    IntConsumer feedingCooldownSetter) {
-        boolean client = dragon.level().isClientSide;
+        boolean client = dragon.level().isClientSide();
         if (!dragon.canReceiveFoodFrom(player)) {
             return InteractionResult.PASS;
         }
@@ -40,17 +40,17 @@ public final class DragonBreedingInteractionHelper {
 
         if (dragon.isBaby()) {
             sendStatus(player, PREFIX + ".breeding_too_young", dragon);
-            return InteractionResult.sidedSuccess(client);
+            return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (dragon.getAge() != 0) {
             sendStatus(player, PREFIX + ".breeding_cooling_down", dragon);
-            return InteractionResult.sidedSuccess(client);
+            return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (dragon.isInLove()) {
             sendStatus(player, PREFIX + ".breeding_already_ready", dragon);
-            return InteractionResult.sidedSuccess(client);
+            return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (!client) {
@@ -65,7 +65,7 @@ public final class DragonBreedingInteractionHelper {
             sendStatus(player, PREFIX + ".breeding_ready", dragon);
         }
 
-        return InteractionResult.sidedSuccess(client);
+        return client ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
     }
 
     private static void sendStatus(Player player, String key, DragonEntity dragon) {

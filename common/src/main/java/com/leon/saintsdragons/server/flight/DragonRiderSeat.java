@@ -15,9 +15,10 @@ public final class DragonRiderSeat {
             return;
         }
 
-        double x = mount.getX();
-        double y = mount.getY() + seatYOffset + passenger.getMyRidingOffset();
-        double z = mount.getZ();
+        Vec3 attachment = passenger.getVehicleAttachmentPoint(mount);
+        double x = mount.getX() - attachment.x;
+        double y = mount.getY() + seatYOffset - attachment.y;
+        double z = mount.getZ() - attachment.z;
         moveFunction.accept(passenger, x, y, z);
     }
 
@@ -38,11 +39,12 @@ public final class DragonRiderSeat {
         double worldX = localSeatOffset.x * cosYaw - localSeatOffset.z * sinYaw;
         double worldZ = localSeatOffset.x * sinYaw + localSeatOffset.z * cosYaw;
 
+        Vec3 attachment = passenger.getVehicleAttachmentPoint(mount);
         moveFunction.accept(
                 passenger,
-                mount.getX() + worldX,
-                mount.getY() + localSeatOffset.y + passenger.getMyRidingOffset(),
-                mount.getZ() + worldZ
+                mount.getX() + worldX - attachment.x,
+                mount.getY() + localSeatOffset.y - attachment.y,
+                mount.getZ() + worldZ - attachment.z
         );
     }
 
@@ -109,7 +111,13 @@ public final class DragonRiderSeat {
         double currentWorldZ = -localX * sinCurrent + localZ * cosCurrent;
 
         Vec3 currentPos = mount.position().add(currentWorldX, localY + locatorYOffset, currentWorldZ);
-        moveFunction.accept(passenger, currentPos.x, currentPos.y, currentPos.z);
+        Vec3 attachment = passenger.getVehicleAttachmentPoint(mount);
+        moveFunction.accept(
+                passenger,
+                currentPos.x - attachment.x,
+                currentPos.y - attachment.y,
+                currentPos.z - attachment.z
+        );
     }
 
     public static Vec3 findRadialGroundDismount(LivingEntity passenger, Entity mount,

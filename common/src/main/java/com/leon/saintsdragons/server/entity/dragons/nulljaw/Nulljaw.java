@@ -30,7 +30,7 @@ import com.leon.saintsdragons.server.flight.DragonFlightVisuals;
 import com.leon.saintsdragons.server.flight.DragonRiderSeat;
 import com.leon.saintsdragons.server.world.DragonSpawnRules;
 import net.minecraft.core.BlockPos;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -73,6 +73,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.minecraft.world.level.biome.Biomes;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.material.FluidState;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import net.minecraft.resources.Identifier;
@@ -212,9 +214,8 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     public @NotNull SpawnGroupData finalizeSpawn(@NotNull ServerLevelAccessor level,
                                                  @NotNull DifficultyInstance difficulty,
                                                  @NotNull EntitySpawnReason spawnReason,
-                                                 @Nullable SpawnGroupData spawnData,
-                                                 @Nullable CompoundTag dataTag) {
-        spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData, dataTag);
+                                                 @Nullable SpawnGroupData spawnData) {
+        spawnData = super.finalizeSpawn(level, difficulty, spawnReason, spawnData);
         applyConfiguredAttributes();
         this.setHealth(this.getMaxHealth());
         return spawnData;
@@ -307,28 +308,28 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     @Override
-    public void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void readAdditionalSaveData(@NotNull ValueInput tag) {
         super.readAdditionalSaveData(tag);
-        this.cloakTicksRemaining = Math.max(0, tag.getInt(CLOAK_TICKS_TAG));
-        this.cloakedRiderUuid = tag.hasUUID(CLOAK_RIDER_TAG) ? tag.getUUID(CLOAK_RIDER_TAG) : null;
+        this.cloakTicksRemaining = Math.max(0, tag.getIntOr(CLOAK_TICKS_TAG, 0));
+        this.cloakedRiderUuid = tag.read(CLOAK_RIDER_TAG, UUIDUtil.CODEC).orElse(null);
         applyConfiguredAttributes();
     }
 
     @Override
-    public void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    public void addAdditionalSaveData(@NotNull ValueOutput tag) {
         super.addAdditionalSaveData(tag);
         if (this.cloakTicksRemaining > 0) {
             tag.putInt(CLOAK_TICKS_TAG, this.cloakTicksRemaining);
             if (this.cloakedRiderUuid != null) {
-                tag.putUUID(CLOAK_RIDER_TAG, this.cloakedRiderUuid);
+                tag.store(CLOAK_RIDER_TAG, UUIDUtil.CODEC, this.cloakedRiderUuid);
             }
         }
     }
 
     @Override
-    protected void defineRideableDragonData() {
-        this.entityData.define(DATA_FLIGHT_PITCH, 0f);
-        this.entityData.define(DATA_FEEDING_COOLDOWN, 0);
+    protected void defineRideableDragonData(SynchedEntityData.Builder builder) {
+        builder.define(DATA_FLIGHT_PITCH, 0f);
+        builder.define(DATA_FEEDING_COOLDOWN, 0);
     }
 
     @Override
@@ -342,9 +343,9 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     @Override
-    protected void customServerAiStep() {
+    protected void customServerAiStep(ServerLevel serverLevel) {
         DragonBrain.tick(DRAGON_BRAIN, this);
-        super.customServerAiStep();
+        super.customServerAiStep(serverLevel);
     }
 
     @Override
@@ -403,7 +404,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
         super.aiStep();
         tickStandardPitchingLogic();
         nudgeUpIfCarriedRiderInWall();
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             this.setFlying(true);
             this.setTakeoff(false);
             this.setLanding(false);
@@ -419,7 +420,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
             this.tickAmbientVocals();
             this.tickCloak();
         }
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             this.tickAnimationStates();
         }
     }
@@ -448,14 +449,13 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     private void maintainGroundClearance() {
-        if (!this.isAlive() || !this.onGround() || this.isInWaterOrBubble() || this.isInLava()) {
+        if (!this.isAlive() || !this.onGround() || this.isInWater() || this.isInLava()) {
             return;
         }
 
         Vec3 velocity = this.getDeltaMovement();
         if (velocity.y < GROUND_CLEARANCE_LIFT) {
             this.setDeltaMovement(velocity.x, GROUND_CLEARANCE_LIFT, velocity.z);
-            this.hasImpulse = true;
         }
     }
 
@@ -541,7 +541,6 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
         this.setSpeed((float) RIDER_FLIGHT_SPEED);
         this.move(net.minecraft.world.entity.MoverType.SELF, blended);
         this.setDeltaMovement(blended);
-        this.hasImpulse = true;
     }
 
     @Override
@@ -555,7 +554,6 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
         return this.getFirstPassenger() instanceof LivingEntity living ? living : null;
     }
 
-    @Override
     public double getPassengersRidingOffset() {
         return -CARRIED_HITBOX_DOWNWARD_EXTENSION;
     }
@@ -567,7 +565,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                 passenger,
                 moveFunction,
                 getPassengersRidingOffset(),
-                this.level().isClientSide ? this.getClientLocatorPosition("passengerLocator") : null,
+                this.level().isClientSide() ? this.getClientLocatorPosition("passengerLocator") : null,
                 getPassengersRidingOffset()
         );
     }
@@ -589,16 +587,16 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
         awardDragonEncounterAdvancement(player);
         ItemStack heldItem = player.getItemInHand(hand);
         if (ModItems.isDragonBrush(heldItem)) {
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 this.tryBrush(player, heldItem);
             }
-            return InteractionResult.sidedSuccess(this.level().isClientSide);
+            return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (ModItems.isScalePlucker(heldItem)) {
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 this.tryPluckScale(player, heldItem);
             }
-            return InteractionResult.sidedSuccess(this.level().isClientSide);
+            return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
         if (player.getVehicle() == this) {
             return InteractionResult.PASS;
@@ -634,16 +632,16 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                 }
 
                 if (!canFeed()) {
-                    if (!this.level().isClientSide && player instanceof ServerPlayer serverPlayer) {
+                    if (!this.level().isClientSide() && player instanceof ServerPlayer serverPlayer) {
                         serverPlayer.displayClientMessage(
                                 Component.translatable("entity.saintsdragons.nulljaw.still_eating", this.getName()),
                                 true
                         );
                     }
-                    return InteractionResult.sidedSuccess(this.level().isClientSide);
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
                 }
 
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     if (!player.getAbilities().instabuild) {
                         heldItem.shrink(1);
                     }
@@ -668,10 +666,10 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                         }
                     }
                 }
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
+                return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             }
 
-            if (!this.level().isClientSide) {
+            if (!this.level().isClientSide()) {
                 if (!player.getAbilities().instabuild) {
                     heldItem.shrink(1);
                 }
@@ -685,8 +683,8 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                         this.setTarget(null);
                         this.level().broadcastEntityEvent(this, (byte) 7);
                         if (player instanceof ServerPlayer serverPlayer) {
-                            var advancement = serverPlayer.server.getAdvancements()
-                                    .getAdvancement(SaintsDragonsCommon.rl("tame_nulljaw"));
+                            var advancement = serverPlayer.level().getServer().getAdvancements()
+                                    .get(SaintsDragonsCommon.rl("tame_nulljaw"));
                             if (advancement != null) {
                                 serverPlayer.getAdvancements().award(advancement, "tame_nulljaw");
                             }
@@ -698,7 +696,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                     this.heal(6.0F);
                 }
             }
-            return InteractionResult.sidedSuccess(this.level().isClientSide);
+            return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
         }
 
         if (this.isTame() && this.isOwnedBy(player)) {
@@ -707,7 +705,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
             }
 
             if (player.isCrouching() && hand == InteractionHand.MAIN_HAND && heldItem.isEmpty()) {
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     int next = this.getNextCommand();
                     this.setCommand(next);
                     if (player instanceof ServerPlayer serverPlayer) {
@@ -717,7 +715,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                         );
                     }
                 }
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
+                return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             }
 
             if (heldItem.is(ModItems.DRACONIC_CODEX.get())) {
@@ -726,14 +724,14 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
 
             if (!player.isCrouching() && hand == InteractionHand.MAIN_HAND) {
                 if (this.isBaby() || !this.canOwnerMount(player)) {
-                    return InteractionResult.sidedSuccess(this.level().isClientSide);
+                    return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
                 }
-                if (!this.level().isClientSide) {
+                if (!this.level().isClientSide()) {
                     if (player.startRiding(this)) {
                         nudgeUpIfCarriedRiderInWall();
                     }
                 }
-                return InteractionResult.sidedSuccess(this.level().isClientSide);
+                return this.level().isClientSide() ? InteractionResult.SUCCESS : InteractionResult.SUCCESS_SERVER;
             }
         }
 
@@ -772,13 +770,13 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
         rememberIncomingProjectile(source);
         if (source.getDirectEntity() instanceof ShulkerBullet) {
             return false;
         }
-        boolean hurt = super.hurt(source, amount);
-        if (hurt && !this.level().isClientSide && source.getEntity() instanceof LivingEntity attacker) {
+        boolean hurt = super.hurtServer(level, source, amount);
+        if (hurt && !this.level().isClientSide() && source.getEntity() instanceof LivingEntity attacker) {
             alertNearbyNulljaws(attacker);
         }
         return hurt;
@@ -877,7 +875,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
 
     @Override
     public void die(@NotNull DamageSource cause) {
-        if (!this.dead && !this.level().isClientSide && !deathSoundQueued) {
+        if (!this.dead && !this.level().isClientSide() && !deathSoundQueued) {
             deathSoundQueued = true;
             this.triggerAnim(AnimationHelper.INTERACTION_CONTROLLER, "nulljaw_die");
             VocalEntry deathEntry = VOCAL_ENTRIES.get("nulljaw_die");
@@ -889,7 +887,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                 this.playSound(deathEntry.soundSupplier().get(), deathEntry.volume(), pitch);
             }
         }
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             deactivateCloak();
         }
         super.die(cause);
@@ -897,7 +895,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
 
     @Override
     public void removePassenger(@NotNull Entity passenger) {
-        if (!this.level().isClientSide
+        if (!this.level().isClientSide()
                 && this.cloakTicksRemaining > 0
                 && passenger.getUUID().equals(this.cloakedRiderUuid)) {
             deactivateCloak();
@@ -945,7 +943,6 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
             Vec3 velocity = this.getDeltaMovement();
             double raisedY = Math.max(velocity.y, CARRIED_COLLISION_ESCAPE_LIFT);
             this.setDeltaMovement(velocity.x, raisedY, velocity.z);
-            this.hasImpulse = true;
         }
     }
 
@@ -955,7 +952,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
             return false;
         }
 
-        float width = rider.getDimensions(Pose.STANDING).width * 0.8F;
+        float width = rider.getDimensions(Pose.STANDING).width() * 0.8F;
         AABB riderProbe = AABB.ofSize(rider.position().add(0.0D, 0.5D, 0.0D), width, 1.0E-6D, width);
         return BlockPos.betweenClosedStream(riderProbe).anyMatch(pos -> {
             BlockState state = this.level().getBlockState(pos);
@@ -999,20 +996,20 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
 
     private AABB createMountedCollisionShell(Vec3 position) {
         EntityDimensions dimensions = this.getDimensions(this.getPose());
-        double halfWidth = dimensions.width * 0.5D;
+        double halfWidth = dimensions.width() * 0.5D;
         return new AABB(
                 position.x - halfWidth,
                 position.y - CARRIED_HITBOX_DOWNWARD_EXTENSION,
                 position.z - halfWidth,
                 position.x + halfWidth,
-                position.y + dimensions.height,
+                position.y + dimensions.height(),
                 position.z + halfWidth
         );
     }
 
     @Nullable
     public Vec3 findForwardTeleportDestination(ServerPlayer rider) {
-        if (this.level().isClientSide || rider == null || rider.getVehicle() != this) {
+        if (this.level().isClientSide() || rider == null || rider.getVehicle() != this) {
             return null;
         }
 
@@ -1042,7 +1039,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     public boolean teleportMountedTo(Vec3 destination) {
-        if (this.level().isClientSide || destination == null || !this.isVehicle()) {
+        if (this.level().isClientSide() || destination == null || !this.isVehicle()) {
             return false;
         }
 
@@ -1058,7 +1055,6 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
         this.getNavigation().stop();
         this.getAIMovement().stop();
         this.teleportTo(destination.x, destination.y, destination.z);
-        this.hasImpulse = true;
         this.hurtMarked = true;
 
         MessageMountedTeleport teleportMessage = new MessageMountedTeleport(
@@ -1096,7 +1092,6 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
                 } else {
                     entity.teleportTo(x, y, z);
                 }
-                entity.hasImpulse = true;
                 entity.hurtMarked = true;
             });
         }
@@ -1117,13 +1112,13 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     public void playEatMovingSound() {
-        if (!this.level().isClientSide) {
+        if (!this.level().isClientSide()) {
             this.getSoundHandler().playMovingEntitySound(ModSounds.NULLJAW_EAT.get(), 1.0f, 1.0f, 22);
         }
     }
 
     public void consumeShulkerBullet(ShulkerBullet bullet) {
-        if (this.level().isClientSide || bullet == null || !bullet.isAlive()) {
+        if (this.level().isClientSide() || bullet == null || !bullet.isAlive()) {
             return;
         }
         this.triggerAnim("interaction", "eat");
@@ -1158,7 +1153,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
 
     @Override
     public boolean handleDirectAirPackFollow(Vec3 target, double speed) {
-        if (this.level().isClientSide || !this.isAerial() || this.isLanding()) {
+        if (this.level().isClientSide() || !this.isAerial() || this.isLanding()) {
             return false;
         }
         this.beginAiFlight();
@@ -1303,7 +1298,6 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
         Vec3 velocity = this.getDeltaMovement();
         if (velocity.y < minUpwardVelocity) {
             this.setDeltaMovement(velocity.x, minUpwardVelocity, velocity.z);
-            this.hasImpulse = true;
         }
     }
 
@@ -1363,7 +1357,7 @@ public class Nulljaw extends RideableFlyingDragon implements PackMember<Nulljaw>
     }
 
     private void toggleCloak(Player rider) {
-        if (this.level().isClientSide
+        if (this.level().isClientSide()
                 || !this.isTame()
                 || this.isBaby()
                 || !this.isOwnedBy(rider)

@@ -46,7 +46,7 @@ public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
             if (entity.isDeadOrDying()) {
                 return;
             }
-            if (!entity.isVehicle() && !entity.isInWaterOrBubble()) {
+            if (!entity.isVehicle() && !entity.isInWater()) {
                 applyNeckFollow(entity, modelData, animationState.renderState().getPartialTick());
             }
             applyBodyRotationDeviation(entity, partialTick);
@@ -68,7 +68,7 @@ public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
     }
 
     private void applySwimPitch(Atroxiia entity, float partialTick) {
-        if (!entity.isInWaterOrBubble()) {
+        if (!entity.isInWater()) {
             return;
         }
         BoneSnapshot body = getBone("heightController").orElse(null);

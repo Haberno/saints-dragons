@@ -1,40 +1,35 @@
 package com.leon.saintsdragons.client.renderer.layer.ignivorus;
 
+import com.leon.saintsdragons.client.renderer.GeoRenderDataTickets;
+import com.leon.saintsdragons.client.renderer.state.SaintsDragonsLivingEntityRenderState;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
-import org.jetbrains.annotations.NotNull;
-import software.bernie.geckolib.cache.model.BakedGeoModel;
+import software.bernie.geckolib.renderer.base.GeoRenderer;
+import software.bernie.geckolib.renderer.base.RenderPassInfo;
 import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
 
-/**
- * Simple mouth smoke layer: spawns vanilla smoke particles at the fire bone
- * so there is a visible puff even when the long-distance cone is culled.
- */
-public class IgnivorusMouthSmokeLayer extends GeoRenderLayer<Ignivorus> {
-
-    public IgnivorusMouthSmokeLayer() {
-        super(null);
+public class IgnivorusMouthSmokeLayer
+        extends GeoRenderLayer<Ignivorus, Void, SaintsDragonsLivingEntityRenderState> {
+    public IgnivorusMouthSmokeLayer(
+            GeoRenderer<Ignivorus, Void, SaintsDragonsLivingEntityRenderState> renderer) {
+        super(renderer);
     }
 
     @Override
-    public void render(@NotNull PoseStack poseStack, Ignivorus animatable, BakedGeoModel bakedModel,
-                       @NotNull RenderType renderType, @NotNull MultiBufferSource bufferSource,
-                       @NotNull VertexConsumer buffer, float partialTick, int packedLight, int packedOverlay) {
-
-        if (!animatable.isBreathingFire()) {
-            return;
-        }
-        if (!(animatable.level() instanceof ClientLevel clientLevel)) {
+    public void submitRenderTask(RenderPassInfo<SaintsDragonsLivingEntityRenderState> renderPassInfo,
+                                 SubmitNodeCollector renderTasks) {
+        Ignivorus animatable =
+                (Ignivorus) renderPassInfo.getGeckolibData(GeoRenderDataTickets.ANIMATABLE);
+        if (animatable == null || !animatable.isBreathingFire()
+                || !(animatable.level() instanceof ClientLevel clientLevel)) {
             return;
         }
 
+        float partialTick = renderPassInfo.renderState().getPartialTick();
         Vec3 start = animatable.getFireBreathStartAnchor(partialTick);
         if (start == null) {
             return;
@@ -43,15 +38,10 @@ public class IgnivorusMouthSmokeLayer extends GeoRenderLayer<Ignivorus> {
         Vec3 look = Vec3.directionFromRotation(animatable.getXRot(), animatable.yHeadRot).normalize();
         Vec3 spawnCenter = start.add(look.scale(0.35D));
         RandomSource random = animatable.getRandom();
-
         for (int i = 0; i < 4; i++) {
-            double jitterX = (random.nextDouble() - 0.5D) * 0.2D;
-            double jitterY = random.nextDouble() * 0.15D;
-            double jitterZ = (random.nextDouble() - 0.5D) * 0.2D;
-            double px = spawnCenter.x + jitterX;
-            double py = spawnCenter.y + jitterY;
-            double pz = spawnCenter.z + jitterZ;
-
+            double px = spawnCenter.x + (random.nextDouble() - 0.5D) * 0.2D;
+            double py = spawnCenter.y + random.nextDouble() * 0.15D;
+            double pz = spawnCenter.z + (random.nextDouble() - 0.5D) * 0.2D;
             clientLevel.addParticle(ParticleTypes.SMOKE, px, py, pz, 0.0D, 0.01D, 0.0D);
             if (random.nextFloat() < 0.35F) {
                 clientLevel.addParticle(ParticleTypes.CAMPFIRE_COSY_SMOKE, px, py, pz, 0.0D, 0.02D, 0.0D);

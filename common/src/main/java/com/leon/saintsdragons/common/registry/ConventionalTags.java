@@ -52,6 +52,6 @@ public final class ConventionalTags {
     }
 
     private static Identifier id(String path) {
-        return new Identifier(COMMON_NAMESPACE, path);
+        return Identifier.fromNamespaceAndPath(COMMON_NAMESPACE, path);
     }
 }

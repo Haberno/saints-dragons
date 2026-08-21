@@ -57,7 +57,7 @@ public class IgnivorusWingSwipeAbility extends DragonAbility<Ignivorus> {
             attackRight = dragon.shouldUseRightWingSwipe();
             String animationName = attackRight ? "wing_swipe_right" : "wing_swipe_left";
             dragon.triggerAnim(IgnivorusAnimationHandler.MOVEMENT_CONTROLLER, animationName);
-            if (!dragon.level().isClientSide) {
+            if (!dragon.level().isClientSide()) {
                 dragon.getSoundHandler().playMovingEntitySound(ModSounds.IGNIVORUS_WING_SWIPE.get(), 1.0f, 1.0f, 55);
             }
             dragon.toggleWingSwipeSide();

@@ -399,7 +399,7 @@ public final class DragonDrinkBehaviour<T extends RideableDragonBase & DrinkingD
         if (!dragon.isAlive() || dragon.isDying()) return "dying";
         if (dragon.isBaby()) return "baby";
         if (dragon.isAerial()) return "aerial";
-        if (dragon.isInWaterOrBubble()) return "in-water";
+        if (dragon.isInWater()) return "in-water";
         if (dragon.isOrderedToSit() || dragon.isInSittingPose() || dragon.isInSitTransition()) return "sitting";
         if (dragon.isVehicle() || dragon.isPassenger()) return "ridden";
         if (dragon.isInLove()) return "breeding";

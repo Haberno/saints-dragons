@@ -12,25 +12,31 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(InventoryScreen.class)
 public abstract class InventoryScreenMixin {
-    @Inject(method = "renderEntityInInventory", at = @At("HEAD"))
+    @Inject(method = "renderEntityInInventoryFollowsMouse", at = @At("HEAD"))
     private static void saintsdragons$beginEntityPreview(GuiGraphics guiGraphics,
                                                           int x,
                                                           int y,
+                                                          int right,
+                                                          int bottom,
                                                           int scale,
-                                                          Quaternionf pose,
-                                                          Quaternionf cameraOrientation,
+                                                          float mouseX,
+                                                          float mouseY,
+                                                          float partialTick,
                                                           LivingEntity entity,
                                                           CallbackInfo ci) {
         EntityPreviewRenderContext.begin();
     }
 
-    @Inject(method = "renderEntityInInventory", at = @At("RETURN"))
+    @Inject(method = "renderEntityInInventoryFollowsMouse", at = @At("RETURN"))
     private static void saintsdragons$endEntityPreview(GuiGraphics guiGraphics,
                                                         int x,
                                                         int y,
+                                                        int right,
+                                                        int bottom,
                                                         int scale,
-                                                        Quaternionf pose,
-                                                        Quaternionf cameraOrientation,
+                                                        float mouseX,
+                                                        float mouseY,
+                                                        float partialTick,
                                                         LivingEntity entity,
                                                         CallbackInfo ci) {
         EntityPreviewRenderContext.end();

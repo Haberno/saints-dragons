@@ -131,7 +131,7 @@ public final class DragonTacticalPlannerBehaviour<T extends DragonEntity> extend
         UUID targetUuid = target.getUUID();
         double distance = dragon.position().distanceTo(focus);
         boolean targetAirborne = context.memories().get(DragonMemories.TARGET_AIRBORNE).orElse(false);
-        boolean targetInWater = targetVisible && target.isInWaterOrBubble();
+        boolean targetInWater = targetVisible && target.isInWater();
         boolean groundRouteAbandoned = context.memories()
                 .get(DragonMemories.GROUND_ROUTE_ABANDONED)
                 .orElse(false);

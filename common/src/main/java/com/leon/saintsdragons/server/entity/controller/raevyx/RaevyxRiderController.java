@@ -109,7 +109,7 @@ public record RaevyxRiderController(Raevyx wyvern) {
                 passenger,
                 moveFunction,
                 DragonRiderSeatOffsets.RAEVYX,
-                wyvern.level().isClientSide ? wyvern.getClientLocatorPosition("passengerLocator") : null
+                wyvern.level().isClientSide() ? wyvern.getClientLocatorPosition("passengerLocator") : null
         );
     }
     

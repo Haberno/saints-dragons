@@ -54,6 +54,9 @@ public final class ModTags {
         public static final TagKey<Item> DRAGON_DROPS = tag("dragon_drops");
         public static final TagKey<Item> DRAGON_SPAWN_EGGS = tag("dragon_spawn_eggs");
         public static final TagKey<Item> WORLDROOT_TOOLS = tag("worldroot_tools");
+        public static final TagKey<Item> WORLDROOT_TOOL_MATERIALS = tag("tool_materials/worldroot");
+        public static final TagKey<Item> DRAGONHEART_CHUNK_TOOL_MATERIALS = tag("tool_materials/dragonheart_chunk");
+        public static final TagKey<Item> DRAGONHEART_ALLOY_TOOL_MATERIALS = tag("tool_materials/dragonheart_alloy");
         public static final TagKey<Item> ATROXIIA_FOODS = tag("foods/atroxiia");
         public static final TagKey<Item> CINDERVANE_FOODS = tag("foods/cindervane");
         public static final TagKey<Item> IGNIVORUS_FOODS = tag("foods/ignivorus");

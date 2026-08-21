@@ -1,9 +1,10 @@
 package com.leon.saintsdragons.client.particle;
 
 import net.minecraft.client.multiplayer.ClientLevel;
-import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.particle.SingleQuadParticle;
+import net.minecraft.client.particle.SpriteSet;
 
-abstract class AtroxiiaWindParticle extends TextureSheetParticle {
+abstract class AtroxiiaWindParticle extends SingleQuadParticle {
     private final double swayAxisX;
     private final double swayAxisZ;
     private final double windPhase;
@@ -13,8 +14,8 @@ abstract class AtroxiiaWindParticle extends TextureSheetParticle {
 
     protected AtroxiiaWindParticle(ClientLevel level, double x, double y, double z,
                                    double xSpeed, double ySpeed, double zSpeed,
-                                   double verticalAmplitude, double swayAmplitude) {
-        super(level, x, y, z, xSpeed, ySpeed, zSpeed);
+                                   double verticalAmplitude, double swayAmplitude, SpriteSet sprites) {
+        super(level, x, y, z, xSpeed, ySpeed, zSpeed, sprites.first());
         this.xd = xSpeed;
         this.yd = ySpeed;
         this.zd = zSpeed;
@@ -60,5 +61,10 @@ abstract class AtroxiiaWindParticle extends TextureSheetParticle {
             return maximumAlpha * Math.max(0.0F, 1.0F - (progress - fadeOutStart) / (1.0F - fadeOutStart));
         }
         return maximumAlpha;
+    }
+
+    @Override
+    protected Layer getLayer() {
+        return Layer.TRANSLUCENT;
     }
 }

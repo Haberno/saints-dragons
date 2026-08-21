@@ -67,7 +67,7 @@ public final class DragonTakeoff {
     }
 
     public void tick() {
-        if (host.level().isClientSide || ticksRemaining <= 0) {
+        if (host.level().isClientSide() || ticksRemaining <= 0) {
             return;
         }
         if (!launched) {

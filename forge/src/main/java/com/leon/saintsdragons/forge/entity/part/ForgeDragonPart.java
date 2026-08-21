@@ -1,7 +1,10 @@
 package com.leon.saintsdragons.forge.entity.part;
 
 import com.leon.saintsdragons.server.entity.base.DragonPartEntity;
-import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.storage.ValueInput;
+import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -104,10 +107,10 @@ public class ForgeDragonPart extends PartEntity<Entity> implements DragonPartEnt
     }
 
     @Override
-    public boolean startRiding(@NotNull Entity entity, boolean force) {
+    public boolean startRiding(@NotNull Entity entity, boolean force, boolean sendPacket) {
         Entity parent = getParent();
         if (parent != null) {
-            return entity.startRiding(parent, force);
+            return entity.startRiding(parent, force, sendPacket);
         }
         return false;
     }
@@ -116,7 +119,7 @@ public class ForgeDragonPart extends PartEntity<Entity> implements DragonPartEnt
     public void addPassenger(@NotNull Entity passenger) {
         Entity parent = getParent();
         if (parent != null) {
-            passenger.startRiding(parent, true);
+            passenger.startRiding(parent, true, true);
             return;
         }
         super.addPassenger(passenger);
@@ -143,13 +146,8 @@ public class ForgeDragonPart extends PartEntity<Entity> implements DragonPartEnt
     }
 
     @Override
-    public boolean hurt(@NotNull DamageSource source, float amount) {
-        // Only process damage on server side
-        if (this.level().isClientSide) {
-            return !this.isInvulnerableTo(source);
-        }
-
-        if (this.isInvulnerableTo(source)) {
+    public boolean hurtServer(@NotNull ServerLevel level, @NotNull DamageSource source, float amount) {
+        if (this.isInvulnerableToBase(source)) {
             return false;
         }
 
@@ -160,24 +158,23 @@ public class ForgeDragonPart extends PartEntity<Entity> implements DragonPartEnt
 
         // Apply damage multiplier based on which part was hit
         float adjustedAmount = amount * damageMultiplier;
-        return parent.hurt(source, adjustedAmount);
+        return parent.hurtServer(level, source, adjustedAmount);
     }
 
-    @Override
     public boolean is(@NotNull Entity entity) {
         return this == entity || this.getParent() == entity;
     }
 
     @Override
-    protected void defineSynchedData() {
+    protected void defineSynchedData(SynchedEntityData.Builder builder) {
     }
 
     @Override
-    protected void readAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void readAdditionalSaveData(@NotNull ValueInput input) {
     }
 
     @Override
-    protected void addAdditionalSaveData(@NotNull CompoundTag tag) {
+    protected void addAdditionalSaveData(@NotNull ValueOutput output) {
     }
 
     @Override

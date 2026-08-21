@@ -34,17 +34,17 @@ public class CindervaneRenderer extends DragonGeoEntityRenderer<Cindervane> {
 
     public CindervaneRenderer(EntityRendererProvider.Context context) {
         super(context, new CindervaneModel());
-        this.addRenderLayer(new DragonEquipmentLayer<>(
+        this.withRenderLayer(new DragonEquipmentLayer<>(
                 this,
                 Cindervane::hasSaddle,
                 SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_saddle_layer.png")
         ));
-        this.addRenderLayer(new DragonEquipmentLayer<>(
+        this.withRenderLayer(new DragonEquipmentLayer<>(
                 this,
                 Cindervane::hasCindervaneChest,
                 SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_chest_layer.png")
         ));
-        this.addRenderLayer(new CindervaneNightEmissiveLayer(this));
+        this.withRenderLayer(new CindervaneNightEmissiveLayer(this));
     }
 
     @Override

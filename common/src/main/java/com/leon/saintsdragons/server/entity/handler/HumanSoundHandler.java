@@ -22,7 +22,7 @@ public class HumanSoundHandler {
     }
 
     public void handleAnimationSound(Object keyframeData, software.bernie.geckolib.animation.AnimationController<?> controller) {
-        if (!entity.level().isClientSide) return;
+        if (!entity.level().isClientSide()) return;
         if (keyframeData == null) return;
         String raw = extractSoundString(keyframeData);
         if (raw == null || raw.isEmpty()) return;
@@ -109,7 +109,7 @@ public class HumanSoundHandler {
         try {
             net.minecraft.resources.Identifier rl = net.minecraft.resources.Identifier.tryParse(soundId);
             if (rl != null) {
-                SoundEvent sound = net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.get(rl);
+                SoundEvent sound = net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.getValue(rl);
                 Vec3 position = resolveLocator(locator);
                 playSoundImmediate(sound, position, volume, pitch);
             }

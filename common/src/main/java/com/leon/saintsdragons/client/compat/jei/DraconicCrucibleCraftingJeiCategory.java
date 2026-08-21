@@ -24,12 +24,12 @@ final class DraconicCrucibleCraftingJeiCategory
         int offsetY = (3 - recipe.height()) / 2;
         for (int row = 0; row < recipe.height(); row++) {
             for (int column = 0; column < recipe.width(); column++) {
-                Ingredient ingredient = recipe.getIngredients().get(column + row * recipe.width());
-                if (!ingredient.isEmpty()) {
+                var ingredient = recipe.ingredientAt(column + row * recipe.width());
+                if (ingredient.isPresent()) {
                     builder.addInputSlot(
                                     INPUT_GRID_X + (offsetX + column) * SLOT_SPACING,
                                     INPUT_GRID_Y + (offsetY + row) * SLOT_SPACING)
-                            .addIngredients(ingredient);
+                            .addIngredients(ingredient.orElseThrow());
                 }
             }
         }
