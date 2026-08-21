@@ -3,7 +3,7 @@ package com.leon.saintsdragons.forge.integration.jade;
 import com.leon.saintsdragons.common.integration.JadeEggTooltipHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -39,7 +39,7 @@ public enum DragonEggBlockProvider implements IBlockComponentProvider, IServerDa
     }
 
     @Override
-    public ResourceLocation getUid() {
-        return new ResourceLocation("saintsdragons", "egg_timer");
+    public Identifier getUid() {
+        return new Identifier("saintsdragons", "egg_timer");
     }
 }

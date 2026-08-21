@@ -7,7 +7,7 @@ import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.varasuchus.Varasuchus;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.block.entity.BlockEntityType;
@@ -34,7 +34,7 @@ public class VarasuchusEggBlock extends AbstractTimedDragonEggBlock<VarasuchusEg
     }
 
     @Override
-    protected ResourceLocation getDragonConfigId() {
+    protected Identifier getDragonConfigId() {
         return DragonAttributeConfigLoader.VARASUCHUS_ID;
     }
 
@@ -74,7 +74,7 @@ public class VarasuchusEggBlock extends AbstractTimedDragonEggBlock<VarasuchusEg
     }
 
     @Override
-    protected ResourceLocation getHatchAdvancementId() {
+    protected Identifier getHatchAdvancementId() {
         return SaintsDragonsCommon.rl("hatch_varasuchus");
     }
 }

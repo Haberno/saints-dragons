@@ -5,7 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -45,14 +45,14 @@ public final class DragonChestLootReloadListener extends SimpleJsonResourceReloa
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsonMap,
+    protected void apply(Map<Identifier, JsonElement> jsonMap,
                          @NotNull ResourceManager resourceManager,
                          @NotNull ProfilerFiller profiler) {
         applyJsonMap(jsonMap);
         loadedManager = resourceManager;
     }
 
-    private static void applyJsonMap(Map<ResourceLocation, JsonElement> jsonMap) {
+    private static void applyJsonMap(Map<Identifier, JsonElement> jsonMap) {
         boolean replace = jsonMap.entrySet().stream().anyMatch(DragonChestLootReloadListener::requestsReplace);
         List<DragonChestLootRegistry.Entry> parsed = new ArrayList<>();
         jsonMap.entrySet().stream()
@@ -62,10 +62,10 @@ public final class DragonChestLootReloadListener extends SimpleJsonResourceReloa
         DragonChestLootRegistry.replaceEntries(parsed);
     }
 
-    private static Map<ResourceLocation, JsonElement> readJsonMap(ResourceManager resourceManager) {
-        Map<ResourceLocation, JsonElement> result = new java.util.HashMap<>();
+    private static Map<Identifier, JsonElement> readJsonMap(ResourceManager resourceManager) {
+        Map<Identifier, JsonElement> result = new java.util.HashMap<>();
         resourceManager.listResources("dragon_chest_loot", id -> id.getPath().endsWith(".json")).forEach((file, resource) -> {
-            ResourceLocation fileId = fileToReloadId(file);
+            Identifier fileId = fileToReloadId(file);
             try (BufferedReader reader = resource.openAsReader()) {
                 result.put(fileId, GsonHelper.fromJson(GSON, reader, JsonElement.class));
             } catch (Exception exception) {
@@ -75,13 +75,13 @@ public final class DragonChestLootReloadListener extends SimpleJsonResourceReloa
         return result;
     }
 
-    private static ResourceLocation fileToReloadId(ResourceLocation file) {
+    private static Identifier fileToReloadId(Identifier file) {
         String path = file.getPath();
         path = path.substring("dragon_chest_loot/".length(), path.length() - ".json".length());
-        return new ResourceLocation(file.getNamespace(), path);
+        return new Identifier(file.getNamespace(), path);
     }
 
-    private static boolean requestsReplace(Map.Entry<ResourceLocation, JsonElement> entry) {
+    private static boolean requestsReplace(Map.Entry<Identifier, JsonElement> entry) {
         try {
             JsonObject root = GsonHelper.convertToJsonObject(entry.getValue(), entry.getKey().toString());
             return DragonChestLootRegistry.shouldReplace(root);
@@ -91,7 +91,7 @@ public final class DragonChestLootReloadListener extends SimpleJsonResourceReloa
         }
     }
 
-    private static void parseFile(ResourceLocation fileId,
+    private static void parseFile(Identifier fileId,
                                   JsonElement element,
                                   List<DragonChestLootRegistry.Entry> parsed) {
         try {

@@ -12,18 +12,21 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.item.ArmorItem;
-import net.minecraft.world.item.ArmorMaterial;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.equipment.ArmorMaterial;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.equipment.ArmorType;
 import net.minecraft.world.level.Level;
 import software.bernie.geckolib.animatable.GeoItem;
-import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
 import software.bernie.geckolib.core.animation.AnimatableManager;
 import software.bernie.geckolib.core.animation.AnimationController;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.constant.DataTickets;
+
+
 import software.bernie.geckolib.util.GeckoLibUtil;
 
 import javax.annotation.Nullable;
@@ -33,7 +36,7 @@ import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
-public class DragonlordArmorItem extends ArmorItem implements GeoItem {
+public class DragonlordArmorItem extends Item implements GeoItem {
     public static final String FLIGHT_CONTROLLER = "dragonlord_flight";
     public static final String FLAP_TRIGGER = "flap";
     private static final RawAnimation GLIDE =
@@ -56,7 +59,7 @@ public class DragonlordArmorItem extends ArmorItem implements GeoItem {
     private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
     private final Supplier<Object> renderProvider = this::createFabricRenderProvider;
 
-    public DragonlordArmorItem(ArmorMaterial material, Type type, Properties properties) {
+    public DragonlordArmorItem(ArmorMaterial material, ArmorType type, Properties properties) {
         super(material, type, properties);
         GeoItem.registerSyncedAnimatable(this);
     }

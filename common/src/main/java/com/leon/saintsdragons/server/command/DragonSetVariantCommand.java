@@ -12,7 +12,7 @@ import com.mojang.brigadier.suggestion.SuggestionProvider;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
@@ -98,12 +98,12 @@ public final class DragonSetVariantCommand {
             throw ERROR_UNKNOWN_DRAGON.create(dragonId.toString());
         }
 
-        ResourceLocation variant = dragon.getTextureVariantIdNameMap().get(variantStr);
+        Identifier variant = dragon.getTextureVariantIdNameMap().get(variantStr);
         if (variant == null) {
             throw ERROR_INVALID_VARIANT.create();
         }
 
-        ResourceLocation oldVariant = dragon.getCodexTextureVariantId();
+        Identifier oldVariant = dragon.getCodexTextureVariantId();
         dragon.setTextureVariantId(variant);
 
         // Send success message

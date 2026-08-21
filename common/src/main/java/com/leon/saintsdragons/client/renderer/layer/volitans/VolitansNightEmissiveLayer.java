@@ -3,13 +3,13 @@ package com.leon.saintsdragons.client.renderer.layer.volitans;
 import com.leon.saintsdragons.client.renderer.layer.NightEmissiveLayer;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.renderer.GeoRenderer;
 
 public class VolitansNightEmissiveLayer extends NightEmissiveLayer<Volitans> {
-    private static final ResourceLocation EMISSIVE_TEXTURE =
+    private static final Identifier EMISSIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/volitans/volitans_emissive.png");
-    private static final ResourceLocation BLOODSHOT_EMISSIVE_TEXTURE =
+    private static final Identifier BLOODSHOT_EMISSIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/volitans/volitans_bloodshot_emissive.png");
 
     public VolitansNightEmissiveLayer(GeoRenderer<Volitans> renderer) {
@@ -17,7 +17,7 @@ public class VolitansNightEmissiveLayer extends NightEmissiveLayer<Volitans> {
     }
 
     @Override
-    protected ResourceLocation getEmissiveTexture(Volitans animatable) {
+    protected Identifier getEmissiveTexture(Volitans animatable) {
         if (animatable.getTextureVariant() == Volitans.VARIANT_BLOODSHOT) {
             return BLOODSHOT_EMISSIVE_TEXTURE;
         }

@@ -57,7 +57,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -66,17 +66,10 @@ import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.EntityDimensions;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.AgeableMob;
+import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.ai.control.BodyRotationControl;
 import net.minecraft.world.entity.projectile.Projectile;
 import net.minecraft.world.entity.MobSpawnType;
-import net.minecraft.world.entity.Pose;
-import net.minecraft.world.entity.SpawnGroupData;
-import net.minecraft.world.entity.TamableAnimal;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
@@ -103,6 +96,7 @@ import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import java.util.List;
 import java.util.UUID;
 import java.util.EnumSet;
+
 
 public abstract class DragonEntity extends TamableAnimal implements GeoEntity, SoundHandledDragon, DragonMovementCapable, DancingEntity {
     protected static final int DAMAGE_SLEEP_SUPPRESSION_TICKS = 20 * 30;
@@ -304,14 +298,14 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
             return;
         }
 
-        ResourceLocation soundId = null;
-        ResourceLocation entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(getType());
+        Identifier soundId = null;
+        Identifier entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(getType());
         if ("step".equals(soundKey) && entityTypeId != null) {
-            soundId = new ResourceLocation(entityTypeId.getNamespace(), entityTypeId.getPath() + "_step");
+            soundId = new Identifier(entityTypeId.getNamespace(), entityTypeId.getPath() + "_step");
         } else if (soundKey.endsWith("_step") && entityTypeId != null) {
-            soundId = new ResourceLocation(entityTypeId.getNamespace(), soundKey);
+            soundId = new Identifier(entityTypeId.getNamespace(), soundKey);
         } else if (soundKey.indexOf(':') >= 0) {
-            soundId = ResourceLocation.tryParse(soundKey);
+            soundId = Identifier.tryParse(soundKey);
         }
 
         if (soundId != null) {
@@ -450,7 +444,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     @Override
     public void onSyncedDataUpdated(@NotNull EntityDataAccessor<?> key) {
         super.onSyncedDataUpdated(key);
-        if (level().isClientSide) {
+        if (level().isClientSide()) {
             if (DATA_COMMAND.equals(key)) {
                 applyCommandState(this.entityData.get(DATA_COMMAND));
             }
@@ -473,8 +467,8 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         var animationManager = getAnimatableInstanceCache().getManagerForId(getId());
         animationManager.clearSnapshotCache();
         animationManager.getAnimationControllers().values().forEach(controller -> {
-            controller.stop();
-            controller.forceAnimationReset();
+            controller.stopTriggeredAnimation();
+            controller.reset();
         });
     }
 
@@ -505,7 +499,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     @Override
     public RawAnimation getDanceAnimation() {
         if (cachedDanceAnimation == null) {
-            ResourceLocation entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(getType());
+            Identifier entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(getType());
             String dragonName = entityTypeId != null ? entityTypeId.getPath() : "dragon";
             cachedDanceAnimation = AnimationHelper.loop(dragonName, AnimationHelper.DANCE);
         }
@@ -809,14 +803,14 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         setTextureVariantId(SaintsDragonVariantRegistry.legacyToVariantId(getDragonVariantTypeId(), variant));
     }
 
-    public ResourceLocation getTextureVariantId() {
+    public Identifier getTextureVariantId() {
         return parseVariantId(this.entityData.get(DATA_TEXTURE_VARIANT_ID), SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId()));
     }
 
-    public void setTextureVariantId(ResourceLocation variantId) {
-        ResourceLocation dragonId = getDragonVariantTypeId();
-        ResourceLocation normalized = SaintsDragonVariantRegistry.normalize(dragonId, variantId);
-        if (!level().isClientSide && isBaby() && shouldPersistAdultTextureVariantOnBabies()) {
+    public void setTextureVariantId(Identifier variantId) {
+        Identifier dragonId = getDragonVariantTypeId();
+        Identifier normalized = SaintsDragonVariantRegistry.normalize(dragonId, variantId);
+        if (!level().isClientSide() && isBaby() && shouldPersistAdultTextureVariantOnBabies()) {
             setPendingAdultTextureVariantId(normalized);
             setCurrentTextureVariantId(SaintsDragonVariantRegistry.defaultVariantId(dragonId));
             return;
@@ -824,9 +818,9 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         setCurrentTextureVariantId(normalized);
     }
 
-    private ResourceLocation setCurrentTextureVariantId(ResourceLocation variantId) {
-        ResourceLocation dragonId = getDragonVariantTypeId();
-        ResourceLocation normalized = SaintsDragonVariantRegistry.normalize(dragonId, variantId);
+    private Identifier setCurrentTextureVariantId(Identifier variantId) {
+        Identifier dragonId = getDragonVariantTypeId();
+        Identifier normalized = SaintsDragonVariantRegistry.normalize(dragonId, variantId);
         this.entityData.set(DATA_TEXTURE_VARIANT_ID, normalized.toString());
         this.entityData.set(DATA_TEXTURE_VARIANT, SaintsDragonVariantRegistry.variantIdToLegacy(dragonId, normalized));
         return normalized;
@@ -840,7 +834,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return SaintsDragonVariantRegistry.variantIdToLegacy(getDragonVariantTypeId(), chooseAdultTextureVariantId());
     }
 
-    protected ResourceLocation chooseAdultTextureVariantId() {
+    protected Identifier chooseAdultTextureVariantId() {
         if (this.level() instanceof ServerLevelAccessor serverLevelAccessor) {
             return SaintsDragonVariantRegistry.chooseSpawnVariant(serverLevelAccessor, this);
         }
@@ -848,7 +842,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     public int getPendingAdultTextureVariant() {
-        ResourceLocation pending = getPendingAdultTextureVariantId();
+        Identifier pending = getPendingAdultTextureVariantId();
         return pending == null ? -1 : SaintsDragonVariantRegistry.variantIdToLegacy(getDragonVariantTypeId(), pending);
     }
 
@@ -861,7 +855,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     @Nullable
-    public ResourceLocation getPendingAdultTextureVariantId() {
+    public Identifier getPendingAdultTextureVariantId() {
         String value = this.entityData.get(DATA_PENDING_ADULT_TEXTURE_VARIANT_ID);
         if (value == null || value.isBlank()) {
             return null;
@@ -869,14 +863,14 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return parseVariantId(value, null);
     }
 
-    public void setPendingAdultTextureVariantId(@Nullable ResourceLocation variantId) {
-        ResourceLocation dragonId = getDragonVariantTypeId();
+    public void setPendingAdultTextureVariantId(@Nullable Identifier variantId) {
+        Identifier dragonId = getDragonVariantTypeId();
         if (variantId == null) {
             this.entityData.set(DATA_PENDING_ADULT_TEXTURE_VARIANT_ID, "");
             this.entityData.set(DATA_PENDING_ADULT_TEXTURE_VARIANT, -1);
             return;
         }
-        ResourceLocation normalized = SaintsDragonVariantRegistry.normalize(dragonId, variantId);
+        Identifier normalized = SaintsDragonVariantRegistry.normalize(dragonId, variantId);
         this.entityData.set(DATA_PENDING_ADULT_TEXTURE_VARIANT_ID, normalized.toString());
         this.entityData.set(DATA_PENDING_ADULT_TEXTURE_VARIANT, SaintsDragonVariantRegistry.variantIdToLegacy(dragonId, normalized));
     }
@@ -894,7 +888,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         if (!shouldPersistAdultTextureVariantOnBabies()) {
             return;
         }
-        ResourceLocation pending = getPendingAdultTextureVariantId();
+        Identifier pending = getPendingAdultTextureVariantId();
         if (pending == null) {
             pending = chooseAdultTextureVariantId();
         }
@@ -906,9 +900,9 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return SaintsDragonVariantRegistry.variantIdToLegacy(getDragonVariantTypeId(), getCodexTextureVariantId());
     }
 
-    public ResourceLocation getCodexTextureVariantId() {
+    public Identifier getCodexTextureVariantId() {
         if (this.isBaby() && shouldPersistAdultTextureVariantOnBabies()) {
-            ResourceLocation pending = getPendingAdultTextureVariantId();
+            Identifier pending = getPendingAdultTextureVariantId();
             if (pending != null) {
                 return pending;
             }
@@ -925,7 +919,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return SaintsDragonVariantRegistry.legacyNameMap(getDragonVariantTypeId());
     }
 
-    public Map<String, ResourceLocation> getTextureVariantIdNameMap() {
+    public Map<String, Identifier> getTextureVariantIdNameMap() {
         return SaintsDragonVariantRegistry.variantNameMap(getDragonVariantTypeId());
     }
 
@@ -941,8 +935,8 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return getTextureVariantName(SaintsDragonVariantRegistry.legacyToVariantId(getDragonVariantTypeId(), variantId));
     }
 
-    public String getTextureVariantName(ResourceLocation variantId) {
-        ResourceLocation normalized = SaintsDragonVariantRegistry.normalize(getDragonVariantTypeId(), variantId);
+    public String getTextureVariantName(Identifier variantId) {
+        Identifier normalized = SaintsDragonVariantRegistry.normalize(getDragonVariantTypeId(), variantId);
         var definition = SaintsDragonVariantRegistry.get(getDragonVariantTypeId(), normalized);
         return definition != null ? definition.name() : normalized.getPath();
     }
@@ -951,8 +945,8 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return getTextureVariantTranslationKey(SaintsDragonVariantRegistry.legacyToVariantId(getDragonVariantTypeId(), variantId));
     }
 
-    public String getTextureVariantTranslationKey(ResourceLocation variantId) {
-        ResourceLocation normalized = SaintsDragonVariantRegistry.normalize(getDragonVariantTypeId(), variantId);
+    public String getTextureVariantTranslationKey(Identifier variantId) {
+        Identifier normalized = SaintsDragonVariantRegistry.normalize(getDragonVariantTypeId(), variantId);
         var definition = SaintsDragonVariantRegistry.get(getDragonVariantTypeId(), normalized);
         return definition != null ? definition.translationKey() : "saintsdragons.variant." + normalized.getNamespace() + "." + normalized.getPath().replace('/', '.');
     }
@@ -966,7 +960,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
                 chooseSpawnTextureVariantId(levelAccessor, difficulty, reason, spawnData, spawnTag));
     }
 
-    protected ResourceLocation chooseSpawnTextureVariantId(@NotNull ServerLevelAccessor levelAccessor,
+    protected Identifier chooseSpawnTextureVariantId(@NotNull ServerLevelAccessor levelAccessor,
                                                           @NotNull DifficultyInstance difficulty,
                                                           @NotNull MobSpawnType reason,
                                                           @Nullable SpawnGroupData spawnData,
@@ -975,25 +969,25 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
     }
 
     public boolean hasCustomTextureVariant() {
-        ResourceLocation variantId = getTextureVariantId();
+        Identifier variantId = getTextureVariantId();
         return !SaintsDragonVariantRegistry.isLegacyVariant(getDragonVariantTypeId(), variantId);
     }
 
-    public ResourceLocation getCustomAdultTextureResource(boolean female) {
+    public Identifier getCustomAdultTextureResource(boolean female) {
         return SaintsDragonVariantRegistry.adultTexture(getDragonVariantTypeId(), getTextureVariantId(), female);
     }
 
-    protected ResourceLocation getDragonVariantTypeId() {
+    protected Identifier getDragonVariantTypeId() {
         return SaintsDragonVariantRegistry.dragonId(this);
     }
 
     @Nullable
-    private static ResourceLocation parseVariantId(@Nullable String value, @Nullable ResourceLocation fallback) {
+    private static Identifier parseVariantId(@Nullable String value, @Nullable Identifier fallback) {
         if (value == null || value.isBlank()) {
             return fallback;
         }
         try {
-            return new ResourceLocation(value);
+            return new Identifier(value);
         } catch (Exception ignored) {
             return fallback;
         }
@@ -1058,7 +1052,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
                                                  @Nullable SpawnGroupData spawnData, @Nullable CompoundTag spawnTag) {
         SpawnGroupData data = super.finalizeSpawn(levelAccessor, difficulty, reason, spawnData, spawnTag);
         ensureGenderInitialized();
-        ResourceLocation chosenVariant = chooseSpawnTextureVariantId(levelAccessor, difficulty, reason, spawnData, spawnTag);
+        Identifier chosenVariant = chooseSpawnTextureVariantId(levelAccessor, difficulty, reason, spawnData, spawnTag);
         if (this.isBaby() && shouldPersistAdultTextureVariantOnBabies()) {
             setPendingAdultTextureVariantId(chosenVariant);
             setCurrentTextureVariantId(SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId()));
@@ -1909,7 +1903,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         return 0.0;
     }
 
-    protected abstract ResourceLocation getDragonAttributesId();
+    protected abstract Identifier getDragonAttributesId();
 
     public DragonAttributeConfig getConfiguredDragonAttributes() {
         return DragonAttributeConfigLoader.getInstance().getConfig(getDragonAttributesId());
@@ -2405,7 +2399,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         tag.putInt("TextureVariant", getTextureVariant());
         tag.putInt("PendingAdultTextureVariant", getPendingAdultTextureVariant());
         tag.putString("TextureVariantId", getTextureVariantId().toString());
-        ResourceLocation pendingAdultVariantId = getPendingAdultTextureVariantId();
+        Identifier pendingAdultVariantId = getPendingAdultTextureVariantId();
         if (pendingAdultVariantId != null) {
             tag.putString("PendingAdultTextureVariantId", pendingAdultVariantId.toString());
         }
@@ -2444,7 +2438,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         if (sleepComponent != null) {
             sleepComponent.loadFromNBT(tag);
         }
-        ResourceLocation storedTextureVariant = null;
+        Identifier storedTextureVariant = null;
         if (tag.contains("TextureVariantId")) {
             storedTextureVariant = parseVariantId(tag.getString("TextureVariantId"), SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId()));
             setTextureVariantId(storedTextureVariant);
@@ -2457,7 +2451,7 @@ public abstract class DragonEntity extends TamableAnimal implements GeoEntity, S
         } else if (tag.contains("PendingAdultTextureVariant")) {
             setPendingAdultTextureVariant(tag.getInt("PendingAdultTextureVariant"));
         }
-        ResourceLocation defaultVariant = SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId());
+        Identifier defaultVariant = SaintsDragonVariantRegistry.defaultVariantId(getDragonVariantTypeId());
         if (isBaby() && storedTextureVariant != null && !storedTextureVariant.equals(defaultVariant)) {
             setPendingAdultTextureVariantId(storedTextureVariant);
             setCurrentTextureVariantId(defaultVariant);

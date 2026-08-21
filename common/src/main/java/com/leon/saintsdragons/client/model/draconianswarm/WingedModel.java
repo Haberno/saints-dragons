@@ -2,7 +2,7 @@ package com.leon.saintsdragons.client.model.draconianswarm;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.draconianswarm.Winged;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -10,24 +10,24 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
 public class WingedModel extends GeoModel<Winged> {
-    private static final ResourceLocation MODEL = SaintsDragonsCommon.rl("geo/entity/winged.geo.json");
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("geo/entity/winged.geo.json");
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/winged/winged.png");
-    private static final ResourceLocation ANIMATIONS =
+    private static final Identifier ANIMATIONS =
             SaintsDragonsCommon.rl("animations/entity/winged.animation.json");
 
     @Override
-    public ResourceLocation getModelResource(Winged animatable) {
+    public Identifier getModelResource(Winged animatable) {
         return MODEL;
     }
 
     @Override
-    public ResourceLocation getTextureResource(Winged animatable) {
+    public Identifier getTextureResource(Winged animatable) {
         return TEXTURE;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(Winged animatable) {
+    public Identifier getAnimationResource(Winged animatable) {
         return ANIMATIONS;
     }
 

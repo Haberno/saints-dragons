@@ -1,14 +1,14 @@
 package com.leon.saintsdragons.server.entity.npc.dialogue;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.network.chat.Component;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
-public record DialogueDefinition(ResourceLocation id, String start, Map<String, Node> nodes, Resume resume) {
-    public DialogueDefinition(ResourceLocation id, String start, Map<String, Node> nodes) {
+public record DialogueDefinition(Identifier id, String start, Map<String, Node> nodes, Resume resume) {
+    public DialogueDefinition(Identifier id, String start, Map<String, Node> nodes) {
         this(id, start, nodes, Resume.DISABLED);
     }
 

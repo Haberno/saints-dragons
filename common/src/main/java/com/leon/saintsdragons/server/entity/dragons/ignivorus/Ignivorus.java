@@ -75,7 +75,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.level.Level;
@@ -116,7 +116,7 @@ public class Ignivorus extends RideableFlyingDragon implements ShakesScreen, Dra
     );
 
     @Override
-    protected ResourceLocation getDragonAttributesId() {
+    protected Identifier getDragonAttributesId() {
         return DragonAttributeConfigLoader.IGNIVORUS_ID;
     }
     public static final int VARIANT_DEFAULT = 0;

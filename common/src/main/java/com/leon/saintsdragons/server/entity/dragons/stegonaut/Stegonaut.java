@@ -64,7 +64,7 @@ import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.world.Container;
 import org.jetbrains.annotations.NotNull;
@@ -78,7 +78,7 @@ import software.bernie.geckolib.util.GeckoLibUtil;
 public class Stegonaut extends RideableGroundDragon implements PackMember<Stegonaut>, ShakesScreen, DragonSaddleCarrier {
     private static final StegonautBrain DRAGON_BRAIN = new StegonautBrain();
     @Override
-    protected ResourceLocation getDragonAttributesId() {
+    protected Identifier getDragonAttributesId() {
         return DragonAttributeConfigLoader.STEGONAUT_ID;
     }
 

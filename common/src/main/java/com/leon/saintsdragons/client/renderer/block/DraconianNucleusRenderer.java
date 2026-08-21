@@ -12,11 +12,11 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 public class DraconianNucleusRenderer implements BlockEntityRenderer<DraconianNucleusBlockEntity> {
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/block/draconic_nucleus.png");
     private final DraconianNucleusModel model;
 

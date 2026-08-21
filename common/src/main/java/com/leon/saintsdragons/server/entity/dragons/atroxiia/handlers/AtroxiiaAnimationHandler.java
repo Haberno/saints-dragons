@@ -3,9 +3,9 @@ package com.leon.saintsdragons.server.entity.dragons.atroxiia.handlers;
 import com.leon.saintsdragons.server.entity.dragons.atroxiia.Atroxiia;
 import com.leon.saintsdragons.util.animation.AnimationHelper;
 import software.bernie.geckolib.core.animation.AnimationController;
-import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.animation.RawAnimation;
 import software.bernie.geckolib.core.object.PlayState;
+import software.bernie.geckolib.core.animation.AnimationState;
 
 public record AtroxiiaAnimationHandler(Atroxiia dragon) {
     public static final String MOVEMENT_CONTROLLER = AnimationHelper.MOVEMENT_CONTROLLER;

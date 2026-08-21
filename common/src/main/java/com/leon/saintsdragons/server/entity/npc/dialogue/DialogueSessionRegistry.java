@@ -12,7 +12,7 @@ import com.leon.saintsdragons.common.registry.ModItems;
 import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.item.ItemStack;
@@ -197,7 +197,7 @@ public final class DialogueSessionRegistry {
         continueWithChosenName(player, entityId, dialogue, currentNode, name, session.flags());
     }
 
-    public static void resume(ServerPlayer player, IvyTheDragonMerchant ivy, ResourceLocation dialogueId, String nodeId) {
+    public static void resume(ServerPlayer player, IvyTheDragonMerchant ivy, Identifier dialogueId, String nodeId) {
         DialogueDefinition dialogue = DialogueRegistry.get(dialogueId);
         if (dialogue == null) {
             return;

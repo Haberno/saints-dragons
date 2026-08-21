@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -19,8 +19,8 @@ public class VolitansWaterBreathRenderer extends EntityRenderer<VolitansWaterBre
     private static final float SPRITE_WIDTH_PX = 32.0F;
     private static final float SPRITE_HEIGHT_PX = 32.0F;
     private static final int TOTAL_FRAMES = 5;
-    private static final ResourceLocation[] WATER_TEXTURES = new ResourceLocation[TOTAL_FRAMES];
-    private static final ResourceLocation[] POISON_TEXTURES = new ResourceLocation[TOTAL_FRAMES];
+    private static final Identifier[] WATER_TEXTURES = new Identifier[TOTAL_FRAMES];
+    private static final Identifier[] POISON_TEXTURES = new Identifier[TOTAL_FRAMES];
 
     static {
         for (int i = 0; i < TOTAL_FRAMES; i++) {
@@ -44,7 +44,7 @@ public class VolitansWaterBreathRenderer extends EntityRenderer<VolitansWaterBre
         if (frame < 0) {
             frame += TOTAL_FRAMES;
         }
-        ResourceLocation texture = entity.isPoisonMode() ? POISON_TEXTURES[frame] : WATER_TEXTURES[frame];
+        Identifier texture = entity.isPoisonMode() ? POISON_TEXTURES[frame] : WATER_TEXTURES[frame];
         float alpha = Mth.lerp(normalized, 1.0F, 0.82F);
         float scale = Mth.lerp(normalized, 0.34F, 0.72F);
 
@@ -80,7 +80,7 @@ public class VolitansWaterBreathRenderer extends EntityRenderer<VolitansWaterBre
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull VolitansWaterBreathEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull VolitansWaterBreathEntity entity) {
         return entity.isPoisonMode() ? POISON_TEXTURES[0] : WATER_TEXTURES[0];
     }
 }

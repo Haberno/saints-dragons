@@ -2,7 +2,7 @@ package com.leon.saintsdragons.fabric.platform;
 
 import com.leon.saintsdragons.platform.RegistryHelper;
 import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.function.Supplier;
 
@@ -26,7 +26,7 @@ public final class FabricRegistryHelper implements RegistryHelper {
 
         @Override
         public <I extends T> Supplier<I> register(String name, Supplier<I> supplier) {
-            ResourceLocation id = new ResourceLocation(modId, name);
+            Identifier id = new Identifier(modId, name);
             I value = supplier.get();
             Registry.register(registry, id, value);
             return () -> value;

@@ -22,7 +22,7 @@ public interface DancingEntity {
     }
 
     static boolean shouldScanForJukebox(Entity entity) {
-        return !entity.level().isClientSide
+        return !entity.level().isClientSide()
                 && Math.floorMod(entity.tickCount + entity.getId(), JUKEBOX_DANCE_SCAN_INTERVAL) == 0;
     }
 
@@ -36,7 +36,7 @@ public interface DancingEntity {
                 for (int z = center.getZ() - range; z <= center.getZ() + range; z++) {
                     cursor.set(x, y, z);
                     if (entity.level().getBlockEntity(cursor) instanceof JukeboxBlockEntity jukebox
-                            && jukebox.isRecordPlaying()) {
+                            && jukebox.getSongPlayer().isPlaying()) {
                         return true;
                     }
                 }

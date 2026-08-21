@@ -2,26 +2,26 @@ package com.leon.saintsdragons.client.model.ignivorus;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.effect.ignivorus.IgnivorusMagmaPillarEntity;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.model.GeoModel;
 
 public class IgnivorusMagmaPillarModel extends GeoModel<IgnivorusMagmaPillarEntity> {
-    private static final ResourceLocation MODEL = SaintsDragonsCommon.rl("geo/blocks/ignivorus_magma_pillar.geo.json");
-    private static final ResourceLocation TEXTURE = SaintsDragonsCommon.rl("textures/blocks/ignivorus_magma_pillar.png");
-    private static final ResourceLocation ANIMATION = SaintsDragonsCommon.rl("animations/blocks/ignivorus_magma_pillar.animation.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("geo/blocks/ignivorus_magma_pillar.geo.json");
+    private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/blocks/ignivorus_magma_pillar.png");
+    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("animations/blocks/ignivorus_magma_pillar.animation.json");
 
     @Override
-    public ResourceLocation getModelResource(IgnivorusMagmaPillarEntity animatable) {
+    public Identifier getModelResource(IgnivorusMagmaPillarEntity animatable) {
         return MODEL;
     }
 
     @Override
-    public ResourceLocation getTextureResource(IgnivorusMagmaPillarEntity animatable) {
+    public Identifier getTextureResource(IgnivorusMagmaPillarEntity animatable) {
         return TEXTURE;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(IgnivorusMagmaPillarEntity animatable) {
+    public Identifier getAnimationResource(IgnivorusMagmaPillarEntity animatable) {
         return ANIMATION;
     }
 }

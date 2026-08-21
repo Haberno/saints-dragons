@@ -107,7 +107,7 @@ public class HumanSoundHandler {
     }
     private void playDirectSound(String soundId, String locator, float volume, float pitch) {
         try {
-            net.minecraft.resources.ResourceLocation rl = net.minecraft.resources.ResourceLocation.tryParse(soundId);
+            net.minecraft.resources.Identifier rl = net.minecraft.resources.Identifier.tryParse(soundId);
             if (rl != null) {
                 SoundEvent sound = net.minecraft.core.registries.BuiltInRegistries.SOUND_EVENT.get(rl);
                 Vec3 position = resolveLocator(locator);

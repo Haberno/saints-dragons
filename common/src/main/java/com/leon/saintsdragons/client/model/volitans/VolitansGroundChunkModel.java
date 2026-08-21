@@ -2,26 +2,26 @@ package com.leon.saintsdragons.client.model.volitans;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.effect.volitans.VolitansGroundChunkEntity;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.model.GeoModel;
 
 public class VolitansGroundChunkModel extends GeoModel<VolitansGroundChunkEntity> {
-    private static final ResourceLocation MODEL = SaintsDragonsCommon.rl("geo/blocks/ground_chunk.geo.json");
-    private static final ResourceLocation TEXTURE = new ResourceLocation("minecraft", "textures/block/dirt.png");
-    private static final ResourceLocation ANIMATION = SaintsDragonsCommon.rl("animations/blocks/ground_chunk.animation.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("geo/blocks/ground_chunk.geo.json");
+    private static final Identifier TEXTURE = new Identifier("minecraft", "textures/block/dirt.png");
+    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("animations/blocks/ground_chunk.animation.json");
 
     @Override
-    public ResourceLocation getModelResource(VolitansGroundChunkEntity animatable) {
+    public Identifier getModelResource(VolitansGroundChunkEntity animatable) {
         return MODEL;
     }
 
     @Override
-    public ResourceLocation getTextureResource(VolitansGroundChunkEntity animatable) {
+    public Identifier getTextureResource(VolitansGroundChunkEntity animatable) {
         return TEXTURE;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(VolitansGroundChunkEntity animatable) {
+    public Identifier getAnimationResource(VolitansGroundChunkEntity animatable) {
         return ANIMATION;
     }
 }

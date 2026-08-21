@@ -30,7 +30,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -130,13 +130,13 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     private static final int PASSIVE_USE_DRINK = 1;
     private static final int PASSIVE_USE_EAT = 2;
     private static final int PASSIVE_USE_WATER_CLUTCH = 3;
-    private static final ResourceLocation FIRST_MEETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/first_meeting");
-    private static final ResourceLocation KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting");
-    private static final ResourceLocation TRESPASSER_KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting_trespasser");
-    private static final ResourceLocation RUDE_KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting_rude");
-    private static final ResourceLocation WARES_KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting_wares");
-    private static final ResourceLocation RECRUITED_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/recruited_greeting");
-    private static final ResourceLocation RECRUITED_VISITOR_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/recruited_visitor_greeting");
+    private static final Identifier FIRST_MEETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/first_meeting");
+    private static final Identifier KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting");
+    private static final Identifier TRESPASSER_KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting_trespasser");
+    private static final Identifier RUDE_KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting_rude");
+    private static final Identifier WARES_KNOWN_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/known_greeting_wares");
+    private static final Identifier RECRUITED_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/recruited_greeting");
+    private static final Identifier RECRUITED_VISITOR_GREETING_DIALOGUE = SaintsDragonsCommon.rl("ivy/recruited_visitor_greeting");
     private static final EntityDataAccessor<Boolean> DATA_RUNNING =
             SynchedEntityData.defineId(IvyTheDragonMerchant.class, EntityDataSerializers.BOOLEAN);
     private static final EntityDataAccessor<Boolean> DATA_TAME =
@@ -300,7 +300,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
     private long tradeDataRevision;
     private boolean clientRecoveryItemVisible;
     private UUID pendingDialogueTradePlayerUuid;
-    private ResourceLocation pendingDialogueTradeId;
+    private Identifier pendingDialogueTradeId;
     private String pendingDialogueTradeNodeId;
     private int pendingDialogueTradeResumeTicks;
     private int passiveUseTicks;
@@ -1207,7 +1207,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         if (DialogueSessionRegistry.tryResumeInterrupted(player, this)) {
             return;
         }
-        ResourceLocation dialogueId = getDialogueIdFor(player);
+        Identifier dialogueId = getDialogueIdFor(player);
         DialogueDefinition definition = DialogueRegistry.get(dialogueId);
         if (definition == null || definition.startNode() == null) {
             player.displayClientMessage(Component.literal("Ivy has nothing to say right now."), false);
@@ -1228,7 +1228,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         return target != null && target.isAlive() && !target.isRemoved();
     }
 
-    private ResourceLocation getDialogueIdFor(ServerPlayer player) {
+    private Identifier getDialogueIdFor(ServerPlayer player) {
         if (isTame() && isOwnedBy(player)) {
             return RECRUITED_GREETING_DIALOGUE;
         }
@@ -1251,7 +1251,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         return KNOWN_GREETING_DIALOGUE;
     }
 
-    private ResourceLocation pickRememberedGreeting(ResourceLocation rememberedGreeting) {
+    private Identifier pickRememberedGreeting(Identifier rememberedGreeting) {
         return random.nextBoolean() ? rememberedGreeting : KNOWN_GREETING_DIALOGUE;
     }
 
@@ -2201,7 +2201,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         if (stack.isEmpty() || !stack.isEdible()) {
             return false;
         }
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        Identifier id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         return id != null && id.getPath().contains("cooked");
     }
 
@@ -2420,7 +2420,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
                     }
                     if (knownTag.contains(REMEMBERED_DIALOGUE_RESUME_ID_TAG, Tag.TAG_STRING)
                             && knownTag.contains(REMEMBERED_DIALOGUE_RESUME_NODE_TAG, Tag.TAG_STRING)) {
-                        ResourceLocation dialogueId = ResourceLocation.tryParse(
+                        Identifier dialogueId = Identifier.tryParse(
                                 knownTag.getString(REMEMBERED_DIALOGUE_RESUME_ID_TAG));
                         String nodeId = knownTag.getString(REMEMBERED_DIALOGUE_RESUME_NODE_TAG);
                         if (dialogueId != null && !nodeId.isBlank()) {
@@ -2730,21 +2730,21 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         return rememberedDialogueResumePoints.get(player.getUUID());
     }
 
-    public void rememberDialogueResume(UUID playerUuid, ResourceLocation dialogueId, String nodeId) {
+    public void rememberDialogueResume(UUID playerUuid, Identifier dialogueId, String nodeId) {
         if (playerUuid == null || dialogueId == null || nodeId == null || nodeId.isBlank()) {
             return;
         }
         rememberedDialogueResumePoints.put(playerUuid, new DialogueResumePoint(dialogueId, nodeId));
     }
 
-    public void clearRememberedDialogueResume(UUID playerUuid, ResourceLocation dialogueId) {
+    public void clearRememberedDialogueResume(UUID playerUuid, Identifier dialogueId) {
         DialogueResumePoint resumePoint = rememberedDialogueResumePoints.get(playerUuid);
         if (resumePoint != null && resumePoint.dialogueId().equals(dialogueId)) {
             rememberedDialogueResumePoints.remove(playerUuid);
         }
     }
 
-    public record DialogueResumePoint(ResourceLocation dialogueId, String nodeId) {
+    public record DialogueResumePoint(Identifier dialogueId, String nodeId) {
     }
 
     private void openTradingFor(Player player) {
@@ -2753,7 +2753,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
         player.awardStat(Stats.TALKED_TO_VILLAGER);
     }
 
-    public void openDialogueTrade(ServerPlayer player, ResourceLocation dialogueId, String resumeNodeId) {
+    public void openDialogueTrade(ServerPlayer player, Identifier dialogueId, String resumeNodeId) {
         pendingDialogueTradePlayerUuid = player.getUUID();
         pendingDialogueTradeId = dialogueId;
         pendingDialogueTradeNodeId = resumeNodeId;
@@ -2821,7 +2821,7 @@ public class IvyTheDragonMerchant extends AbstractVillager implements GeoEntity,
             clearPendingDialogueTrade();
             return;
         }
-        ResourceLocation dialogueId = pendingDialogueTradeId;
+        Identifier dialogueId = pendingDialogueTradeId;
         String nodeId = pendingDialogueTradeNodeId;
         clearPendingDialogueTrade();
         DialogueSessionRegistry.resume(serverPlayer, this, dialogueId, nodeId);

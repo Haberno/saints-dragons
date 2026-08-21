@@ -6,7 +6,7 @@ import com.leon.saintsdragons.client.model.DragonModelPoseHelper.WeightedBoneCha
 import com.leon.saintsdragons.client.ui.DraconicCodexScreen;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
@@ -32,11 +32,11 @@ public class IgnivorusModel extends DragonGeoModel<Ignivorus> {
         super("ignivorus");
     }
 
-    private static final ResourceLocation CRIMSON_TEXTURE = SaintsDragonsCommon.rl("textures/entity/ignivorus/crimson_ignivorus.png");
-    private static final ResourceLocation CRIMSON_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/ignivorus/crimson_ignivorus_female.png");
+    private static final Identifier CRIMSON_TEXTURE = SaintsDragonsCommon.rl("textures/entity/ignivorus/crimson_ignivorus.png");
+    private static final Identifier CRIMSON_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/ignivorus/crimson_ignivorus_female.png");
 
     @Override
-    protected ResourceLocation getAdultTexture(Ignivorus entity) {
+    protected Identifier getAdultTexture(Ignivorus entity) {
         if (entity.hasCustomTextureVariant()) {
             return super.getAdultTexture(entity);
         }

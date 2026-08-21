@@ -1,20 +1,20 @@
 package com.leon.saintsdragons.platform;
 
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
 
 public interface NetworkHelper {
     <T> void registerServerbound(Class<T> type,
-                                 ResourceLocation id,
+                                 Identifier id,
                                  PacketEncoder<T> encoder,
                                  PacketDecoder<T> decoder,
                                  ServerboundHandler<T> handler);
 
     <T> void registerClientbound(Class<T> type,
-                                 ResourceLocation id,
+                                 Identifier id,
                                  PacketEncoder<T> encoder,
                                  PacketDecoder<T> decoder,
                                  ClientboundHandler<T> handler);

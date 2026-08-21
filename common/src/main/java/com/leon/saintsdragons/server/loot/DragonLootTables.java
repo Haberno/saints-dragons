@@ -2,7 +2,7 @@ package com.leon.saintsdragons.server.loot;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.player.Player;
@@ -15,29 +15,29 @@ import net.minecraft.world.level.storage.loot.parameters.LootContextParams;
 import java.util.List;
 
 public final class DragonLootTables {
-    public static final ResourceLocation ATROXIIA_FEMALE_DEATH = table("gameplay/dragon_drops/atroxiia_female_death");
-    public static final ResourceLocation CINDERVANE_FEMALE_DEATH = table("gameplay/dragon_drops/cindervane_female_death");
-    public static final ResourceLocation IGNIVORUS_FEMALE_DEATH = table("gameplay/dragon_drops/ignivorus_female_death");
-    public static final ResourceLocation RAEVYX_FEMALE_DEATH = table("gameplay/dragon_drops/raevyx_female_death");
-    public static final ResourceLocation STEGONAUT_FEMALE_DEATH = table("gameplay/dragon_drops/stegonaut_female_death");
-    public static final ResourceLocation VARASUCHUS_FEMALE_DEATH = table("gameplay/dragon_drops/varasuchus_female_death");
-    public static final ResourceLocation VOLITANS_FEMALE_DEATH = table("gameplay/dragon_drops/volitans_female_death");
+    public static final Identifier ATROXIIA_FEMALE_DEATH = table("gameplay/dragon_drops/atroxiia_female_death");
+    public static final Identifier CINDERVANE_FEMALE_DEATH = table("gameplay/dragon_drops/cindervane_female_death");
+    public static final Identifier IGNIVORUS_FEMALE_DEATH = table("gameplay/dragon_drops/ignivorus_female_death");
+    public static final Identifier RAEVYX_FEMALE_DEATH = table("gameplay/dragon_drops/raevyx_female_death");
+    public static final Identifier STEGONAUT_FEMALE_DEATH = table("gameplay/dragon_drops/stegonaut_female_death");
+    public static final Identifier VARASUCHUS_FEMALE_DEATH = table("gameplay/dragon_drops/varasuchus_female_death");
+    public static final Identifier VOLITANS_FEMALE_DEATH = table("gameplay/dragon_drops/volitans_female_death");
 
-    public static final ResourceLocation IGNIVORUS_HIT = table("gameplay/dragon_drops/ignivorus_hit");
-    public static final ResourceLocation VOLITANS_HIT = table("gameplay/dragon_drops/volitans_hit");
+    public static final Identifier IGNIVORUS_HIT = table("gameplay/dragon_drops/ignivorus_hit");
+    public static final Identifier VOLITANS_HIT = table("gameplay/dragon_drops/volitans_hit");
 
-    public static final ResourceLocation CINDERVANE_GROOMING = table("gameplay/grooming/cindervane");
-    public static final ResourceLocation ATROXIIA_GROOMING = table("gameplay/grooming/atroxiia");
-    public static final ResourceLocation IGNIVORUS_GROOMING = table("gameplay/grooming/ignivorus");
-    public static final ResourceLocation RAEVYX_GROOMING = table("gameplay/grooming/raevyx");
-    public static final ResourceLocation STEGONAUT_GROOMING = table("gameplay/grooming/stegonaut");
-    public static final ResourceLocation VARASUCHUS_GROOMING = table("gameplay/grooming/varasuchus");
-    public static final ResourceLocation VOLITANS_GROOMING = table("gameplay/grooming/volitans");
+    public static final Identifier CINDERVANE_GROOMING = table("gameplay/grooming/cindervane");
+    public static final Identifier ATROXIIA_GROOMING = table("gameplay/grooming/atroxiia");
+    public static final Identifier IGNIVORUS_GROOMING = table("gameplay/grooming/ignivorus");
+    public static final Identifier RAEVYX_GROOMING = table("gameplay/grooming/raevyx");
+    public static final Identifier STEGONAUT_GROOMING = table("gameplay/grooming/stegonaut");
+    public static final Identifier VARASUCHUS_GROOMING = table("gameplay/grooming/varasuchus");
+    public static final Identifier VOLITANS_GROOMING = table("gameplay/grooming/volitans");
 
     private DragonLootTables() {
     }
 
-    public static boolean dropEntityLoot(DragonEntity dragon, ResourceLocation tableId, DamageSource source) {
+    public static boolean dropEntityLoot(DragonEntity dragon, Identifier tableId, DamageSource source) {
         if (!(dragon.level() instanceof ServerLevel serverLevel)) {
             return false;
         }
@@ -63,7 +63,7 @@ public final class DragonLootTables {
         return !drops.isEmpty();
     }
 
-    public static void dropGroomingLoot(DragonEntity dragon, Player player, ResourceLocation tableId, int scaleCount) {
+    public static void dropGroomingLoot(DragonEntity dragon, Player player, Identifier tableId, int scaleCount) {
         if (!(dragon.level() instanceof ServerLevel serverLevel)) {
             return;
         }
@@ -83,7 +83,7 @@ public final class DragonLootTables {
         }
     }
 
-    private static ResourceLocation table(String path) {
+    private static Identifier table(String path) {
         return SaintsDragonsCommon.rl(path);
     }
 }

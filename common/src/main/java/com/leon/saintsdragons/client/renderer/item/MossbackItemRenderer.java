@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
@@ -20,8 +20,8 @@ import software.bernie.geckolib.renderer.GeoItemRenderer;
 import software.bernie.geckolib.model.GeoModel;
 
 public class MossbackItemRenderer extends GeoItemRenderer<MossbackItem> {
-    private static final ResourceLocation GUI_TEXTURE =
-            new ResourceLocation("saintsdragons", "item/mossback/mossback");
+    private static final Identifier GUI_TEXTURE =
+            new Identifier("saintsdragons", "item/mossback/mossback");
     private static final RenderType GUI_RENDER_TYPE = RenderType.entityCutoutNoCull(InventoryMenu.BLOCK_ATLAS);
     private final MossbackItemModel babyModel = new MossbackItemModel(true);
 

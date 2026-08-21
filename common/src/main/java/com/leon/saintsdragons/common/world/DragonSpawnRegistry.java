@@ -4,7 +4,7 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.config.SaintsDragonsConfig;
 import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.common.registry.ModTags;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
@@ -86,7 +86,7 @@ public final class DragonSpawnRegistry {
     }
 
     private static void add(List<DragonSpawnEntry> entries,
-                            ResourceLocation id,
+                            Identifier id,
                             Supplier<? extends EntityType<?>> entityType,
                             TagKey<Biome> biomeTag,
                             MobCategory category,
@@ -105,7 +105,7 @@ public final class DragonSpawnRegistry {
     }
 
     public record DragonSpawnEntry(
-            ResourceLocation id,
+            Identifier id,
             Supplier<? extends EntityType<?>> entityType,
             TagKey<Biome> biomeTag,
             MobCategory category,

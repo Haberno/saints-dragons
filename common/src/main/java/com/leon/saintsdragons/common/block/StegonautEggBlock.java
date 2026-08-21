@@ -7,7 +7,7 @@ import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -43,7 +43,7 @@ public class StegonautEggBlock extends AbstractTimedDragonEggBlock<StegonautEggB
     }
 
     @Override
-    protected ResourceLocation getDragonConfigId() {
+    protected Identifier getDragonConfigId() {
         return DragonAttributeConfigLoader.STEGONAUT_ID;
     }
 
@@ -73,7 +73,7 @@ public class StegonautEggBlock extends AbstractTimedDragonEggBlock<StegonautEggB
     }
 
     @Override
-    protected ResourceLocation getHatchAdvancementId() {
+    protected Identifier getHatchAdvancementId() {
         return SaintsDragonsCommon.rl("hatch_stegonaut");
     }
 }

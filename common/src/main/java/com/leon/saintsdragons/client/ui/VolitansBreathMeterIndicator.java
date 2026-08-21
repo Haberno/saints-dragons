@@ -3,13 +3,13 @@ package com.leon.saintsdragons.client.ui;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class VolitansBreathMeterIndicator {
-    private static final ResourceLocation WATER_GAUGE = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_water_gauge.png");
-    private static final ResourceLocation POISON_GAUGE = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_poison_gauge.png");
-    private static final ResourceLocation GAUGE_OVERLAY = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay.png");
-    private static final ResourceLocation GAUGE_OVERLAY_RED = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay_red.png");
+    private static final Identifier WATER_GAUGE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_water_gauge.png");
+    private static final Identifier POISON_GAUGE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_poison_gauge.png");
+    private static final Identifier GAUGE_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay.png");
+    private static final Identifier GAUGE_OVERLAY_RED = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/volitans/volitans_gauge_overlay_red.png");
 
     private static final int BAR_WIDTH = 182;
     private static final int BAR_HEIGHT = 30;
@@ -73,7 +73,7 @@ public class VolitansBreathMeterIndicator {
         int y = screenHeight - 45;
         int fillWidth = Math.max(0, Math.min(BAR_WIDTH, Math.round(BAR_WIDTH * smoothFill)));
 
-        ResourceLocation activeGauge = breathMode == 1 ? POISON_GAUGE : WATER_GAUGE;
+        Identifier activeGauge = breathMode == 1 ? POISON_GAUGE : WATER_GAUGE;
         if (fillWidth > 0) {
             guiGraphics.blit(activeGauge, x, y, 0, 0, fillWidth, BAR_HEIGHT, BAR_WIDTH, BAR_HEIGHT);
         }

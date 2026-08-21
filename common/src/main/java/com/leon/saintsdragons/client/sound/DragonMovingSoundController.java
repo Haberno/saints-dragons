@@ -5,7 +5,7 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.Entity;
 import org.slf4j.Logger;
@@ -40,17 +40,17 @@ public final class DragonMovingSoundController {
             return;
         }
 
-        ResourceLocation resourceLocation = ResourceLocation.tryParse(soundId);
-        if (resourceLocation == null) {
+        Identifier Identifier = Identifier.tryParse(soundId);
+        if (Identifier == null) {
             if (LOGGER.isDebugEnabled()) {
                 LOGGER.debug("Failed to parse sound ID for entity {}: {}", entityId, soundId);
             }
             return;
         }
-        SoundEvent sound = BuiltInRegistries.SOUND_EVENT.get(resourceLocation);
+        SoundEvent sound = BuiltInRegistries.SOUND_EVENT.get(Identifier);
         if (sound == null) {
             if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Sound event not found in registry for entity {}: {}", entityId, resourceLocation);
+                LOGGER.debug("Sound event not found in registry for entity {}: {}", entityId, Identifier);
             }
             return;
         }

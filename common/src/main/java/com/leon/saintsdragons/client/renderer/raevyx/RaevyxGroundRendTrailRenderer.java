@@ -15,7 +15,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.phys.Vec3;
@@ -31,8 +31,8 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
     private static final float SLASH_TICKS_PER_FRAME = 2.0F;
     private static final int STORM_FRAME_COUNT = 8;
     private static final float STORM_TICKS_PER_FRAME = 2.0F;
-    private static final ResourceLocation[] SLASH_TEXTURES = new ResourceLocation[SLASH_FRAME_COUNT];
-    private static final ResourceLocation[] STORM_TEXTURES = new ResourceLocation[STORM_FRAME_COUNT];
+    private static final Identifier[] SLASH_TEXTURES = new Identifier[SLASH_FRAME_COUNT];
+    private static final Identifier[] STORM_TEXTURES = new Identifier[STORM_FRAME_COUNT];
 
     static {
         for (int frame = 0; frame < SLASH_FRAME_COUNT; frame++) {
@@ -120,7 +120,7 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
 
     private void renderAnimatedTrail(LightningVisualEntity entity, float partialTick, PoseStack poseStack,
                                      MultiBufferSource bufferSource, Vec3 start, Vec3 end,
-                                     ResourceLocation[] textures, float ticksPerFrame, double halfWidth) {
+                                     Identifier[] textures, float ticksPerFrame, double halfWidth) {
         int frame = Mth.clamp(
                 (int)Math.floor((entity.tickCount + partialTick) / ticksPerFrame),
                 0,
@@ -297,7 +297,7 @@ public class RaevyxGroundRendTrailRenderer extends EntityRenderer<LightningVisua
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull LightningVisualEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull LightningVisualEntity entity) {
         if (entity.getVisualStyle() == LightningVisualEntity.VisualStyle.BLOOD_TEMPEST_SLASH) {
             return SLASH_TEXTURES[0];
         }

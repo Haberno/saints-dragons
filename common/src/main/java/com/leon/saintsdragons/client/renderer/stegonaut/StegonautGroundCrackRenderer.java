@@ -10,15 +10,15 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class StegonautGroundCrackRenderer extends EntityRenderer<GroundCrackEntity> {
-    private static final ResourceLocation STEGONAUT_TEXTURE = SaintsDragonsCommon.rl("textures/particle/ground_crack.png");
-    private static final ResourceLocation DRAGONLORD_FISSURE_TEXTURE = SaintsDragonsCommon.rl("textures/particle/ground_crack_fissure.png");
+    private static final Identifier STEGONAUT_TEXTURE = SaintsDragonsCommon.rl("textures/particle/ground_crack.png");
+    private static final Identifier DRAGONLORD_FISSURE_TEXTURE = SaintsDragonsCommon.rl("textures/particle/ground_crack_fissure.png");
 
     public StegonautGroundCrackRenderer(EntityRendererProvider.Context context) {
         super(context);
@@ -81,7 +81,7 @@ public class StegonautGroundCrackRenderer extends EntityRenderer<GroundCrackEnti
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull GroundCrackEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull GroundCrackEntity entity) {
         return entity.isDragonlordFissure() ? DRAGONLORD_FISSURE_TEXTURE : STEGONAUT_TEXTURE;
     }
 }

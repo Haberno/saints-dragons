@@ -30,13 +30,12 @@ dependencies {
     modCompileOnly "net.fabricmc.fabric-api:fabric-api:${rootProject.fabric_api_version}"
 
     // GeckoLib common
-    modImplementation "software.bernie.geckolib:geckolib-fabric-1.20.1:${rootProject.geckolib_version}"
-
+    modImplementation "software.bernie.geckolib:geckolib-fabric-${rootProject.minecraft_version}:${rootProject.geckolib_version}"
     // Optional JEI integration. The API is available to compile against but is never bundled.
     modCompileOnly "mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}"
 
     // Optional EMI integration. Architectury remaps the intermediary API for each target platform.
-    modCompileOnly "dev.emi:emi-xplat-intermediary:${rootProject.emi_version}:api"
+//    modCompileOnly "dev.emi:emi-xplat-intermediary:${rootProject.emi_version}:api"
 
     // JSR305 for @Nullable/@Nonnull annotations
     compileOnly "com.google.code.findbugs:jsr305:3.0.2"

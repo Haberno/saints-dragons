@@ -8,14 +8,14 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Inventory;
 import org.jetbrains.annotations.NotNull;
 
 import static com.leon.saintsdragons.common.block.crucible.DraconicCrucibleUiLayout.*;
 
 public class DraconicCrucibleScreen extends AbstractContainerScreen<DraconicCrucibleMenu> {
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/gui/draconic_crucible_gui.png");
 
     private CrucibleButton crucibleButton;

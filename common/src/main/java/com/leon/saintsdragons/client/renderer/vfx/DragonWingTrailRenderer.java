@@ -9,14 +9,14 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix3f;
 import org.joml.Vector3f;
 
 public final class DragonWingTrailRenderer {
-    private static final ResourceLocation TEXTURE = SaintsDragonsCommon.rl("textures/particle/trail.png");
+    private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/particle/trail.png");
     private static final RenderType RENDER_TYPE = RenderType.entityTranslucent(TEXTURE);
     private static final float WIDTH = 0.25F;
 

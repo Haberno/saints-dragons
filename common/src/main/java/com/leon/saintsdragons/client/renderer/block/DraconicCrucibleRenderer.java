@@ -14,13 +14,13 @@ import net.minecraft.client.renderer.blockentity.BlockEntityRenderer;
 import net.minecraft.client.renderer.blockentity.BlockEntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 
 public class DraconicCrucibleRenderer implements BlockEntityRenderer<DraconicCrucibleBlockEntity> {
-    private static final ResourceLocation INACTIVE_TEXTURE =
+    private static final Identifier INACTIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/block/draconic_crucible.png");
-    private static final ResourceLocation ACTIVE_TEXTURE =
+    private static final Identifier ACTIVE_TEXTURE =
             SaintsDragonsCommon.rl("textures/block/draconic_crucible_active.png");
     private final DraconicCrucibleEntity model;
 
@@ -48,7 +48,7 @@ public class DraconicCrucibleRenderer implements BlockEntityRenderer<DraconicCru
         poseStack.mulPose(Axis.YP.rotationDegrees(-facing.toYRot()));
         poseStack.scale(1.0F, -1.0F, -1.0F);
 
-        ResourceLocation texture = active ? ACTIVE_TEXTURE : INACTIVE_TEXTURE;
+        Identifier texture = active ? ACTIVE_TEXTURE : INACTIVE_TEXTURE;
         VertexConsumer consumer = buffer.getBuffer(RenderType.entityCutoutNoCull(texture));
         this.model.renderToBuffer(poseStack, consumer, packedLight, OverlayTexture.NO_OVERLAY,
                 1.0F, 1.0F, 1.0F, 1.0F);

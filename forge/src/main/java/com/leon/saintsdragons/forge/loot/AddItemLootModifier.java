@@ -5,7 +5,7 @@ import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfigLoader;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,21 +23,21 @@ public class AddItemLootModifier extends LootModifier {
             .and(ForgeRegistries.ITEMS.getCodec().fieldOf("item").forGetter(m -> m.item))
             .and(Codec.INT.fieldOf("count").forGetter(m -> m.count))
             .and(Codec.DOUBLE.optionalFieldOf("chance", 1.0D).forGetter(m -> m.chance))
-            .and(ResourceLocation.CODEC.optionalFieldOf("dragon_id").forGetter(m -> Optional.ofNullable(m.dragonId)))
+            .and(Identifier.CODEC.optionalFieldOf("dragon_id").forGetter(m -> Optional.ofNullable(m.dragonId)))
             .and(Codec.STRING.optionalFieldOf("config_key").forGetter(m -> Optional.ofNullable(m.configKey)))
             .apply(inst, AddItemLootModifier::new));
 
     private final Item item;
     private final int count;
     private final double chance;
-    private final ResourceLocation dragonId;
+    private final Identifier dragonId;
     private final String configKey;
 
     public AddItemLootModifier(LootItemCondition[] conditions,
                                Item item,
                                int count,
                                double chance,
-                               Optional<ResourceLocation> dragonId,
+                               Optional<Identifier> dragonId,
                                Optional<String> configKey) {
         super(conditions);
         this.item = item;

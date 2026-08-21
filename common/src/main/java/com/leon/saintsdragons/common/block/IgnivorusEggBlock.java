@@ -8,7 +8,7 @@ import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.ignivorus.Ignivorus;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.BlockGetter;
 import net.minecraft.world.level.Level;
@@ -52,7 +52,7 @@ public class IgnivorusEggBlock extends AbstractTimedDragonEggBlock<IgnivorusEggB
     }
 
     @Override
-    protected ResourceLocation getDragonConfigId() {
+    protected Identifier getDragonConfigId() {
         return DragonAttributeConfigLoader.IGNIVORUS_ID;
     }
 
@@ -82,7 +82,7 @@ public class IgnivorusEggBlock extends AbstractTimedDragonEggBlock<IgnivorusEggB
     }
 
     @Override
-    protected ResourceLocation getHatchAdvancementId() {
+    protected Identifier getHatchAdvancementId() {
         return SaintsDragonsCommon.rl("hatch_ignivorus");
     }
 }

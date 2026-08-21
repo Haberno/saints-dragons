@@ -3,7 +3,7 @@ package com.leon.saintsdragons.forge.data;
 import com.leon.saintsdragons.common.registry.ModItems;
 import com.leon.saintsdragons.server.loot.DragonLootTables;
 import net.minecraft.data.loot.LootTableSubProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.ItemLike;
 import net.minecraft.world.level.storage.loot.LootPool;
 import net.minecraft.world.level.storage.loot.LootTable;
@@ -31,7 +31,7 @@ public final class SaintsDragonGameplayLootProvider implements LootTableSubProvi
     }
 
     @Override
-    public void generate(BiConsumer<ResourceLocation, LootTable.Builder> output) {
+    public void generate(BiConsumer<Identifier, LootTable.Builder> output) {
         if (grooming) {
             generateGrooming(output);
             return;
@@ -39,7 +39,7 @@ public final class SaintsDragonGameplayLootProvider implements LootTableSubProvi
         generateEntityContext(output);
     }
 
-    private static void generateEntityContext(BiConsumer<ResourceLocation, LootTable.Builder> output) {
+    private static void generateEntityContext(BiConsumer<Identifier, LootTable.Builder> output) {
         output.accept(DragonLootTables.ATROXIIA_FEMALE_DEATH, chanceTable(ModItems.ATROXIIA_EGG.get(), 0.12F));
         output.accept(DragonLootTables.CINDERVANE_FEMALE_DEATH, chanceTable(ModItems.CINDERVANE_EGG.get(), 0.12F));
         output.accept(DragonLootTables.IGNIVORUS_FEMALE_DEATH, chanceTable(ModItems.IGNIVORUS_EGG.get(), 0.12F));
@@ -51,7 +51,7 @@ public final class SaintsDragonGameplayLootProvider implements LootTableSubProvi
         output.accept(DragonLootTables.VOLITANS_HIT, chanceTable(ModItems.VOLITANS_SPINE.get(), 0.30F));
     }
 
-    private static void generateGrooming(BiConsumer<ResourceLocation, LootTable.Builder> output) {
+    private static void generateGrooming(BiConsumer<Identifier, LootTable.Builder> output) {
         output.accept(DragonLootTables.ATROXIIA_GROOMING, countTable(ModItems.ATROXIIA_SCALE.get(), 1, 2));
         output.accept(DragonLootTables.CINDERVANE_GROOMING, countTable(ModItems.CINDERVANE_SCALE.get(), 1, 1));
         output.accept(DragonLootTables.IGNIVORUS_GROOMING, countTable(ModItems.IGNIVORUS_SCALE.get(), 1, 2));

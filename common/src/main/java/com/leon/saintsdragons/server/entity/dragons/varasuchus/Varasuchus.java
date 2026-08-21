@@ -50,7 +50,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -135,7 +135,7 @@ public class Varasuchus extends RideableGroundDragon implements SemiAquaticDrago
         }
     }
 
-    public static final ResourceLocation VOID_KISSED_VARIANT_ID = SaintsDragonsCommon.rl("void_kissed");
+    public static final Identifier VOID_KISSED_VARIANT_ID = SaintsDragonsCommon.rl("void_kissed");
 
     public static boolean shouldUseVoidKissedVariant(Level level) {
         return level != null && level.dimension() == Level.END;
@@ -147,12 +147,12 @@ public class Varasuchus extends RideableGroundDragon implements SemiAquaticDrago
     }
 
     @Override
-    protected ResourceLocation getDragonAttributesId() {
+    protected Identifier getDragonAttributesId() {
         return DragonAttributeConfigLoader.VARASUCHUS_ID;
     }
 
     @Override
-    protected ResourceLocation chooseSpawnTextureVariantId(@NotNull ServerLevelAccessor levelAccessor,
+    protected Identifier chooseSpawnTextureVariantId(@NotNull ServerLevelAccessor levelAccessor,
                                                           @NotNull DifficultyInstance difficulty,
                                                           @NotNull MobSpawnType reason,
                                                           @Nullable SpawnGroupData spawnData,

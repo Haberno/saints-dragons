@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
@@ -22,7 +22,7 @@ public class IgnivorusFlameRenderer extends EntityRenderer<IgnivorusFlameEntity>
     private static final float FLAME_RENDER_SCALE = 0.65F;
     private static final float SPAWN_START_SCALE_FACTOR = 0.18F;
     private static final float SPAWN_GROWTH_TICKS = 5.0F;
-    private static final ResourceLocation[] TEXTURES = new ResourceLocation[TOTAL_FRAMES];
+    private static final Identifier[] TEXTURES = new Identifier[TOTAL_FRAMES];
 
     static {
         for (int i = 0; i < TOTAL_FRAMES; i++) {
@@ -40,7 +40,7 @@ public class IgnivorusFlameRenderer extends EntityRenderer<IgnivorusFlameEntity>
         int age = entity.getAge();
         int frame = (age / 2) % TOTAL_FRAMES;
 
-        ResourceLocation texture = TEXTURES[frame];
+        Identifier texture = TEXTURES[frame];
         float baseScale = entity.getScale() * FLAME_RENDER_SCALE;
         float ageWithPartial = Math.max(0.0F, age + partialTicks);
         float spawnProgress = Mth.clamp(ageWithPartial / SPAWN_GROWTH_TICKS, 0.0F, 1.0F);
@@ -80,7 +80,7 @@ public class IgnivorusFlameRenderer extends EntityRenderer<IgnivorusFlameEntity>
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull IgnivorusFlameEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull IgnivorusFlameEntity entity) {
         return TEXTURES[0];
     }
 }

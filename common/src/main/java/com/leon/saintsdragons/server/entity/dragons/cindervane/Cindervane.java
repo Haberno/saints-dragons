@@ -70,7 +70,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
@@ -119,7 +119,7 @@ public class Cindervane extends RideableFlyingDragon implements ShakesScreen, Pa
         DragonSaddleCarrier, DragonAirCombatSettingsProvider, DrinkingDragon {
     private static final CindervaneBrain DRAGON_BRAIN = new CindervaneBrain();
     @Override
-    protected ResourceLocation getDragonAttributesId() {
+    protected Identifier getDragonAttributesId() {
         return DragonAttributeConfigLoader.CINDERVANE_ID;
     }
 

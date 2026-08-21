@@ -8,7 +8,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.Item;
@@ -32,40 +32,40 @@ public class CodexEcologyPanel {
     private static final int SCROLLBAR_WIDTH = 4;
     private static final int SCROLLBAR_GAP = 25;
     private final List<CodexPageLink> ecologyPageLinks = new ArrayList<>();
-    private static final List<ResourceLocation> IGNIVORUS_DROPS = List.of(
-            new ResourceLocation("saintsdragons", "ignivorus_scale"),
-            new ResourceLocation("saintsdragons", "ignivorus_tooth"),
-            new ResourceLocation("saintsdragons", "ignivorus_heart"),
-            new ResourceLocation("saintsdragons", "ignivorus_egg")
+    private static final List<Identifier> IGNIVORUS_DROPS = List.of(
+            new Identifier("saintsdragons", "ignivorus_scale"),
+            new Identifier("saintsdragons", "ignivorus_tooth"),
+            new Identifier("saintsdragons", "ignivorus_heart"),
+            new Identifier("saintsdragons", "ignivorus_egg")
     );
-    private static final List<ResourceLocation> ATROXIIA_DROPS = List.of(
-            new ResourceLocation("saintsdragons", "atroxiia_scale"),
-            new ResourceLocation("saintsdragons", "atroxiia_egg")
+    private static final List<Identifier> ATROXIIA_DROPS = List.of(
+            new Identifier("saintsdragons", "atroxiia_scale"),
+            new Identifier("saintsdragons", "atroxiia_egg")
     );
-    private static final List<ResourceLocation> RAEVYX_DROPS = List.of(
-            new ResourceLocation("saintsdragons", "raevyx_scale"),
-            new ResourceLocation("saintsdragons", "raevyx_egg")
+    private static final List<Identifier> RAEVYX_DROPS = List.of(
+            new Identifier("saintsdragons", "raevyx_scale"),
+            new Identifier("saintsdragons", "raevyx_egg")
     );
-    private static final List<ResourceLocation> VARASUCHUS_DROPS = List.of(
-            new ResourceLocation("saintsdragons", "varasuchus_scale"),
-            new ResourceLocation("saintsdragons", "varasuchus_egg")
+    private static final List<Identifier> VARASUCHUS_DROPS = List.of(
+            new Identifier("saintsdragons", "varasuchus_scale"),
+            new Identifier("saintsdragons", "varasuchus_egg")
     );
-    private static final List<ResourceLocation> CINDERVANE_DROPS = List.of(
-            new ResourceLocation("saintsdragons", "cindervane_scale"),
-            new ResourceLocation("saintsdragons", "cindervane_egg")
+    private static final List<Identifier> CINDERVANE_DROPS = List.of(
+            new Identifier("saintsdragons", "cindervane_scale"),
+            new Identifier("saintsdragons", "cindervane_egg")
     );
-    private static final List<ResourceLocation> STEGONAUT_DROPS = List.of(
-            new ResourceLocation("saintsdragons", "stegonaut_scale"),
-            new ResourceLocation("saintsdragons", "stegonaut_egg")
+    private static final List<Identifier> STEGONAUT_DROPS = List.of(
+            new Identifier("saintsdragons", "stegonaut_scale"),
+            new Identifier("saintsdragons", "stegonaut_egg")
     );
-    private static final List<ResourceLocation> VOLITANS_DROPS = List.of(
-            new ResourceLocation("saintsdragons", "volitans_scale"),
-            new ResourceLocation("saintsdragons", "volitans_spine"),
-            new ResourceLocation("saintsdragons", "volitans_egg"),
-            new ResourceLocation("minecraft", "salmon"),
-            new ResourceLocation("minecraft", "cod"),
-            new ResourceLocation("minecraft", "tropical_fish"),
-            new ResourceLocation("minecraft", "pufferfish")
+    private static final List<Identifier> VOLITANS_DROPS = List.of(
+            new Identifier("saintsdragons", "volitans_scale"),
+            new Identifier("saintsdragons", "volitans_spine"),
+            new Identifier("saintsdragons", "volitans_egg"),
+            new Identifier("minecraft", "salmon"),
+            new Identifier("minecraft", "cod"),
+            new Identifier("minecraft", "tropical_fish"),
+            new Identifier("minecraft", "pufferfish")
     );
     private Button ecologyPrevPageButton;
     private Button ecologyNextPageButton;
@@ -199,7 +199,7 @@ public class CodexEcologyPanel {
         }
 
         TagKey<Item> favoriteFoods = getFavoriteFoods(dragonType);
-        List<ResourceLocation> drops = getDrops(dragonType);
+        List<Identifier> drops = getDrops(dragonType);
         int nextPage = overviewPages + 1;
         if (favoriteFoods != null && ecologyPage == nextPage) {
             drawPageHeader(guiGraphics, font, contentX, startY,
@@ -264,7 +264,7 @@ public class CodexEcologyPanel {
     }
 
     private String readCodexText(String path, String lang) {
-        ResourceLocation resource = new ResourceLocation("saintsdragons", "codex/" + lang + "/" + path);
+        Identifier resource = new Identifier("saintsdragons", "codex/" + lang + "/" + path);
         try (BufferedReader reader = Minecraft.getInstance().getResourceManager().openAsReader(resource)) {
             StringBuilder text = new StringBuilder();
             String line;
@@ -296,7 +296,7 @@ public class CodexEcologyPanel {
     }
 
     private void drawDrops(GuiGraphics guiGraphics, Font font, int contentX, int startY,
-                           List<ResourceLocation> drops) {
+                           List<Identifier> drops) {
         int itemX = contentX + 2;
         int itemY = startY + 10;
         int rowGap = 18;
@@ -304,7 +304,7 @@ public class CodexEcologyPanel {
         net.minecraft.core.Registry<net.minecraft.world.item.Item> registry =
                 net.minecraft.core.registries.BuiltInRegistries.ITEM;
 
-        for (ResourceLocation id : drops) {
+        for (Identifier id : drops) {
             net.minecraft.world.item.Item item = registry.get(id);
             if (item == net.minecraft.world.item.Items.AIR) {
                 itemY += rowGap;
@@ -372,7 +372,7 @@ public class CodexEcologyPanel {
         };
     }
 
-    private List<ResourceLocation> getDrops(String dragonType) {
+    private List<Identifier> getDrops(String dragonType) {
         return switch (dragonType) {
             case "atroxiia" -> ATROXIIA_DROPS;
             case "ignivorus" -> IGNIVORUS_DROPS;

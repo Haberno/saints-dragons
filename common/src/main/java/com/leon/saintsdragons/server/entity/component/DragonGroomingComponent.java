@@ -13,7 +13,7 @@ import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import com.leon.saintsdragons.server.data.DragonCodexSavedData;
 import com.leon.saintsdragons.server.loot.DragonLootTables;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvents;
@@ -64,7 +64,7 @@ public final class DragonGroomingComponent {
 
         boolean shedScales = false;
         if (isBrushingAvailable()) {
-            ResourceLocation groomingLoot = getGroomingLoot(dragon);
+            Identifier groomingLoot = getGroomingLoot(dragon);
             if (groomingLoot != null) {
                 int minimum = goldenBrush ? GOLDEN_BRUSH_MIN_SCALES : NORMAL_BRUSH_MIN_SCALES;
                 int maximum = goldenBrush ? GOLDEN_BRUSH_MAX_SCALES : NORMAL_BRUSH_MAX_SCALES;
@@ -198,7 +198,7 @@ public final class DragonGroomingComponent {
         pluckedThisCycle = scaleRegrowthTicks > 0 && tag.getBoolean("PluckedThisCycle");
     }
 
-    private static ResourceLocation getGroomingLoot(DragonEntity dragon) {
+    private static Identifier getGroomingLoot(DragonEntity dragon) {
         if (dragon instanceof Atroxiia) {
             return DragonLootTables.ATROXIIA_GROOMING;
         }

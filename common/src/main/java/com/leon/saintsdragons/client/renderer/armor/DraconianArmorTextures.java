@@ -2,18 +2,18 @@ package com.leon.saintsdragons.client.renderer.armor;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import net.minecraft.Util;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class DraconianArmorTextures {
     private static final int OUTER_FRAME_COUNT = 4;
     private static final long FRAME_TIME_MILLIS = 150L;
-    private static final ResourceLocation INNER =
+    private static final Identifier INNER =
             SaintsDragonsCommon.rl("textures/armor/draconian_armor_layer_2.png");
 
     private DraconianArmorTextures() {
     }
 
-    public static ResourceLocation texture(boolean innerLayer) {
+    public static Identifier texture(boolean innerLayer) {
         if (innerLayer) {
             return INNER;
         }

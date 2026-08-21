@@ -5,7 +5,7 @@ import com.leon.saintsdragons.common.registry.ModItems;
 import com.leon.saintsdragons.common.registry.ModRecipes;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public record DraconicCrucibleSmeltingRecipe(
-        ResourceLocation id,
+        Identifier id,
         Ingredient ingredient,
         ItemStack result,
         int requiredHeatLevel,
@@ -47,7 +47,7 @@ public record DraconicCrucibleSmeltingRecipe(
     }
 
     @Override
-    public @NotNull ResourceLocation getId() {
+    public @NotNull Identifier getId() {
         return this.id;
     }
 
@@ -68,7 +68,7 @@ public record DraconicCrucibleSmeltingRecipe(
 
     public static final class Serializer implements RecipeSerializer<DraconicCrucibleSmeltingRecipe> {
         @Override
-        public @NotNull DraconicCrucibleSmeltingRecipe fromJson(@NotNull ResourceLocation id,
+        public @NotNull DraconicCrucibleSmeltingRecipe fromJson(@NotNull Identifier id,
                                                                  @NotNull JsonObject json) {
             Ingredient ingredient = Ingredient.fromJson(GsonHelper.getNonNull(json, "ingredient"));
             ItemStack result = ShapedRecipe.itemStackFromJson(GsonHelper.getAsJsonObject(json, "result"));
@@ -80,7 +80,7 @@ public record DraconicCrucibleSmeltingRecipe(
         }
 
         @Override
-        public @Nullable DraconicCrucibleSmeltingRecipe fromNetwork(@NotNull ResourceLocation id,
+        public @Nullable DraconicCrucibleSmeltingRecipe fromNetwork(@NotNull Identifier id,
                                                                     @NotNull FriendlyByteBuf buffer) {
             Ingredient ingredient = Ingredient.fromNetwork(buffer);
             ItemStack result = buffer.readItem();

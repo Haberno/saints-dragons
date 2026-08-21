@@ -7,7 +7,7 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.base.DragonGender;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -231,7 +231,7 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
     }
 
     protected void awardHatchAdvancement(ServerLevel level, BlockPos pos, @Nullable E eggEntity) {
-        ResourceLocation advancementId = getHatchAdvancementId();
+        Identifier advancementId = getHatchAdvancementId();
         if (advancementId == null) {
             return;
         }
@@ -264,7 +264,7 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
     }
 
     @Nullable
-    protected ResourceLocation getHatchAdvancementId() {
+    protected Identifier getHatchAdvancementId() {
         return null;
     }
 
@@ -295,7 +295,7 @@ public abstract class AbstractTimedDragonEggBlock<E extends AbstractDragonEggBlo
         return Math.min(MAX_HATCH_LEVEL, (int) Math.floor(progress * (MAX_HATCH_LEVEL + 1)));
     }
 
-    protected abstract ResourceLocation getDragonConfigId();
+    protected abstract Identifier getDragonConfigId();
 
     protected abstract int getDefaultNormalHatchTicks();
 

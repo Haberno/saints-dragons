@@ -7,7 +7,7 @@ import com.leon.saintsdragons.common.registry.ModEntities;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.atroxiia.Atroxiia;
 import net.minecraft.core.BlockPos;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -42,7 +42,7 @@ public class AtroxiiaEggBlock extends AbstractTimedDragonEggBlock<AtroxiiaEggBlo
     }
 
     @Override
-    protected ResourceLocation getDragonConfigId() {
+    protected Identifier getDragonConfigId() {
         return DragonAttributeConfigLoader.ATROXIIA_ID;
     }
 
@@ -72,7 +72,7 @@ public class AtroxiiaEggBlock extends AbstractTimedDragonEggBlock<AtroxiiaEggBlo
     }
 
     @Override
-    protected ResourceLocation getHatchAdvancementId() {
+    protected Identifier getHatchAdvancementId() {
         return SaintsDragonsCommon.rl("hatch_atroxiia");
     }
 }

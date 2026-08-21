@@ -1,7 +1,7 @@
 package com.leon.saintsdragons.common.registry;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.biome.Biome;
@@ -51,7 +51,7 @@ public final class ConventionalTags {
         }
     }
 
-    private static ResourceLocation id(String path) {
-        return new ResourceLocation(COMMON_NAMESPACE, path);
+    private static Identifier id(String path) {
+        return new Identifier(COMMON_NAMESPACE, path);
     }
 }

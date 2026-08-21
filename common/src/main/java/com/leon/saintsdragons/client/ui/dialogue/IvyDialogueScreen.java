@@ -18,7 +18,7 @@ import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
@@ -31,7 +31,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 @Environment(EnvType.CLIENT)
 public class IvyDialogueScreen extends Screen {
-    private static final ResourceLocation TEXTURE = SaintsDragonsCommon.rl("textures/gui/dialogue/dialogue_box.png");
+    private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/gui/dialogue/dialogue_box.png");
     private static final int TEXTURE_SIZE = 256;
     private static final int BOX_U = 0;
     private static final int BOX_V = 80;

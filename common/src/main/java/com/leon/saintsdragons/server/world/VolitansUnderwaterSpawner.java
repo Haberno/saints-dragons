@@ -7,7 +7,7 @@ import com.leon.saintsdragons.common.world.DragonBiomeMatcher;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.MobSpawnType;
@@ -29,14 +29,14 @@ public final class VolitansUnderwaterSpawner {
     private static final int NEARBY_SEARCH_RADIUS = 96;
     private static final int MIN_WATER_COLUMN_HEIGHT = 3;
 
-    private static final Map<ResourceLocation, Integer> tickCounters = new HashMap<>();
-    private static final Map<ResourceLocation, Set<Long>> activeClusters = new HashMap<>();
+    private static final Map<Identifier, Integer> tickCounters = new HashMap<>();
+    private static final Map<Identifier, Set<Long>> activeClusters = new HashMap<>();
 
     private VolitansUnderwaterSpawner() {
     }
 
     public static void tick(ServerLevel level) {
-        ResourceLocation dimensionId = level.dimension().location();
+        Identifier dimensionId = level.dimension().location();
         int counter = tickCounters.getOrDefault(dimensionId, 0) + 1;
         tickCounters.put(dimensionId, counter);
         if (counter < CHECK_INTERVAL) {

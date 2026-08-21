@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -17,7 +17,7 @@ import org.joml.Vector3f;
 
 public class ImpactRingRenderer extends EntityRenderer<ImpactRingEntity> {
     private static final int TOTAL_FRAMES = 4;
-    private static final ResourceLocation[] TEXTURES = new ResourceLocation[TOTAL_FRAMES];
+    private static final Identifier[] TEXTURES = new Identifier[TOTAL_FRAMES];
 
     static {
         for (int i = 0; i < TOTAL_FRAMES; i++) {
@@ -88,7 +88,7 @@ public class ImpactRingRenderer extends EntityRenderer<ImpactRingEntity> {
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull ImpactRingEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull ImpactRingEntity entity) {
         return TEXTURES[0];
     }
 }

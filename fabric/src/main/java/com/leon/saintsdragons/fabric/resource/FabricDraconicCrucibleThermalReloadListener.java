@@ -3,7 +3,7 @@ package com.leon.saintsdragons.fabric.resource;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.block.crucible.DraconicCrucibleThermalReloadListener;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -13,12 +13,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public final class FabricDraconicCrucibleThermalReloadListener implements IdentifiableResourceReloadListener {
-    private static final ResourceLocation ID = SaintsDragonsCommon.rl("draconic_crucible_thermal");
+    private static final Identifier ID = SaintsDragonsCommon.rl("draconic_crucible_thermal");
     private final DraconicCrucibleThermalReloadListener delegate =
             DraconicCrucibleThermalReloadListener.getInstance();
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return ID;
     }
 

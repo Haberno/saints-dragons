@@ -6,7 +6,7 @@ import com.leon.saintsdragons.client.model.DragonModelPoseHelper.WeightedBoneCha
 import com.leon.saintsdragons.client.ui.DraconicCodexScreen;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.cindervane.Cindervane;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
@@ -24,10 +24,10 @@ public class CindervaneModel extends DragonGeoModel<Cindervane> {
             0.25f, 0.50f, 0.75f, 0.80f, 0.95f
     );
 
-    private static final ResourceLocation ALBINO_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_albino.png");
-    private static final ResourceLocation ALBINO_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_albino_female.png");
-    private static final ResourceLocation PIEBALD_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_piebald.png");
-    private static final ResourceLocation PIEBALD_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_piebald_female.png");
+    private static final Identifier ALBINO_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_albino.png");
+    private static final Identifier ALBINO_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_albino_female.png");
+    private static final Identifier PIEBALD_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_piebald.png");
+    private static final Identifier PIEBALD_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/cindervane/cindervane_piebald_female.png");
 
     public CindervaneModel() {
         super("cindervane");
@@ -62,7 +62,7 @@ public class CindervaneModel extends DragonGeoModel<Cindervane> {
     }
 
     @Override
-    protected ResourceLocation getAdultTexture(Cindervane entity) {
+    protected Identifier getAdultTexture(Cindervane entity) {
         if (entity.isPiebaldVariant()) {
             return entity.isFemale() ? PIEBALD_FEMALE_TEXTURE : PIEBALD_TEXTURE;
         }

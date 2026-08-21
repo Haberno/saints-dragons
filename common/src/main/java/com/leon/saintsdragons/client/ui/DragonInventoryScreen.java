@@ -7,7 +7,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,7 +31,7 @@ public class DragonInventoryScreen extends AbstractContainerScreen<DragonInvento
     private static final int PREVIEW_SCALE = 10;
     private static final int PREVIEW_MOUSE_Y_OFFSET = 24;
 
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/gui/dragon_inventory_gui.png");
     @Nullable
     private final LivingEntity dragon;

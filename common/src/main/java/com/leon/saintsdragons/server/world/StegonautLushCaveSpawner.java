@@ -7,7 +7,7 @@ import com.leon.saintsdragons.common.world.DragonBiomeMatcher;
 import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.MobSpawnType;
@@ -30,14 +30,14 @@ public final class StegonautLushCaveSpawner {
     private static final int CLUSTER_SIZE = 128;
     private static final int NEARBY_SEARCH_RADIUS = 96;
 
-    private static final Map<ResourceLocation, Integer> tickCounters = new HashMap<>();
-    private static final Map<ResourceLocation, Set<Long>> activeClusters = new HashMap<>();
+    private static final Map<Identifier, Integer> tickCounters = new HashMap<>();
+    private static final Map<Identifier, Set<Long>> activeClusters = new HashMap<>();
 
     private StegonautLushCaveSpawner() {
     }
 
     public static void tick(ServerLevel level) {
-        ResourceLocation dimensionId = level.dimension().location();
+        Identifier dimensionId = level.dimension().location();
         int counter = tickCounters.getOrDefault(dimensionId, 0) + 1;
         tickCounters.put(dimensionId, counter);
         if (counter < CHECK_INTERVAL) {

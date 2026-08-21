@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.npc.AbstractVillager;
@@ -41,7 +41,7 @@ public final class IvyTradeRegistry {
         return revision;
     }
 
-    static List<OfferSource> parseOfferSources(ResourceLocation fileId, JsonObject root) {
+    static List<OfferSource> parseOfferSources(Identifier fileId, JsonObject root) {
         List<OfferSource> result = new ArrayList<>();
         if (root.has("trades")) {
             JsonArray trades = GsonHelper.getAsJsonArray(root, "trades");
@@ -63,7 +63,7 @@ public final class IvyTradeRegistry {
         return result;
     }
 
-    private static TradePool parsePool(ResourceLocation fileId, JsonObject pool) {
+    private static TradePool parsePool(Identifier fileId, JsonObject pool) {
         int rolls = GsonHelper.getAsInt(pool, "rolls", 1);
         if (rolls < 1) {
             throw new IllegalArgumentException(fileId + " has a trade pool with fewer than one roll");
@@ -91,7 +91,7 @@ public final class IvyTradeRegistry {
         return new TradePool(rolls, entries);
     }
 
-    private static VillagerTrades.ItemListing parseTrade(ResourceLocation fileId, JsonObject trade) {
+    private static VillagerTrades.ItemListing parseTrade(Identifier fileId, JsonObject trade) {
         StackFactory costA = parseStack(GsonHelper.getAsJsonObject(trade, "cost_a"), fileId);
         StackFactory costB = trade.has("cost_b")
                 ? parseStack(GsonHelper.getAsJsonObject(trade, "cost_b"), fileId)
@@ -117,7 +117,7 @@ public final class IvyTradeRegistry {
         };
     }
 
-    private static ResultPool parseResultPool(JsonArray array, ResourceLocation fileId) {
+    private static ResultPool parseResultPool(JsonArray array, Identifier fileId) {
         List<WeightedResult> entries = new ArrayList<>();
         int totalWeight = 0;
         for (int i = 0; i < array.size(); i++) {
@@ -135,8 +135,8 @@ public final class IvyTradeRegistry {
         return new ResultPool(entries, totalWeight);
     }
 
-    private static StackFactory parseStack(JsonObject object, ResourceLocation fileId) {
-        ResourceLocation itemId = new ResourceLocation(GsonHelper.getAsString(object, "item"));
+    private static StackFactory parseStack(JsonObject object, Identifier fileId) {
+        Identifier itemId = new Identifier(GsonHelper.getAsString(object, "item"));
         Optional<Item> item = BuiltInRegistries.ITEM.getOptional(itemId);
         if (item.isEmpty()) {
             throw new IllegalArgumentException("Unknown item " + itemId + " in " + fileId);
@@ -169,7 +169,7 @@ public final class IvyTradeRegistry {
         return new CountRange(count, count);
     }
 
-    private static List<EnchantmentEntry> parseEnchantments(JsonObject object, ResourceLocation fileId) {
+    private static List<EnchantmentEntry> parseEnchantments(JsonObject object, Identifier fileId) {
         if (!object.has("enchantments")) {
             return List.of();
         }
@@ -177,7 +177,7 @@ public final class IvyTradeRegistry {
         JsonArray array = GsonHelper.getAsJsonArray(object, "enchantments");
         for (JsonElement element : array) {
             JsonObject enchantmentJson = GsonHelper.convertToJsonObject(element, fileId + " enchantment");
-            ResourceLocation id = new ResourceLocation(GsonHelper.getAsString(enchantmentJson, "id"));
+            Identifier id = new Identifier(GsonHelper.getAsString(enchantmentJson, "id"));
             Enchantment enchantment = BuiltInRegistries.ENCHANTMENT.getOptional(id)
                     .orElseThrow(() -> new IllegalArgumentException("Unknown enchantment " + id + " in " + fileId));
             int level = GsonHelper.getAsInt(enchantmentJson, "level", 1);

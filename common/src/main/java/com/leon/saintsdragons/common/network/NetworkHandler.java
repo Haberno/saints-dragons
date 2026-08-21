@@ -3,7 +3,7 @@ package com.leon.saintsdragons.common.network;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.platform.NetworkHelper;
 import com.leon.saintsdragons.platform.Services;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -15,7 +15,7 @@ public final class NetworkHandler {
     private NetworkHandler() {
     }
 
-    private static ResourceLocation id(String path) {
+    private static Identifier id(String path) {
         return SaintsDragonsCommon.rl(path);
     }
 

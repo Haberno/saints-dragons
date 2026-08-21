@@ -13,7 +13,7 @@ import mezz.jei.api.recipe.RecipeType;
 import mezz.jei.api.recipe.category.IRecipeCategory;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.crafting.Ingredient;
 
 import java.util.Locale;
@@ -21,7 +21,7 @@ import java.util.Locale;
 import static com.leon.saintsdragons.common.block.crucible.DraconicCrucibleUiLayout.*;
 
 abstract class DraconicCrucibleJeiCategory<T> implements IRecipeCategory<T> {
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/gui/draconic_crucible_jei.png");
     private final RecipeType<T> recipeType;
     private final Component title;

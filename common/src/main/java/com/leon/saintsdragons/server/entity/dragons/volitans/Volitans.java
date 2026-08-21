@@ -55,7 +55,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.FluidTags;
@@ -106,7 +106,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
     }
 
     @Override
-    protected ResourceLocation getDragonAttributesId() {
+    protected Identifier getDragonAttributesId() {
         return DragonAttributeConfigLoader.VOLITANS_ID;
     }
 
@@ -2284,7 +2284,7 @@ public class Volitans extends RideableFlyingDragon implements SemiAquaticDragon,
 
     private Vec3 riderGroundBurstSteeringDirection() {
         if (getControllingPassenger() instanceof Player) {
-            return DragonMotionMath.horizontalRelative(
+            return DragonMotionMath.horizontalRelativeMovement(
                     this.getYRot(),
                     this.entityData.get(DATA_RIDER_NUDGE_STEER_OFFSET)
             );

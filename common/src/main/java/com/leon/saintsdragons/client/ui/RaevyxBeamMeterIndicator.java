@@ -3,14 +3,14 @@ package com.leon.saintsdragons.client.ui;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class RaevyxBeamMeterIndicator {
-    private static final ResourceLocation BEAM_BASE = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_base.png");
-    private static final ResourceLocation BEAM_OVERLAY = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay.png");
-    private static final ResourceLocation BEAM_FLASH_RED = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_red.png");
-    private static final ResourceLocation BEAM_FLASH_WHITE = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_white.png");
-    private static final ResourceLocation BEAM_ICON = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/red_lightning.png");
+    private static final Identifier BEAM_BASE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_base.png");
+    private static final Identifier BEAM_OVERLAY = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay.png");
+    private static final Identifier BEAM_FLASH_RED = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_red.png");
+    private static final Identifier BEAM_FLASH_WHITE = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/raevyx_beam_overlay_flashes_white.png");
+    private static final Identifier BEAM_ICON = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/raevyx/red_lightning.png");
     private static final int BAR_WIDTH = 182;
     private static final int BAR_HEIGHT = 30;
     private static final int ICON_SIZE = 16;

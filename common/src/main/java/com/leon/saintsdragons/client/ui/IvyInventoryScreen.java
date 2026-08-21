@@ -11,7 +11,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffectUtil;
@@ -29,7 +29,7 @@ import java.util.List;
 import java.util.Optional;
 
 public class IvyInventoryScreen extends AbstractContainerScreen<IvyInventoryMenu> {
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/gui/ivy/ivy_inventory.png");
     private static final int TEX_W = 256;
     private static final int TEX_H = 256;

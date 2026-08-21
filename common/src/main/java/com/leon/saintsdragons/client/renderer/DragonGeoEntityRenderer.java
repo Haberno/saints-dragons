@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 import org.jetbrains.annotations.NotNull;
@@ -69,19 +69,10 @@ public abstract class DragonGeoEntityRenderer<T extends RideableDragonBase> exte
     }
 
     @Override
-    public void preRender(PoseStack poseStack,
-                          T entity,
-                          BakedGeoModel model,
-                          MultiBufferSource bufferSource,
-                          VertexConsumer buffer,
-                          boolean isReRender,
-                          float partialTick,
-                          int packedLight,
-                          int packedOverlay,
-                          float red,
-                          float green,
-                          float blue,
-                          float alpha) {
+    public void preRender(PoseStack poseStack, T entity, BakedGeoModel model,
+                          MultiBufferSource bufferSource, VertexConsumer buffer, boolean isReRender,
+                          float partialTick, int packedLight, int packedOverlay,
+                          float red, float green, float blue, float alpha) {
         this.lastBakedModel = model;
         enableTrackingForBones(model);
 
@@ -124,7 +115,7 @@ public abstract class DragonGeoEntityRenderer<T extends RideableDragonBase> exte
     }
 
     @Override
-    public RenderType getRenderType(T animatable, ResourceLocation texture,
+    public RenderType getRenderType(T animatable, Identifier texture,
                                     @Nullable MultiBufferSource bufferSource, float partialTick) {
         return RenderType.entityCutoutNoCull(texture);
     }
@@ -142,12 +133,6 @@ public abstract class DragonGeoEntityRenderer<T extends RideableDragonBase> exte
         }
 
         this.renderedModelThisPass = true;
-
-        // GeckoLib restores the pose stack before returning from its recursive call. Reapply the
-        // same transform stage it uses for tracked bone matrices so the rider origin remains at
-        // the actual .geo.json pivot, including animation-authored position, rotation, and scale.
-        // Deliberately do not translate away from the pivot: that would move the origin back into
-        // parent space before rendering this bone's cubes and children.
         poseStack.pushPose();
         try {
             RenderUtils.translateMatrixToBone(poseStack, bone);

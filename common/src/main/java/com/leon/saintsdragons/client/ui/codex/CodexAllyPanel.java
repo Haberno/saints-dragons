@@ -7,20 +7,20 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.ImageButton;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 import java.util.function.Consumer;
 
 public class CodexAllyPanel {
-    private final ResourceLocation editBoxTexture;
-    private final ResourceLocation addIcon;
-    private final ResourceLocation removeIcon;
+    private final Identifier editBoxTexture;
+    private final Identifier addIcon;
+    private final Identifier removeIcon;
     private CustomEditBox allyInput;
     private ImageButton addAllyButton;
     private ImageButton removeAllyButton;
 
-    public CodexAllyPanel(ResourceLocation editBoxTexture, ResourceLocation addIcon, ResourceLocation removeIcon) {
+    public CodexAllyPanel(Identifier editBoxTexture, Identifier addIcon, Identifier removeIcon) {
         this.editBoxTexture = editBoxTexture;
         this.addIcon = addIcon;
         this.removeIcon = removeIcon;

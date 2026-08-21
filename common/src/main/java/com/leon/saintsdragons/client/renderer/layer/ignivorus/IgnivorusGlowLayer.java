@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -19,11 +19,11 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
  * or charging a fireball. Mirrors the Raevyx beam glow behavior.
  */
 public class IgnivorusGlowLayer extends GeoRenderLayer<Ignivorus> {
-    private static final ResourceLocation GLOW_TEXTURE =
+    private static final Identifier GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/ignivorus/ignivorus_glow.png");
-    private static final ResourceLocation FEMALE_GLOW_TEXTURE =
+    private static final Identifier FEMALE_GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/ignivorus/ignivorus_glow_female.png");
-    private static final ResourceLocation CRIMSON_GLOW_TEXTURE =
+    private static final Identifier CRIMSON_GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/ignivorus/crimson_ignivorus_glow.png");
 
     public IgnivorusGlowLayer(GeoRenderer<Ignivorus> renderer) {
@@ -79,7 +79,7 @@ public class IgnivorusGlowLayer extends GeoRenderLayer<Ignivorus> {
             return;
         }
 
-        ResourceLocation glowTexture = getGlowTexture(animatable);
+        Identifier glowTexture = getGlowTexture(animatable);
         RenderType glowType = RenderType.entityTranslucent(glowTexture);
         VertexConsumer glowBuffer = bufferSource.getBuffer(glowType);
 
@@ -100,7 +100,7 @@ public class IgnivorusGlowLayer extends GeoRenderLayer<Ignivorus> {
         );
     }
 
-    private ResourceLocation getGlowTexture(Ignivorus animatable) {
+    private Identifier getGlowTexture(Ignivorus animatable) {
         if (animatable.getTextureVariant() == Ignivorus.VARIANT_CRIMSON) {
             return CRIMSON_GLOW_TEXTURE;
         }

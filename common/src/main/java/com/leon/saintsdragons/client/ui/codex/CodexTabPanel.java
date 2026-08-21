@@ -1,13 +1,13 @@
 package com.leon.saintsdragons.client.ui.codex;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class CodexTabPanel {
     public void drawTabs(GuiGraphics guiGraphics, int leftPos, int topPos, CodexTab activeTab,
-                         ResourceLocation physiology, ResourceLocation physiologyClosed,
-                         ResourceLocation ecology, ResourceLocation ecologyClosed,
-                         ResourceLocation ally, ResourceLocation allyClosed) {
+                         Identifier physiology, Identifier physiologyClosed,
+                         Identifier ecology, Identifier ecologyClosed,
+                         Identifier ally, Identifier allyClosed) {
         drawTab(guiGraphics, leftPos, topPos, CodexTab.PHYSIOLOGY, activeTab, physiology, physiologyClosed, 0);
         drawTab(guiGraphics, leftPos, topPos, CodexTab.ECOLOGY, activeTab, ecology, ecologyClosed, 1);
         drawTab(guiGraphics, leftPos, topPos, CodexTab.ALLY, activeTab, ally, allyClosed, 2);
@@ -31,7 +31,7 @@ public class CodexTabPanel {
     }
 
     private void drawTab(GuiGraphics guiGraphics, int leftPos, int topPos, CodexTab tab, CodexTab activeTab,
-                         ResourceLocation activeTexture, ResourceLocation inactiveTexture, int index) {
+                         Identifier activeTexture, Identifier inactiveTexture, int index) {
         boolean isActive = tab == activeTab;
         int x = CodexLayout.getActiveTabX(leftPos);
         int y = CodexLayout.getTabY(topPos, index);

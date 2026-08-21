@@ -14,14 +14,14 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 public class DraconianNucleusModel extends HierarchicalModel<Entity> {
     public static final ModelLayerLocation LAYER_LOCATION =
-            new ModelLayerLocation(new ResourceLocation("saintsdragons", "draconian_nucleus"), "main");
+            new ModelLayerLocation(new Identifier("saintsdragons", "draconian_nucleus"), "main");
 
     private final ModelPart root;
     private final Vector3f animationVector = new Vector3f();

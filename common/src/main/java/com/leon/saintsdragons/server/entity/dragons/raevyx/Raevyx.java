@@ -54,7 +54,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.syncher.EntityDataAccessor;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.DamageTypeTags;
 import net.minecraft.world.DifficultyInstance;
 import net.minecraft.world.InteractionHand;
@@ -83,7 +83,9 @@ import net.minecraft.world.phys.Vec3;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.core.particles.ParticleTypes;
 import software.bernie.geckolib.core.animatable.instance.AnimatableInstanceCache;
-import software.bernie.geckolib.core.animation.*;
+import software.bernie.geckolib.core.animation.AnimationController;
+import software.bernie.geckolib.core.animation.RawAnimation;
+import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.core.object.PlayState;
 import org.jetbrains.annotations.Nullable;
 import org.jetbrains.annotations.NotNull;
@@ -97,7 +99,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
         PassiveTreeDestroyer, DrinkingDragon, ScentAssessingDragon {
     private static final RaevyxBrain DRAGON_BRAIN = new RaevyxBrain();
     @Override
-    protected ResourceLocation getDragonAttributesId() {
+    protected Identifier getDragonAttributesId() {
         return DragonAttributeConfigLoader.RAEVYX_ID;
     }
 
@@ -2063,7 +2065,7 @@ public class Raevyx extends RideableFlyingDragon implements ShakesScreen, Dragon
                 if (isDashing() && getControllingPassenger() instanceof Player) {
                     dashDodgeNudge.steerHorizontal(DragonMotionMath.horizontalForward(this.getYRot()));
                 } else if (isDodging() && getControllingPassenger() instanceof Player) {
-                    dashDodgeNudge.steerHorizontal(DragonMotionMath.horizontalRelative(
+                    dashDodgeNudge.steerHorizontal(DragonMotionMath.horizontalRelativeMovement(
                             this.getYRot(),
                             getRaevyxNudgeSteerOffset()
                     ));

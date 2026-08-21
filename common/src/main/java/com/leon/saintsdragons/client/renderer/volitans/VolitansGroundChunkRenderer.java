@@ -10,7 +10,7 @@ import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.cache.object.GeoBone;
@@ -21,7 +21,7 @@ import software.bernie.geckolib.renderer.GeoEntityRenderer;
 import software.bernie.geckolib.util.RenderUtils;
 
 public class VolitansGroundChunkRenderer extends GeoEntityRenderer<VolitansGroundChunkEntity> {
-    private static final ResourceLocation DIRT_TEXTURE = new ResourceLocation("minecraft", "textures/block/dirt.png");
+    private static final Identifier DIRT_TEXTURE = new Identifier("minecraft", "textures/block/dirt.png");
     private static final float MODEL_FORWARD_YAW_OFFSET = 0.0F;
     private MultiBufferSource currentBufferSource;
 
@@ -36,7 +36,7 @@ public class VolitansGroundChunkRenderer extends GeoEntityRenderer<VolitansGroun
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull VolitansGroundChunkEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull VolitansGroundChunkEntity entity) {
         return DIRT_TEXTURE;
     }
 

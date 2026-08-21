@@ -7,12 +7,12 @@ import net.fabricmc.api.Environment;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 
 @Environment(EnvType.CLIENT)
 public final class SwarmWaveBarOverlay {
-    private static final ResourceLocation TEXTURE = new ResourceLocation(
+    private static final Identifier TEXTURE = new Identifier(
             SaintsDragonsCommon.MOD_ID,
             "textures/gui/draconian_swarm/draconian_swarm_wave_bar.png"
     );

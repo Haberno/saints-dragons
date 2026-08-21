@@ -4,7 +4,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.core.animatable.GeoAnimatable;
@@ -41,11 +41,11 @@ final class CodexStaticPortraitRenderer extends GeoObjectRenderer<CodexStaticPor
 
     static final class Portrait implements GeoAnimatable {
         private final UUID dragonId;
-        private final ResourceLocation model;
-        private final ResourceLocation texture;
+        private final Identifier model;
+        private final Identifier texture;
         private final AnimatableInstanceCache cache = GeckoLibUtil.createInstanceCache(this);
 
-        Portrait(UUID dragonId, ResourceLocation model, ResourceLocation texture) {
+        Portrait(UUID dragonId, Identifier model, Identifier texture) {
             this.dragonId = dragonId;
             this.model = model;
             this.texture = texture;
@@ -55,15 +55,15 @@ final class CodexStaticPortraitRenderer extends GeoObjectRenderer<CodexStaticPor
             return dragonId;
         }
 
-        ResourceLocation model() {
+        Identifier model() {
             return model;
         }
 
-        ResourceLocation texture() {
+        Identifier texture() {
             return texture;
         }
 
-        boolean matches(ResourceLocation model, ResourceLocation texture) {
+        boolean matches(Identifier model, Identifier texture) {
             return this.model.equals(model) && this.texture.equals(texture);
         }
 
@@ -84,17 +84,17 @@ final class CodexStaticPortraitRenderer extends GeoObjectRenderer<CodexStaticPor
 
     private static final class PortraitModel extends GeoModel<Portrait> {
         @Override
-        public ResourceLocation getModelResource(Portrait portrait) {
+        public Identifier getModelResource(Portrait portrait) {
             return portrait.model();
         }
 
         @Override
-        public ResourceLocation getTextureResource(Portrait portrait) {
+        public Identifier getTextureResource(Portrait portrait) {
             return portrait.texture();
         }
 
         @Override
-        public ResourceLocation getAnimationResource(Portrait portrait) {
+        public Identifier getAnimationResource(Portrait portrait) {
             return portrait.model();
         }
     }

@@ -10,7 +10,7 @@ import com.leon.saintsdragons.server.entity.dragons.varasuchus.Varasuchus;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
 import com.leon.saintsdragons.server.entity.dragons.stegonaut.Stegonaut;
 import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfigLoader;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import java.util.function.Supplier;
 
@@ -49,12 +49,12 @@ public enum Dragons {
         Ignivorus.class, ModEntities.IGNIVORUS);
 
     private final String name;
-    private final ResourceLocation configId;
+    private final Identifier configId;
     private final Class<? extends DragonEntity> entityClass;
     private final Supplier<? extends EntityType<? extends DragonEntity>> entityType;
 
     Dragons(String name,
-            ResourceLocation configId,
+            Identifier configId,
             Class<? extends DragonEntity> entityClass,
             Supplier<? extends EntityType<? extends DragonEntity>> entityType) {
         this.name = name;
@@ -67,7 +67,7 @@ public enum Dragons {
         return name;
     }
 
-    public ResourceLocation getConfigId() {
+    public Identifier getConfigId() {
         return configId;
     }
 

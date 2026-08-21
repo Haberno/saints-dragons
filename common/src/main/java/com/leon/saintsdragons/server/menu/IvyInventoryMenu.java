@@ -3,7 +3,7 @@ package com.leon.saintsdragons.server.menu;
 import com.leon.saintsdragons.common.registry.ModMenus;
 import com.leon.saintsdragons.server.entity.npc.IvyTheDragonMerchant;
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -32,7 +32,7 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
     public static final int STORAGE_ROWS = 3;
     public static final int STORAGE_COUNT = STORAGE_COLUMNS * STORAGE_ROWS;
     public static final int IVY_SLOT_COUNT = STORAGE_START + STORAGE_COUNT;
-    private static final ResourceLocation EMPTY_SWORD_SLOT = new ResourceLocation("item/empty_slot_sword");
+    private static final Identifier EMPTY_SWORD_SLOT = new Identifier("item/empty_slot_sword");
     private static final int PLAYER_INV_START = IVY_SLOT_COUNT;
     private static final int PLAYER_INV_END = PLAYER_INV_START + 27;
     private static final int HOTBAR_START = PLAYER_INV_END;
@@ -171,7 +171,7 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
 
     private static final class ArmorSlot extends Slot {
         private final ArmorItem.Type type;
-        private final ResourceLocation emptyIcon;
+        private final Identifier emptyIcon;
 
         private ArmorSlot(Container container, int index, int x, int y, ArmorItem.Type type) {
             super(container, index, x, y);
@@ -195,7 +195,7 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
         }
 
         @Override
-        public @NotNull Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+        public @NotNull Pair<Identifier, Identifier> getNoItemIcon() {
             return Pair.of(InventoryMenu.BLOCK_ATLAS, this.emptyIcon);
         }
     }
@@ -216,7 +216,7 @@ public class IvyInventoryMenu extends AbstractContainerMenu {
         }
 
         @Override
-        public @NotNull Pair<ResourceLocation, ResourceLocation> getNoItemIcon() {
+        public @NotNull Pair<Identifier, Identifier> getNoItemIcon() {
             return Pair.of(InventoryMenu.BLOCK_ATLAS, EMPTY_SWORD_SLOT);
         }
     }

@@ -6,7 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -31,13 +31,13 @@ public final class DragonVariantReloadListener extends SimpleJsonResourceReloadL
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsonMap,
+    protected void apply(Map<Identifier, JsonElement> jsonMap,
                          @NotNull ResourceManager resourceManager,
                          @NotNull ProfilerFiller profiler) {
-        Map<ResourceLocation, List<DragonVariantDefinition>> parsed = new LinkedHashMap<>();
-        for (Map.Entry<ResourceLocation, JsonElement> entry : jsonMap.entrySet()) {
-            ResourceLocation fileId = entry.getKey();
-            ResourceLocation dragonId = SaintsDragonsCommon.rl(fileId.getPath());
+        Map<Identifier, List<DragonVariantDefinition>> parsed = new LinkedHashMap<>();
+        for (Map.Entry<Identifier, JsonElement> entry : jsonMap.entrySet()) {
+            Identifier fileId = entry.getKey();
+            Identifier dragonId = SaintsDragonsCommon.rl(fileId.getPath());
             try {
                 JsonObject root = GsonHelper.convertToJsonObject(entry.getValue(), fileId.toString());
                 JsonArray variants = GsonHelper.getAsJsonArray(root, "variants");
@@ -52,12 +52,12 @@ public final class DragonVariantReloadListener extends SimpleJsonResourceReloadL
         SaintsDragonVariantRegistry.replaceDatapackVariants(parsed);
     }
 
-    private static DragonVariantDefinition parseVariant(ResourceLocation fileId,
-                                                       ResourceLocation dragonId,
+    private static DragonVariantDefinition parseVariant(Identifier fileId,
+                                                       Identifier dragonId,
                                                        JsonObject input) {
         String name = GsonHelper.getAsString(input, "name");
-        ResourceLocation variantId = input.has("id")
-                ? new ResourceLocation(GsonHelper.getAsString(input, "id"))
+        Identifier variantId = input.has("id")
+                ? new Identifier(GsonHelper.getAsString(input, "id"))
                 : parseVariantId(fileId.getNamespace(), name);
         int weight = GsonHelper.getAsInt(input, "weight");
         DragonVariantDefinition.BiomeRestrictions allowedBiomes = parseBiomes(input, "allowed_biomes");
@@ -75,11 +75,11 @@ public final class DragonVariantReloadListener extends SimpleJsonResourceReloadL
         );
     }
 
-    private static ResourceLocation parseVariantId(String namespace, String name) {
+    private static Identifier parseVariantId(String namespace, String name) {
         if (name.indexOf(':') >= 0) {
-            return new ResourceLocation(name);
+            return new Identifier(name);
         }
-        return new ResourceLocation(namespace, name);
+        return new Identifier(namespace, name);
     }
 
     private static DragonVariantDefinition.BiomeRestrictions parseBiomes(JsonObject input, String key) {
@@ -87,19 +87,19 @@ public final class DragonVariantReloadListener extends SimpleJsonResourceReloadL
             return null;
         }
         JsonObject object = GsonHelper.getAsJsonObject(input, key);
-        List<ResourceLocation> biomes = parseResourceList(object, "biome");
-        List<ResourceLocation> tags = parseResourceList(object, "tag");
+        List<Identifier> biomes = parseResourceList(object, "biome");
+        List<Identifier> tags = parseResourceList(object, "tag");
         return new DragonVariantDefinition.BiomeRestrictions(biomes, tags);
     }
 
-    private static List<ResourceLocation> parseResourceList(JsonObject object, String key) {
-        List<ResourceLocation> result = new ArrayList<>();
+    private static List<Identifier> parseResourceList(JsonObject object, String key) {
+        List<Identifier> result = new ArrayList<>();
         if (!object.has(key)) {
             return result;
         }
         JsonArray array = GsonHelper.getAsJsonArray(object, key);
         for (JsonElement element : array) {
-            result.add(new ResourceLocation(element.getAsString()));
+            result.add(new Identifier(element.getAsString()));
         }
         return result;
     }

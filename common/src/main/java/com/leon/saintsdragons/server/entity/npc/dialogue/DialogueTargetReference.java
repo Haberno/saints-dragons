@@ -1,12 +1,12 @@
 package com.leon.saintsdragons.server.entity.npc.dialogue;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import javax.annotation.Nullable;
 
-record DialogueTargetReference(ResourceLocation dialogueId, String nodeId, boolean external) {
+record DialogueTargetReference(Identifier dialogueId, String nodeId, boolean external) {
     @Nullable
-    static DialogueTargetReference parse(ResourceLocation currentDialogueId, String value) {
+    static DialogueTargetReference parse(Identifier currentDialogueId, String value) {
         int split = value.indexOf('#');
         if (split < 0) {
             return new DialogueTargetReference(currentDialogueId, value, false);
@@ -14,7 +14,7 @@ record DialogueTargetReference(ResourceLocation dialogueId, String nodeId, boole
         if (split == 0 || split == value.length() - 1) {
             return null;
         }
-        ResourceLocation dialogueId = ResourceLocation.tryParse(value.substring(0, split));
+        Identifier dialogueId = Identifier.tryParse(value.substring(0, split));
         if (dialogueId == null) {
             return null;
         }

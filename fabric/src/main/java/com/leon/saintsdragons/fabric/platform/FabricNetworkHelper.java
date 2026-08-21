@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.networking.v1.PlayerLookup;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
@@ -25,11 +25,11 @@ public final class FabricNetworkHelper implements NetworkHelper {
     }
 
     private static final class Binding<T> {
-        final ResourceLocation id;
+        final Identifier id;
         final PacketEncoder<T> encoder;
         final Direction direction;
 
-        Binding(ResourceLocation id, PacketEncoder<T> encoder, Direction direction) {
+        Binding(Identifier id, PacketEncoder<T> encoder, Direction direction) {
             this.id = id;
             this.encoder = encoder;
             this.direction = direction;
@@ -40,7 +40,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
 
     @Override
     public <T> void registerServerbound(Class<T> type,
-                                        ResourceLocation id,
+                                        Identifier id,
                                         PacketEncoder<T> encoder,
                                         PacketDecoder<T> decoder,
                                         ServerboundHandler<T> handler) {
@@ -53,7 +53,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
 
     @Override
     public <T> void registerClientbound(Class<T> type,
-                                        ResourceLocation id,
+                                        Identifier id,
                                         PacketEncoder<T> encoder,
                                         PacketDecoder<T> decoder,
                                         ClientboundHandler<T> handler) {
@@ -135,7 +135,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
     private static final class ClientAccess {
         private ClientAccess() {}
 
-        private static <T> void register(ResourceLocation id,
+        private static <T> void register(Identifier id,
                                          PacketDecoder<T> decoder,
                                          ClientboundHandler<T> handler) {
             ClientPlayNetworking.registerGlobalReceiver(id, (client, handlerAccessor, buf, responseSender) -> {
@@ -144,7 +144,7 @@ public final class FabricNetworkHelper implements NetworkHelper {
             });
         }
 
-        private static void send(ResourceLocation id, FriendlyByteBuf buffer) {
+        private static void send(Identifier id, FriendlyByteBuf buffer) {
             ClientPlayNetworking.send(id, buffer);
         }
     }

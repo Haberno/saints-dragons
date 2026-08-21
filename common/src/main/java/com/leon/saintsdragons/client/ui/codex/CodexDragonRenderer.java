@@ -14,7 +14,7 @@ import net.minecraft.client.gui.screens.inventory.InventoryScreen;
 import net.minecraft.client.renderer.LightTexture;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import org.joml.Matrix4f;
 import org.joml.Quaternionf;
@@ -213,8 +213,8 @@ public class CodexDragonRenderer {
             return;
         }
 
-        ResourceLocation model = definition.model(selected.isBaby());
-        ResourceLocation texture = selected.isBaby()
+        Identifier model = definition.model(selected.isBaby());
+        Identifier texture = selected.isBaby()
                 ? dragonTexture(selected.dragonType(), "baby_" + selected.dragonType(),
                         DragonGender.fromId(selected.genderId()) == DragonGender.FEMALE)
                 : resolveAdultTexture(selected, definition);
@@ -256,12 +256,12 @@ public class CodexDragonRenderer {
         }
     }
 
-    private ResourceLocation resolveAdultTexture(CodexDragonEntry selected, PortraitDefinition definition) {
-        ResourceLocation variantId = parseVariantId(selected.variantResourceId());
+    private Identifier resolveAdultTexture(CodexDragonEntry selected, PortraitDefinition definition) {
+        Identifier variantId = parseVariantId(selected.variantResourceId());
         boolean female = DragonGender.fromId(selected.genderId()) == DragonGender.FEMALE;
         int legacyId = SaintsDragonVariantRegistry.variantIdToLegacy(definition.dragonId(), variantId);
         if (legacyId == 1) {
-            ResourceLocation legacyTexture = resolveLegacyVariantTexture(selected.dragonType(), female);
+            Identifier legacyTexture = resolveLegacyVariantTexture(selected.dragonType(), female);
             if (legacyTexture != null) {
                 return legacyTexture;
             }
@@ -275,7 +275,7 @@ public class CodexDragonRenderer {
         return SaintsDragonVariantRegistry.adultTexture(definition.dragonId(), variantId, female);
     }
 
-    private ResourceLocation resolveLegacyVariantTexture(String dragonType, boolean female) {
+    private Identifier resolveLegacyVariantTexture(String dragonType, boolean female) {
         return switch (dragonType) {
             case "ignivorus" -> dragonTexture(dragonType, "crimson_ignivorus", female);
             case "raevyx" -> dragonTexture(dragonType, "raevyx_night_gold", female);
@@ -304,23 +304,23 @@ public class CodexDragonRenderer {
         );
     }
 
-    private static ResourceLocation dragonTexture(String dragonType, String textureName, boolean female) {
+    private static Identifier dragonTexture(String dragonType, String textureName, boolean female) {
         return SaintsDragonsCommon.rl("textures/entity/" + dragonType + "/" + textureName
                 + (female ? "_female" : "") + ".png");
     }
 
-    private ResourceLocation parseVariantId(String id) {
+    private Identifier parseVariantId(String id) {
         try {
-            return new ResourceLocation(id);
+            return new Identifier(id);
         } catch (Exception ignored) {
             return com.leon.saintsdragons.server.entity.variant.SaintsDragonVariantRegistry.DEFAULT_VARIANT_ID;
         }
     }
 
-    private record PortraitDefinition(ResourceLocation dragonId, ResourceLocation adultModel, ResourceLocation babyModel,
+    private record PortraitDefinition(Identifier dragonId, Identifier adultModel, Identifier babyModel,
                                       int adultScale, int adultOffsetX, int adultOffsetY,
                                       int babyScaleAdjustment, int babyOffsetX, int babyOffsetY) {
-        private ResourceLocation model(boolean baby) {
+        private Identifier model(boolean baby) {
             return baby ? babyModel : adultModel;
         }
 

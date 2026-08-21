@@ -6,7 +6,7 @@ import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfigLoader;
 import com.leon.saintsdragons.common.network.NetworkHandler;
 import com.leon.saintsdragons.common.registry.*;
 import com.leon.saintsdragons.server.entity.variant.SaintsDragonVariantRegistry;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import software.bernie.geckolib.GeckoLib;
@@ -18,8 +18,8 @@ public final class SaintsDragonsCommon {
     private SaintsDragonsCommon() {
     }
 
-    public static ResourceLocation rl(String path) {
-        return new ResourceLocation(MOD_ID, path);
+    public static Identifier rl(String path) {
+        return new Identifier(MOD_ID, path);
     }
 
     public static synchronized void init() {

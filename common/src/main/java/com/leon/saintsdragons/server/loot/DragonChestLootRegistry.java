@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfig;
 import com.leon.saintsdragons.common.config.dragon.DragonAttributeConfigLoader;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.Item;
@@ -16,14 +16,14 @@ import java.util.List;
 import java.util.Optional;
 
 public final class DragonChestLootRegistry {
-    public static final ResourceLocation DEFAULTS_FILE = new ResourceLocation("saintsdragons", "defaults");
+    public static final Identifier DEFAULTS_FILE = new Identifier("saintsdragons", "defaults");
 
     private static volatile List<Entry> entries = List.of();
 
     private DragonChestLootRegistry() {
     }
 
-    public static List<Entry> entriesFor(ResourceLocation lootTable) {
+    public static List<Entry> entriesFor(Identifier lootTable) {
         if (lootTable == null) {
             return List.of();
         }
@@ -40,7 +40,7 @@ public final class DragonChestLootRegistry {
         entries = List.copyOf(parsed);
     }
 
-    static List<Entry> parseEntries(ResourceLocation fileId, JsonObject root) {
+    static List<Entry> parseEntries(Identifier fileId, JsonObject root) {
         List<Entry> result = new ArrayList<>();
         JsonArray entries = GsonHelper.getAsJsonArray(root, "entries");
         for (int i = 0; i < entries.size(); i++) {
@@ -54,27 +54,27 @@ public final class DragonChestLootRegistry {
         return GsonHelper.getAsBoolean(root, "replace", false);
     }
 
-    private static Entry parseEntry(ResourceLocation fileId, JsonObject entry) {
-        ResourceLocation lootTable = new ResourceLocation(GsonHelper.getAsString(entry, "loot_table"));
-        ResourceLocation itemId = new ResourceLocation(GsonHelper.getAsString(entry, "item"));
+    private static Entry parseEntry(Identifier fileId, JsonObject entry) {
+        Identifier lootTable = new Identifier(GsonHelper.getAsString(entry, "loot_table"));
+        Identifier itemId = new Identifier(GsonHelper.getAsString(entry, "item"));
         Optional<Item> item = BuiltInRegistries.ITEM.getOptional(itemId);
         if (item.isEmpty()) {
             throw new IllegalArgumentException("Unknown item " + itemId + " in " + fileId);
         }
         int count = Math.max(1, GsonHelper.getAsInt(entry, "count", 1));
         double chance = Mth.clamp(GsonHelper.getAsDouble(entry, "chance", 1.0D), 0.0D, 1.0D);
-        ResourceLocation dragonId = entry.has("dragon_id")
-                ? new ResourceLocation(GsonHelper.getAsString(entry, "dragon_id"))
+        Identifier dragonId = entry.has("dragon_id")
+                ? new Identifier(GsonHelper.getAsString(entry, "dragon_id"))
                 : null;
         String configKey = GsonHelper.getAsString(entry, "config_key", null);
         return new Entry(lootTable, item.get(), count, chance, dragonId, configKey);
     }
 
-    public record Entry(ResourceLocation lootTable,
+    public record Entry(Identifier lootTable,
                         Item item,
                         int count,
                         double chance,
-                        ResourceLocation dragonId,
+                        Identifier dragonId,
                         String configKey) {
         public double resolvedChance() {
             double resolved = chance;

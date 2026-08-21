@@ -3,7 +3,7 @@ package com.leon.saintsdragons.fabric.resource;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.npc.dialogue.DialogueReloadListener;
 import net.fabricmc.fabric.api.resource.IdentifiableResourceReloadListener;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.util.profiling.ProfilerFiller;
@@ -13,11 +13,11 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 
 public final class FabricDialogueReloadListener implements IdentifiableResourceReloadListener {
-    private static final ResourceLocation ID = SaintsDragonsCommon.rl("dialogues");
+    private static final Identifier ID = SaintsDragonsCommon.rl("dialogues");
     private final DialogueReloadListener delegate = DialogueReloadListener.getInstance();
 
     @Override
-    public ResourceLocation getFabricId() {
+    public Identifier getFabricId() {
         return ID;
     }
 

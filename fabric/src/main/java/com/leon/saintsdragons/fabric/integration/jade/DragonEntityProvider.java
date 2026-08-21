@@ -4,7 +4,7 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.base.DragonGender;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IEntityComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -53,15 +53,15 @@ public enum DragonEntityProvider implements IEntityComponentProvider, IServerDat
             tag.putString("Gender", gender.name());
         }
 
-        ResourceLocation variantId = dragon.getCodexTextureVariantId();
+        Identifier variantId = dragon.getCodexTextureVariantId();
         tag.putString("VariantResourceId", variantId.toString());
         tag.putString("VariantTranslationKey", dragon.getTextureVariantTranslationKey(variantId));
         tag.putString("VariantFallbackName", formatFallbackName(dragon.getTextureVariantName(variantId)));
     }
 
     @Override
-    public ResourceLocation getUid() {
-        return new ResourceLocation("saintsdragons", "dragon_info");
+    public Identifier getUid() {
+        return new Identifier("saintsdragons", "dragon_info");
     }
 
     private static String formatFallbackName(String name) {

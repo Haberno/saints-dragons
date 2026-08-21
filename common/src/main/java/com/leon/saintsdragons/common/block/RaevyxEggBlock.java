@@ -9,7 +9,7 @@ import com.leon.saintsdragons.server.entity.base.DragonGender;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
@@ -240,7 +240,7 @@ public class RaevyxEggBlock extends BaseEntityBlock {
     private void awardAdvancement(ServerLevel level,
                                   BlockPos pos,
                                   @Nullable RaevyxEggBlockEntity eggEntity,
-                                  ResourceLocation advancementId,
+                                  Identifier advancementId,
                                   String criterion) {
         var advancement = level.getServer().getAdvancements().getAdvancement(advancementId);
         if (advancement == null) {

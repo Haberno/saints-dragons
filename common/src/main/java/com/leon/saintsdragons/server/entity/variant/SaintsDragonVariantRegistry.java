@@ -8,7 +8,7 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import net.minecraft.core.Holder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.level.LevelAccessor;
@@ -23,11 +23,11 @@ import java.util.Map;
 
 public final class SaintsDragonVariantRegistry {
     public static final String SAINTS_DRAGONS = SaintsDragonsCommon.MOD_ID;
-    public static final ResourceLocation DEFAULT_VARIANT_ID = SaintsDragonsCommon.rl("default");
+    public static final Identifier DEFAULT_VARIANT_ID = SaintsDragonsCommon.rl("default");
 
-    private static final Map<ResourceLocation, List<DragonVariantDefinition>> DEFAULTS = buildDefaults();
-    private static volatile Map<ResourceLocation, List<DragonVariantDefinition>> variantsByDragon = DEFAULTS;
-    private static volatile Map<ResourceLocation, DragonVariantDefinition> variantsById = index(DEFAULTS);
+    private static final Map<Identifier, List<DragonVariantDefinition>> DEFAULTS = buildDefaults();
+    private static volatile Map<Identifier, List<DragonVariantDefinition>> variantsByDragon = DEFAULTS;
+    private static volatile Map<Identifier, DragonVariantDefinition> variantsById = index(DEFAULTS);
 
     private SaintsDragonVariantRegistry() {
     }
@@ -35,16 +35,16 @@ public final class SaintsDragonVariantRegistry {
     public static void bootstrap() {
     }
 
-    public static ResourceLocation dragonId(DragonEntity dragon) {
+    public static Identifier dragonId(DragonEntity dragon) {
         Dragons type = Dragons.fromEntity(dragon);
         return type != null ? type.getConfigId() : SaintsDragonsCommon.rl("unknown");
     }
 
-    public static ResourceLocation defaultVariantId(ResourceLocation dragonId) {
+    public static Identifier defaultVariantId(Identifier dragonId) {
         return DEFAULT_VARIANT_ID;
     }
 
-    public static ResourceLocation legacyToVariantId(ResourceLocation dragonId, int legacyId) {
+    public static Identifier legacyToVariantId(Identifier dragonId, int legacyId) {
         for (DragonVariantDefinition definition : getVariants(dragonId)) {
             if (definition.legacyId() == legacyId) {
                 return definition.id();
@@ -53,7 +53,7 @@ public final class SaintsDragonVariantRegistry {
         return defaultVariantId(dragonId);
     }
 
-    public static int variantIdToLegacy(ResourceLocation dragonId, ResourceLocation variantId) {
+    public static int variantIdToLegacy(Identifier dragonId, Identifier variantId) {
         DragonVariantDefinition definition = get(dragonId, variantId);
         if (definition != null && definition.dragon().equals(dragonId) && definition.hasLegacyId()) {
             return definition.legacyId();
@@ -61,20 +61,20 @@ public final class SaintsDragonVariantRegistry {
         return 0;
     }
 
-    public static boolean isLegacyVariant(ResourceLocation dragonId, ResourceLocation variantId) {
+    public static boolean isLegacyVariant(Identifier dragonId, Identifier variantId) {
         DragonVariantDefinition definition = get(dragonId, variantId);
         return definition != null && definition.dragon().equals(dragonId) && definition.hasLegacyId();
     }
 
-    public static boolean isDefault(ResourceLocation variantId) {
+    public static boolean isDefault(Identifier variantId) {
         return DEFAULT_VARIANT_ID.equals(variantId);
     }
 
-    public static DragonVariantDefinition get(ResourceLocation variantId) {
+    public static DragonVariantDefinition get(Identifier variantId) {
         return variantsById.get(variantId);
     }
 
-    public static DragonVariantDefinition get(ResourceLocation dragonId, ResourceLocation variantId) {
+    public static DragonVariantDefinition get(Identifier dragonId, Identifier variantId) {
         for (DragonVariantDefinition definition : getVariants(dragonId)) {
             if (definition.id().equals(variantId)) {
                 return definition;
@@ -83,11 +83,11 @@ public final class SaintsDragonVariantRegistry {
         return null;
     }
 
-    public static List<DragonVariantDefinition> getVariants(ResourceLocation dragonId) {
+    public static List<DragonVariantDefinition> getVariants(Identifier dragonId) {
         return variantsByDragon.getOrDefault(dragonId, DEFAULTS.getOrDefault(dragonId, DEFAULTS.get(SaintsDragonsCommon.rl("ignivorus"))));
     }
 
-    public static Map<String, Integer> legacyNameMap(ResourceLocation dragonId) {
+    public static Map<String, Integer> legacyNameMap(Identifier dragonId) {
         Map<String, Integer> result = new LinkedHashMap<>();
         for (DragonVariantDefinition definition : getVariants(dragonId)) {
             if (definition.hasLegacyId()) {
@@ -100,8 +100,8 @@ public final class SaintsDragonVariantRegistry {
         return result;
     }
 
-    public static Map<String, ResourceLocation> variantNameMap(ResourceLocation dragonId) {
-        Map<String, ResourceLocation> result = new LinkedHashMap<>();
+    public static Map<String, Identifier> variantNameMap(Identifier dragonId) {
+        Map<String, Identifier> result = new LinkedHashMap<>();
         for (DragonVariantDefinition definition : getVariants(dragonId)) {
             result.put(definition.name(), definition.id());
             result.put(definition.id().toString(), definition.id());
@@ -109,7 +109,7 @@ public final class SaintsDragonVariantRegistry {
         return result;
     }
 
-    public static List<String> commandSuggestions(ResourceLocation dragonId) {
+    public static List<String> commandSuggestions(Identifier dragonId) {
         List<String> result = new ArrayList<>();
         for (DragonVariantDefinition definition : getVariants(dragonId)) {
             if (SAINTS_DRAGONS.equals(definition.id().getNamespace())) {
@@ -121,8 +121,8 @@ public final class SaintsDragonVariantRegistry {
         return result;
     }
 
-    public static ResourceLocation chooseSpawnVariant(ServerLevelAccessor levelAccessor, DragonEntity entity) {
-        ResourceLocation dragonId = dragonId(entity);
+    public static Identifier chooseSpawnVariant(ServerLevelAccessor levelAccessor, DragonEntity entity) {
+        Identifier dragonId = dragonId(entity);
         List<DragonVariantDefinition> allowed = new ArrayList<>();
         for (DragonVariantDefinition definition : getVariants(dragonId)) {
             if (definition.weight() <= 0) {
@@ -141,7 +141,7 @@ public final class SaintsDragonVariantRegistry {
         return roll(entity.getRandom(), allowed, defaultVariantId(dragonId));
     }
 
-    public static ResourceLocation normalize(ResourceLocation dragonId, @Nullable ResourceLocation variantId) {
+    public static Identifier normalize(Identifier dragonId, @Nullable Identifier variantId) {
         if (variantId == null) {
             return defaultVariantId(dragonId);
         }
@@ -152,25 +152,25 @@ public final class SaintsDragonVariantRegistry {
         return defaultVariantId(dragonId);
     }
 
-    public static void replaceDatapackVariants(Map<ResourceLocation, List<DragonVariantDefinition>> datapackVariants) {
-        Map<ResourceLocation, LinkedHashMap<ResourceLocation, DragonVariantDefinition>> merged = new LinkedHashMap<>();
-        for (Map.Entry<ResourceLocation, List<DragonVariantDefinition>> entry : DEFAULTS.entrySet()) {
-            LinkedHashMap<ResourceLocation, DragonVariantDefinition> byId = new LinkedHashMap<>();
+    public static void replaceDatapackVariants(Map<Identifier, List<DragonVariantDefinition>> datapackVariants) {
+        Map<Identifier, LinkedHashMap<Identifier, DragonVariantDefinition>> merged = new LinkedHashMap<>();
+        for (Map.Entry<Identifier, List<DragonVariantDefinition>> entry : DEFAULTS.entrySet()) {
+            LinkedHashMap<Identifier, DragonVariantDefinition> byId = new LinkedHashMap<>();
             for (DragonVariantDefinition definition : entry.getValue()) {
                 byId.put(definition.id(), definition);
             }
             merged.put(entry.getKey(), byId);
         }
-        for (Map.Entry<ResourceLocation, List<DragonVariantDefinition>> entry : datapackVariants.entrySet()) {
-            LinkedHashMap<ResourceLocation, DragonVariantDefinition> byId = merged.computeIfAbsent(entry.getKey(), id -> new LinkedHashMap<>());
+        for (Map.Entry<Identifier, List<DragonVariantDefinition>> entry : datapackVariants.entrySet()) {
+            LinkedHashMap<Identifier, DragonVariantDefinition> byId = merged.computeIfAbsent(entry.getKey(), id -> new LinkedHashMap<>());
             for (DragonVariantDefinition definition : entry.getValue()) {
                 DragonVariantDefinition existing = byId.get(definition.id());
                 byId.put(definition.id(), preserveLegacyId(existing, definition));
             }
         }
 
-        Map<ResourceLocation, List<DragonVariantDefinition>> next = new LinkedHashMap<>();
-        for (Map.Entry<ResourceLocation, LinkedHashMap<ResourceLocation, DragonVariantDefinition>> entry : merged.entrySet()) {
+        Map<Identifier, List<DragonVariantDefinition>> next = new LinkedHashMap<>();
+        for (Map.Entry<Identifier, LinkedHashMap<Identifier, DragonVariantDefinition>> entry : merged.entrySet()) {
             next.put(entry.getKey(), ImmutableList.copyOf(entry.getValue().values()));
         }
         variantsByDragon = ImmutableMap.copyOf(next);
@@ -178,14 +178,14 @@ public final class SaintsDragonVariantRegistry {
         SaintsDragonsCommon.LOGGER.info("Loaded {} dragon variant definition(s)", variantsById.size());
     }
 
-    public static ResourceLocation adultTexture(ResourceLocation dragonId, ResourceLocation variantId, boolean female) {
+    public static Identifier adultTexture(Identifier dragonId, Identifier variantId, boolean female) {
         String dragonPath = dragonId.getPath();
         String variantPath = variantId.getPath();
         String suffix = female ? "_female" : "";
-        return new ResourceLocation(variantId.getNamespace(), "textures/entity/" + dragonPath + "/" + variantPath + suffix + ".png");
+        return new Identifier(variantId.getNamespace(), "textures/entity/" + dragonPath + "/" + variantPath + suffix + ".png");
     }
 
-    private static ResourceLocation roll(RandomSource random, List<DragonVariantDefinition> variants, ResourceLocation fallback) {
+    private static Identifier roll(RandomSource random, List<DragonVariantDefinition> variants, Identifier fallback) {
         int total = 0;
         for (DragonVariantDefinition definition : variants) {
             total += definition.weight();
@@ -228,7 +228,7 @@ public final class SaintsDragonVariantRegistry {
         }
         Holder<Biome> biome = level.getBiome(pos);
         if (restrictions.hasBiomesByIdList()) {
-            ResourceLocation biomeId = biome.unwrapKey()
+            Identifier biomeId = biome.unwrapKey()
                     .map(key -> key.location())
                     .orElse(null);
             if (biomeId != null && restrictions.biomesById().contains(biomeId)) {
@@ -236,7 +236,7 @@ public final class SaintsDragonVariantRegistry {
             }
         }
         if (restrictions.hasBiomesByTagList()) {
-            for (ResourceLocation tagId : restrictions.biomesByTag()) {
+            for (Identifier tagId : restrictions.biomesByTag()) {
                 if (biome.is(TagKey.create(Registries.BIOME, tagId))) {
                     return true;
                 }
@@ -245,8 +245,8 @@ public final class SaintsDragonVariantRegistry {
         return false;
     }
 
-    private static Map<ResourceLocation, DragonVariantDefinition> index(Map<ResourceLocation, List<DragonVariantDefinition>> variants) {
-        Map<ResourceLocation, DragonVariantDefinition> result = new LinkedHashMap<>();
+    private static Map<Identifier, DragonVariantDefinition> index(Map<Identifier, List<DragonVariantDefinition>> variants) {
+        Map<Identifier, DragonVariantDefinition> result = new LinkedHashMap<>();
         for (List<DragonVariantDefinition> definitions : variants.values()) {
             for (DragonVariantDefinition definition : definitions) {
                 result.put(definition.id(), definition);
@@ -255,8 +255,8 @@ public final class SaintsDragonVariantRegistry {
         return ImmutableMap.copyOf(result);
     }
 
-    private static Map<ResourceLocation, List<DragonVariantDefinition>> buildDefaults() {
-        Map<ResourceLocation, List<DragonVariantDefinition>> defaults = new LinkedHashMap<>();
+    private static Map<Identifier, List<DragonVariantDefinition>> buildDefaults() {
+        Map<Identifier, List<DragonVariantDefinition>> defaults = new LinkedHashMap<>();
         add(defaults, "raevyx", 0, "default", 90);
         add(defaults, "raevyx", 1, "night_gold", 10);
         add(defaults, "cindervane", 0, "default", 85);
@@ -271,20 +271,20 @@ public final class SaintsDragonVariantRegistry {
         add(defaults, "stegonaut", 0, "default", 100);
         add(defaults, "nulljaw", 0, "default", 100);
         add(defaults, "atroxiia", 0, "default", 100);
-        Map<ResourceLocation, List<DragonVariantDefinition>> immutable = new LinkedHashMap<>();
-        for (Map.Entry<ResourceLocation, List<DragonVariantDefinition>> entry : defaults.entrySet()) {
+        Map<Identifier, List<DragonVariantDefinition>> immutable = new LinkedHashMap<>();
+        for (Map.Entry<Identifier, List<DragonVariantDefinition>> entry : defaults.entrySet()) {
             immutable.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
         }
         return ImmutableMap.copyOf(immutable);
     }
 
-    private static void add(Map<ResourceLocation, List<DragonVariantDefinition>> defaults,
+    private static void add(Map<Identifier, List<DragonVariantDefinition>> defaults,
                             String dragon,
                             int legacyId,
                             String name,
                             int weight) {
-        ResourceLocation dragonId = SaintsDragonsCommon.rl(dragon);
-        ResourceLocation variantId = SaintsDragonsCommon.rl(name);
+        Identifier dragonId = SaintsDragonsCommon.rl(dragon);
+        Identifier variantId = SaintsDragonsCommon.rl(name);
         defaults.computeIfAbsent(dragonId, id -> new ArrayList<>()).add(new DragonVariantDefinition(
                 variantId,
                 dragonId,
@@ -297,12 +297,12 @@ public final class SaintsDragonVariantRegistry {
         ));
     }
 
-    private static void addCustom(Map<ResourceLocation, List<DragonVariantDefinition>> defaults,
+    private static void addCustom(Map<Identifier, List<DragonVariantDefinition>> defaults,
                                   String dragon,
                                   String name,
                                   int weight) {
-        ResourceLocation dragonId = SaintsDragonsCommon.rl(dragon);
-        ResourceLocation variantId = SaintsDragonsCommon.rl(name);
+        Identifier dragonId = SaintsDragonsCommon.rl(dragon);
+        Identifier variantId = SaintsDragonsCommon.rl(name);
         defaults.computeIfAbsent(dragonId, id -> new ArrayList<>()).add(new DragonVariantDefinition(
                 variantId,
                 dragonId,

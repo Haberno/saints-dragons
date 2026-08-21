@@ -9,13 +9,13 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 
 public class VolitansPoisonBallRenderer extends EntityRenderer<VolitansPoisonBallEntity> {
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/volitans/poison_ball.png");
 
     public VolitansPoisonBallRenderer(EntityRendererProvider.Context context) {
@@ -58,7 +58,7 @@ public class VolitansPoisonBallRenderer extends EntityRenderer<VolitansPoisonBal
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull VolitansPoisonBallEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull VolitansPoisonBallEntity entity) {
         return TEXTURE;
     }
 }

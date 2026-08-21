@@ -6,7 +6,7 @@ import com.leon.saintsdragons.client.model.DragonModelPoseHelper.WeightedBoneCha
 import com.leon.saintsdragons.client.ui.DraconicCodexScreen;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.raevyx.Raevyx;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -31,11 +31,11 @@ public class RaevyxModel extends DragonGeoModel<Raevyx> {
         super("raevyx");
     }
 
-    private static final ResourceLocation NIGHT_GOLD_TEXTURE = SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_night_gold.png");
-    private static final ResourceLocation NIGHT_GOLD_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_night_gold_female.png");
+    private static final Identifier NIGHT_GOLD_TEXTURE = SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_night_gold.png");
+    private static final Identifier NIGHT_GOLD_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_night_gold_female.png");
 
     @Override
-    protected ResourceLocation getAdultTexture(Raevyx entity) {
+    protected Identifier getAdultTexture(Raevyx entity) {
         if (entity.hasCustomTextureVariant()) {
             return super.getAdultTexture(entity);
         }

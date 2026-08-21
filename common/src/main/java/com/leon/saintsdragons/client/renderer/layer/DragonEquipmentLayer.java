@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
 import software.bernie.geckolib.renderer.GeoRenderer;
@@ -16,9 +16,9 @@ import java.util.function.Predicate;
 
 public final class DragonEquipmentLayer<T extends DragonEntity> extends GeoRenderLayer<T> {
     private final Predicate<T> visible;
-    private final ResourceLocation texture;
+    private final Identifier texture;
 
-    public DragonEquipmentLayer(GeoRenderer<T> renderer, Predicate<T> visible, ResourceLocation texture) {
+    public DragonEquipmentLayer(GeoRenderer<T> renderer, Predicate<T> visible, Identifier texture) {
         super(renderer);
         this.visible = visible;
         this.texture = texture;

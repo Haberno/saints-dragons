@@ -1,13 +1,13 @@
 package com.leon.saintsdragons.server.entity.variant;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
 public record DragonVariantDefinition(
-        ResourceLocation id,
-        ResourceLocation dragon,
+        Identifier id,
+        Identifier dragon,
         String name,
         int weight,
         int legacyId,
@@ -54,7 +54,7 @@ public record DragonVariantDefinition(
         return "saintsdragons.variant." + id.getNamespace() + "." + id.getPath().replace('/', '.');
     }
 
-    public record BiomeRestrictions(List<ResourceLocation> biomesById, List<ResourceLocation> biomesByTag) {
+    public record BiomeRestrictions(List<Identifier> biomesById, List<Identifier> biomesByTag) {
         public boolean hasBiomesByIdList() {
             return biomesById != null && !biomesById.isEmpty();
         }

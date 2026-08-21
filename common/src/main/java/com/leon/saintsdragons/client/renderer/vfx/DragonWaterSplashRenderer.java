@@ -10,14 +10,14 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
 import org.joml.Vector3f;
 
 public class DragonWaterSplashRenderer extends EntityRenderer<DragonWaterSplashEntity> {
-    private static final ResourceLocation[] TEXTURES = {
+    private static final Identifier[] TEXTURES = {
             SaintsDragonsCommon.rl("textures/particle/watersplash0.png"),
             SaintsDragonsCommon.rl("textures/particle/watersplash1.png"),
             SaintsDragonsCommon.rl("textures/particle/watersplash2.png"),
@@ -99,7 +99,7 @@ public class DragonWaterSplashRenderer extends EntityRenderer<DragonWaterSplashE
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull DragonWaterSplashEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull DragonWaterSplashEntity entity) {
         return TEXTURES[0];
     }
 }

@@ -3,14 +3,14 @@ package com.leon.saintsdragons.client.ui;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.mojang.blaze3d.systems.RenderSystem;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class FireballChargeIndicator {
-    private static final ResourceLocation CHARGE_BAR = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar.png");
-    private static final ResourceLocation CHARGE_BAR_FLASH = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar_flashes.png");
-    private static final ResourceLocation CHARGE_LEVEL_1 = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_first_charge.png");
-    private static final ResourceLocation CHARGE_LEVEL_2 = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_second_charge.png");
-    private static final ResourceLocation CHARGE_LEVEL_3 = new ResourceLocation(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_third_charge.png");
+    private static final Identifier CHARGE_BAR = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar.png");
+    private static final Identifier CHARGE_BAR_FLASH = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_charge_bar_flashes.png");
+    private static final Identifier CHARGE_LEVEL_1 = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_first_charge.png");
+    private static final Identifier CHARGE_LEVEL_2 = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_second_charge.png");
+    private static final Identifier CHARGE_LEVEL_3 = new Identifier(SaintsDragonsCommon.MOD_ID, "textures/gui/ignivorus/fireball_third_charge.png");
     private static final int BAR_WIDTH = 128;
     private static final int BAR_HEIGHT = 32;
     private static final int FLASH_WIDTH = 130;
@@ -129,7 +129,7 @@ public class FireballChargeIndicator {
     }
 
     private void renderChargeLevel(GuiGraphics guiGraphics, int baseX, int baseY, int level,
-                                   ResourceLocation texture, int fillWidth, float smoothFill, float smoothAlpha) {
+                                   Identifier texture, int fillWidth, float smoothFill, float smoothAlpha) {
         float levelProgress = clamp(smoothFill * 3.0f - (level - 1), 0.0f, 1.0f);
         if (levelProgress <= 0.01f) {
             return;

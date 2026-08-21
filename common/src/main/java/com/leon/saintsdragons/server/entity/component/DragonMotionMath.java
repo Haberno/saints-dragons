@@ -25,7 +25,7 @@ public final class DragonMotionMath {
         return new Vec3(Mth.cos(yawRadians), 0.0D, Mth.sin(yawRadians)).normalize();
     }
 
-    public static Vec3 horizontalRelative(float yawDegrees, float offsetDegrees) {
+    public static Vec3 horizontalRelativeMovement(float yawDegrees, float offsetDegrees) {
         return horizontalForward(yawDegrees + offsetDegrees);
     }
 }

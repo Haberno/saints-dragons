@@ -12,7 +12,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -27,7 +27,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public class VolitansBurrowMoundRenderer extends GeoEntityRenderer<VolitansBurrowMoundEntity> {
-    private static final ResourceLocation TEXTURE = SaintsDragonsCommon.rl("textures/blocks/burrow_mound.png");
+    private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/blocks/burrow_mound.png");
     private static final float MODEL_FORWARD_YAW_OFFSET = 0.0F;
     private final Deque<Boolean> blockMaterialStack = new ArrayDeque<>();
     private MultiBufferSource currentBufferSource;
@@ -162,12 +162,12 @@ public class VolitansBurrowMoundRenderer extends GeoEntityRenderer<VolitansBurro
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull VolitansBurrowMoundEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull VolitansBurrowMoundEntity entity) {
         return TEXTURE;
     }
 
     @Override
-    public RenderType getRenderType(VolitansBurrowMoundEntity animatable, ResourceLocation texture,
+    public RenderType getRenderType(VolitansBurrowMoundEntity animatable, Identifier texture,
                                     @Nullable MultiBufferSource bufferSource, float partialTick) {
         return RenderType.entityTranslucent(texture);
     }

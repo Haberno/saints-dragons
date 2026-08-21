@@ -7,7 +7,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -33,19 +33,19 @@ public final class DialogueReloadListener extends SimpleJsonResourceReloadListen
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsonMap,
+    protected void apply(Map<Identifier, JsonElement> jsonMap,
                          @NotNull ResourceManager resourceManager,
                          @NotNull ProfilerFiller profiler) {
-        Map<ResourceLocation, DialogueDefinition> parsed = new LinkedHashMap<>();
+        Map<Identifier, DialogueDefinition> parsed = new LinkedHashMap<>();
         jsonMap.entrySet().stream()
                 .sorted(Comparator.comparing(entry -> entry.getKey().toString()))
                 .forEach(entry -> parseFile(entry.getKey(), entry.getValue(), parsed));
         DialogueRegistry.replaceDatapackDialogues(parsed);
     }
 
-    private static void parseFile(ResourceLocation fileId,
+    private static void parseFile(Identifier fileId,
                                   JsonElement element,
-                                  Map<ResourceLocation, DialogueDefinition> parsed) {
+                                  Map<Identifier, DialogueDefinition> parsed) {
         try {
             JsonObject root = GsonHelper.convertToJsonObject(element, fileId.toString());
             String start = GsonHelper.getAsString(root, root.has("start_at") ? "start_at" : "start", "start");
@@ -88,7 +88,7 @@ public final class DialogueReloadListener extends SimpleJsonResourceReloadListen
         return new DialogueDefinition.Resume(texts, parseStringList(resume, "requires_all_flags"));
     }
 
-    private static DialogueDefinition.Choice parseChoice(ResourceLocation fileId, JsonElement element) {
+    private static DialogueDefinition.Choice parseChoice(Identifier fileId, JsonElement element) {
         JsonObject choice = GsonHelper.convertToJsonObject(element, fileId + " choice");
         return new DialogueDefinition.Choice(
                 parseComponent(choice.get("text")),
@@ -165,7 +165,7 @@ public final class DialogueReloadListener extends SimpleJsonResourceReloadListen
         return root;
     }
 
-    private static List<DialogueDefinition.Choice> parseChoices(ResourceLocation fileId, JsonArray array) {
+    private static List<DialogueDefinition.Choice> parseChoices(Identifier fileId, JsonArray array) {
         List<DialogueDefinition.Choice> choices = new ArrayList<>();
         for (JsonElement element : array) {
             choices.add(parseChoice(fileId, element));

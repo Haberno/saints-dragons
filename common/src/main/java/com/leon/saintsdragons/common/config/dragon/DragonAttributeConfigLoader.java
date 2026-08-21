@@ -10,7 +10,7 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.config.ConfigStorageLayout;
 import com.leon.saintsdragons.common.config.SaintsDragonsConfig;
 import com.leon.saintsdragons.platform.Services;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimpleJsonResourceReloadListener;
 import net.minecraft.util.GsonHelper;
@@ -30,15 +30,15 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
             .setPrettyPrinting()
             .disableHtmlEscaping()
             .create();
-    public static final ResourceLocation CINDERVANE_ID = SaintsDragonsCommon.rl("cindervane");
-    public static final ResourceLocation RAEVYX_ID = SaintsDragonsCommon.rl("raevyx");
-    public static final ResourceLocation VARASUCHUS_ID = SaintsDragonsCommon.rl("varasuchus");
-    public static final ResourceLocation IGNIVORUS_ID = SaintsDragonsCommon.rl("ignivorus");
-    public static final ResourceLocation STEGONAUT_ID = SaintsDragonsCommon.rl("stegonaut");
-    public static final ResourceLocation VOLITANS_ID = SaintsDragonsCommon.rl("volitans");
-    public static final ResourceLocation NULLJAW_ID = SaintsDragonsCommon.rl("nulljaw");
-    public static final ResourceLocation ATROXIIA_ID = SaintsDragonsCommon.rl("atroxiia");
-    public static final ResourceLocation DRACONIAN_SWARM_ID = SaintsDragonsCommon.rl("draconian_swarm");
+    public static final Identifier CINDERVANE_ID = SaintsDragonsCommon.rl("cindervane");
+    public static final Identifier RAEVYX_ID = SaintsDragonsCommon.rl("raevyx");
+    public static final Identifier VARASUCHUS_ID = SaintsDragonsCommon.rl("varasuchus");
+    public static final Identifier IGNIVORUS_ID = SaintsDragonsCommon.rl("ignivorus");
+    public static final Identifier STEGONAUT_ID = SaintsDragonsCommon.rl("stegonaut");
+    public static final Identifier VOLITANS_ID = SaintsDragonsCommon.rl("volitans");
+    public static final Identifier NULLJAW_ID = SaintsDragonsCommon.rl("nulljaw");
+    public static final Identifier ATROXIIA_ID = SaintsDragonsCommon.rl("atroxiia");
+    public static final Identifier DRACONIAN_SWARM_ID = SaintsDragonsCommon.rl("draconian_swarm");
     public static final int SWARM_WAVE_MIN_COUNT = 1;
     public static final int SWARM_WAVE_MAX_COUNT = 50;
     public static final int SWARM_WAVE_1_DEFAULT_COUNT = 6;
@@ -48,9 +48,9 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
     private static final DragonAttributeConfigLoader INSTANCE = new DragonAttributeConfigLoader();
     private static final boolean IS_FORGE = "forge".equals(Services.PLATFORM.getPlatformId());
 
-    private final Map<ResourceLocation, DragonAttributeConfig> defaults;
+    private final Map<Identifier, DragonAttributeConfig> defaults;
     private final Path configDirectory;
-    private volatile Map<ResourceLocation, DragonAttributeConfig> configs;
+    private volatile Map<Identifier, DragonAttributeConfig> configs;
 
     private DragonAttributeConfigLoader() {
         super(GSON, "dragon_attributes");
@@ -830,7 +830,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         getInstance();
     }
 
-    public DragonAttributeConfig getConfig(ResourceLocation id) {
+    public DragonAttributeConfig getConfig(Identifier id) {
         if (IS_FORGE) {
             DragonAttributeConfig config = configs.get(id);
             return config != null ? config : DragonAttributeConfig.EMPTY;
@@ -843,7 +843,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         return fallback != null ? fallback : DragonAttributeConfig.EMPTY;
     }
 
-    public DragonAttributeConfig getDefaultConfig(ResourceLocation id) {
+    public DragonAttributeConfig getDefaultConfig(Identifier id) {
         if (IS_FORGE) {
             DragonAttributeConfig config = configs.get(id);
             return config != null ? config : DragonAttributeConfig.EMPTY;
@@ -852,7 +852,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
     }
 
     @Override
-    protected void apply(Map<ResourceLocation, JsonElement> jsonMap,
+    protected void apply(Map<Identifier, JsonElement> jsonMap,
                          @NotNull ResourceManager resourceManager,
                          @NotNull ProfilerFiller profiler) {
         if (IS_FORGE) {
@@ -861,11 +861,11 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
                     this.configs.size());
             return;
         }
-        Map<ResourceLocation, DragonAttributeConfig> merged = new HashMap<>(defaults);
-        Map<ResourceLocation, JsonObject> rawJson = new HashMap<>();
-        for (Map.Entry<ResourceLocation, JsonElement> entry : jsonMap.entrySet()) {
+        Map<Identifier, DragonAttributeConfig> merged = new HashMap<>(defaults);
+        Map<Identifier, JsonObject> rawJson = new HashMap<>();
+        for (Map.Entry<Identifier, JsonElement> entry : jsonMap.entrySet()) {
             try {
-                ResourceLocation id = entry.getKey();
+                Identifier id = entry.getKey();
                 DragonAttributeConfig fallback = merged.getOrDefault(id, DragonAttributeConfig.EMPTY);
                 JsonObject data = GsonHelper.convertToJsonObject(entry.getValue(), id.toString());
                 rawJson.put(id, data);
@@ -882,15 +882,15 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         SaintsDragonsCommon.LOGGER.info("Loaded {} dragon attribute configuration(s)", this.configs.size());
     }
 
-    private void applyConfigOverrides(Map<ResourceLocation, DragonAttributeConfig> merged,
-                                      Map<ResourceLocation, JsonObject> rawJson) {
+    private void applyConfigOverrides(Map<Identifier, DragonAttributeConfig> merged,
+                                      Map<Identifier, JsonObject> rawJson) {
         try {
             Files.createDirectories(configDirectory);
         } catch (IOException e) {
             SaintsDragonsCommon.LOGGER.warn("Failed to create dragon attribute config directory {}", configDirectory, e);
         }
 
-        for (Map.Entry<ResourceLocation, DragonAttributeConfig> entry : merged.entrySet()) {
+        for (Map.Entry<Identifier, DragonAttributeConfig> entry : merged.entrySet()) {
             Path path = configPath(entry.getKey());
             // Always serialize the merged config to ensure all default keys are present
             JsonObject source = serializeConfig(entry.getKey(), entry.getValue());
@@ -917,13 +917,13 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
             writeConfigFile(path, source);
         }
 
-        for (Map.Entry<ResourceLocation, DragonAttributeConfig> entry : merged.entrySet()) {
+        for (Map.Entry<Identifier, DragonAttributeConfig> entry : merged.entrySet()) {
             DragonAttributeConfig override = readOverride(entry.getKey(), entry.getValue());
             merged.put(entry.getKey(), override);
         }
     }
 
-    private DragonAttributeConfig readOverride(ResourceLocation id, DragonAttributeConfig fallback) {
+    private DragonAttributeConfig readOverride(Identifier id, DragonAttributeConfig fallback) {
         Path path = configPath(id);
         if (!Files.exists(path)) {
             return fallback;
@@ -949,11 +949,11 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private Path configPath(ResourceLocation id) {
+    private Path configPath(Identifier id) {
         return configDirectory.resolve(id.getPath() + ".json");
     }
 
-    private static JsonObject serializeConfig(ResourceLocation id, DragonAttributeConfig config) {
+    private static JsonObject serializeConfig(Identifier id, DragonAttributeConfig config) {
         JsonObject json = new JsonObject();
         json.addProperty("max_health", config.maxHealth());
         json.addProperty("armor", config.armor());
@@ -997,12 +997,12 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         return json;
     }
 
-    public void overwriteConfig(ResourceLocation id, DragonAttributeConfig config) {
+    public void overwriteConfig(Identifier id, DragonAttributeConfig config) {
         if (IS_FORGE) {
             return;
         }
         writeConfigFile(configPath(id), serializeConfig(id, config));
-        Map<ResourceLocation, DragonAttributeConfig> updated = new HashMap<>(this.configs);
+        Map<Identifier, DragonAttributeConfig> updated = new HashMap<>(this.configs);
         updated.put(id, config);
         this.configs = ImmutableMap.copyOf(updated);
     }
@@ -1014,7 +1014,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         this.configs = ImmutableMap.copyOf(buildDefaultConfigs());
     }
 
-    private static void ensureLegacyTamingFlag(ResourceLocation id, JsonObject json) {
+    private static void ensureLegacyTamingFlag(Identifier id, JsonObject json) {
         if (!requiresLegacyTamingFlag(id)) {
             return;
         }
@@ -1030,7 +1030,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void removeHints(Path path, ResourceLocation id) {
+    private void removeHints(Path path, Identifier id) {
         JsonObject json;
         try (Reader reader = Files.newBufferedReader(path)) {
             JsonElement element = JsonParser.parseReader(reader);
@@ -1044,7 +1044,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillLegacyTaming(Path path, ResourceLocation id) {
+    private void backfillLegacyTaming(Path path, Identifier id) {
         if (!requiresLegacyTamingFlag(id)) {
             return;
         }
@@ -1062,7 +1062,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillExtraBooleans(Path path, ResourceLocation id) {
+    private void backfillExtraBooleans(Path path, Identifier id) {
         try (Reader reader = Files.newBufferedReader(path)) {
             JsonElement element = JsonParser.parseReader(reader);
             JsonObject json = GsonHelper.convertToJsonObject(element, id.toString());
@@ -1084,7 +1084,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillRaevyxDiveLoopEnabled(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillRaevyxDiveLoopEnabled(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         if (!id.equals(RAEVYX_ID)) {
             return;
         }
@@ -1108,7 +1108,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
      * or is missing the field entirely. This prevents the Fabric side from sticking to legacy
      * values when the bundled datapack (and Forge) now use 80.0.
      */
-    private void backfillIgnivorusFireBreathDamage(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillIgnivorusFireBreathDamage(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         if (!id.equals(IGNIVORUS_ID)) {
             return;
         }
@@ -1137,7 +1137,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillBeamEnergyTuning(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillBeamEnergyTuning(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         boolean isRaevyx = id.equals(RAEVYX_ID);
         boolean isIgnivorus = id.equals(IGNIVORUS_ID);
         if (!isRaevyx && !isIgnivorus) {
@@ -1221,7 +1221,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillRaevyxSummonStormTuning(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillRaevyxSummonStormTuning(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         if (!id.equals(RAEVYX_ID)) {
             return;
         }
@@ -1261,7 +1261,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillNormalEggTimerTuning(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillNormalEggTimerTuning(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         boolean applies = id.equals(CINDERVANE_ID)
                 || id.equals(ATROXIIA_ID)
                 || id.equals(VARASUCHUS_ID)
@@ -1296,7 +1296,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillRaevyxEggTimerTuning(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillRaevyxEggTimerTuning(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         if (!id.equals(RAEVYX_ID)) {
             return;
         }
@@ -1334,7 +1334,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillTamingStunHealth(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillTamingStunHealth(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         boolean supportsTamingStun = id.equals(RAEVYX_ID)
                 || id.equals(IGNIVORUS_ID)
                 || id.equals(ATROXIIA_ID);
@@ -1356,7 +1356,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillCindervaneAbilityTuning(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillCindervaneAbilityTuning(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         if (!id.equals(CINDERVANE_ID)) {
             return;
         }
@@ -1389,7 +1389,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillWildFlyingSpeedMultiplier(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillWildFlyingSpeedMultiplier(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         boolean applies = id.equals(CINDERVANE_ID) || id.equals(RAEVYX_ID) || id.equals(IGNIVORUS_ID) || id.equals(VOLITANS_ID) || id.equals(NULLJAW_ID);
         if (!applies) {
             return;
@@ -1409,7 +1409,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private static boolean requiresLegacyTamingFlag(ResourceLocation id) {
+    private static boolean requiresLegacyTamingFlag(Identifier id) {
         return id.equals(VARASUCHUS_ID)
                 || id.equals(RAEVYX_ID)
                 || id.equals(IGNIVORUS_ID)
@@ -1418,8 +1418,8 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
                 || id.equals(ATROXIIA_ID);
     }
 
-    private static Map<ResourceLocation, DragonAttributeConfig> buildDefaultConfigs() {
-        Map<ResourceLocation, DragonAttributeConfig> base = new HashMap<>();
+    private static Map<Identifier, DragonAttributeConfig> buildDefaultConfigs() {
+        Map<Identifier, DragonAttributeConfig> base = new HashMap<>();
         base.put(CINDERVANE_ID, cindervaneDefaults());
         base.put(RAEVYX_ID, raevyxDefaults());
         base.put(VARASUCHUS_ID, varasuchusDefaults());
@@ -1432,7 +1432,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         return base;
     }
 
-    private void backfillPreyTamingChances(Path path, ResourceLocation id, DragonAttributeConfig mergedConfig) {
+    private void backfillPreyTamingChances(Path path, Identifier id, DragonAttributeConfig mergedConfig) {
         if (!id.equals(IGNIVORUS_ID)
                 && !id.equals(RAEVYX_ID)
                 && !id.equals(VARASUCHUS_ID)
@@ -1483,7 +1483,7 @@ public final class DragonAttributeConfigLoader extends SimpleJsonResourceReloadL
         }
     }
 
-    private void backfillAtroxiiaAbilityTuning(Path path, ResourceLocation id,
+    private void backfillAtroxiiaAbilityTuning(Path path, Identifier id,
                                                DragonAttributeConfig mergedConfig) {
         if (!id.equals(ATROXIIA_ID)) {
             return;

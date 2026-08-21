@@ -8,7 +8,7 @@ import com.leon.saintsdragons.server.entity.base.DragonEntity;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.BlockGetter;
@@ -101,7 +101,7 @@ public class VolitansEggBlock extends AbstractTimedDragonEggBlock<VolitansEggBlo
     }
 
     @Override
-    protected ResourceLocation getDragonConfigId() {
+    protected Identifier getDragonConfigId() {
         return DragonAttributeConfigLoader.VOLITANS_ID;
     }
 
@@ -131,7 +131,7 @@ public class VolitansEggBlock extends AbstractTimedDragonEggBlock<VolitansEggBlo
     }
 
     @Override
-    protected ResourceLocation getHatchAdvancementId() {
+    protected Identifier getHatchAdvancementId() {
         return SaintsDragonsCommon.rl("hatch_volitans");
     }
 

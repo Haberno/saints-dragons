@@ -6,7 +6,7 @@ import com.leon.saintsdragons.client.model.DragonModelPoseHelper.WeightedBoneCha
 import com.leon.saintsdragons.client.ui.DraconicCodexScreen;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.dragons.volitans.Volitans;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.cache.object.GeoBone;
 import software.bernie.geckolib.constant.DataTickets;
@@ -23,15 +23,15 @@ public class VolitansModel extends DragonGeoModel<Volitans> {
             new String[] {"tail1", "tail2", "tail3", "tail4"},
             0.5f, 0.75f, 1.0f, 1.25f
     );
-    private static final ResourceLocation BLOODSHOT_TEXTURE = SaintsDragonsCommon.rl("textures/entity/volitans/volitans_bloodshot.png");
-    private static final ResourceLocation BLOODSHOT_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/volitans/volitans_bloodshot_female.png");
+    private static final Identifier BLOODSHOT_TEXTURE = SaintsDragonsCommon.rl("textures/entity/volitans/volitans_bloodshot.png");
+    private static final Identifier BLOODSHOT_FEMALE_TEXTURE = SaintsDragonsCommon.rl("textures/entity/volitans/volitans_bloodshot_female.png");
 
     public VolitansModel() {
         super("volitans");
     }
 
     @Override
-    protected ResourceLocation getAdultTexture(Volitans entity) {
+    protected Identifier getAdultTexture(Volitans entity) {
         if (entity.hasCustomTextureVariant()) {
             return super.getAdultTexture(entity);
         }

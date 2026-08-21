@@ -1,7 +1,7 @@
 package com.leon.saintsdragons.server.entity.npc.chatter;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import net.minecraft.server.packs.resources.SimplePreparableReloadListener;
@@ -40,7 +40,7 @@ public final class IvyChatterReloadListener extends SimplePreparableReloadListen
         return pools;
     }
 
-    private static void readPool(ResourceLocation id, Resource resource, Map<String, List<String>> pools) {
+    private static void readPool(Identifier id, Resource resource, Map<String, List<String>> pools) {
         String pool = poolName(id);
         List<String> lines = pools.computeIfAbsent(pool, ignored -> new ArrayList<>());
         try (BufferedReader reader = resource.openAsReader()) {
@@ -56,7 +56,7 @@ public final class IvyChatterReloadListener extends SimplePreparableReloadListen
         }
     }
 
-    private static String poolName(ResourceLocation id) {
+    private static String poolName(Identifier id) {
         String path = id.getPath();
         return path.substring(DIRECTORY.length() + 1, path.length() - EXTENSION.length());
     }

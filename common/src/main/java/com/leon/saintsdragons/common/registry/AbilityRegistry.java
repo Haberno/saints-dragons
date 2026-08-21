@@ -3,7 +3,7 @@ package com.leon.saintsdragons.common.registry;
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.ability.DragonAbility;
 import com.leon.saintsdragons.server.entity.ability.DragonAbilityType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.LivingEntity;
 
 import java.util.HashMap;
@@ -13,15 +13,15 @@ import java.util.Map;
 public final class AbilityRegistry {
     private AbilityRegistry() {}
 
-    private static final Map<ResourceLocation, DragonAbilityType<?, ?>> BY_NAME = new HashMap<>();
-    private static final Map<DragonAbilityType<?, ?>, ResourceLocation> BY_TYPE = new IdentityHashMap<>();
+    private static final Map<Identifier, DragonAbilityType<?, ?>> BY_NAME = new HashMap<>();
+    private static final Map<DragonAbilityType<?, ?>, Identifier> BY_TYPE = new IdentityHashMap<>();
 
     public static synchronized <M extends LivingEntity, T extends DragonAbility<M>> DragonAbilityType<M, T> register(DragonAbilityType<M, T> type) {
         return register(type.getName(), type);
     }
 
     public static synchronized <M extends LivingEntity, T extends DragonAbility<M>> DragonAbilityType<M, T> register(String name, DragonAbilityType<M, T> type) {
-        ResourceLocation key = resolveKey(name);
+        Identifier key = resolveKey(name);
         if (key == null) {
             throw new IllegalArgumentException("Ability name must not be null/empty");
         }
@@ -34,7 +34,7 @@ public final class AbilityRegistry {
     }
 
     public static DragonAbilityType<?, ?> get(String name) {
-        ResourceLocation key = resolveKey(name);
+        Identifier key = resolveKey(name);
         if (key == null) {
             return null;
         }
@@ -42,17 +42,17 @@ public final class AbilityRegistry {
     }
 
     public static String getName(DragonAbilityType<?, ?> type) {
-        ResourceLocation key = BY_TYPE.get(type);
+        Identifier key = BY_TYPE.get(type);
         return key != null ? key.toString() : null;
     }
 
-    private static ResourceLocation resolveKey(String name) {
+    private static Identifier resolveKey(String name) {
         if (name == null || name.isEmpty()) {
             return null;
         }
         if (name.indexOf(':') >= 0) {
-            return ResourceLocation.tryParse(name);
+            return Identifier.tryParse(name);
         }
-        return new ResourceLocation(SaintsDragonsCommon.MOD_ID, name);
+        return new Identifier(SaintsDragonsCommon.MOD_ID, name);
     }
 }

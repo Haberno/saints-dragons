@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,7 +39,7 @@ public class CindervaneMagmaBlockRenderer extends EntityRenderer<CindervaneMagma
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull CindervaneMagmaBlockEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull CindervaneMagmaBlockEntity entity) {
         return TextureAtlas.LOCATION_BLOCKS;
     }
 }

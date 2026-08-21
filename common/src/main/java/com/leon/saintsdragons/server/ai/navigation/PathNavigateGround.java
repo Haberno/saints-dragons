@@ -295,7 +295,7 @@ public class PathNavigateGround extends GroundPathNavigation {
     }
 
     @Override
-    protected boolean hasValidPathType(@Nonnull BlockPathTypes pathType) {
+    protected boolean hasValidBlockPathTypes(@Nonnull BlockPathTypes pathType) {
         if (pathType == BlockPathTypes.LAVA) {
             return false; // Dragons avoid lava paths entirely
         }

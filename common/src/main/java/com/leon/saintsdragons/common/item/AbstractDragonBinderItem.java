@@ -43,7 +43,7 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
         }
 
         T dragon = getDragonClass().cast(target);
-        if (player.level().isClientSide) {
+        if (player.level().isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 
@@ -91,7 +91,7 @@ public abstract class AbstractDragonBinderItem<T extends DragonEntity> extends I
             return super.useOn(context);
         }
 
-        if (context.getLevel().isClientSide) {
+        if (context.getLevel().isClientSide()) {
             return InteractionResult.SUCCESS;
         }
 

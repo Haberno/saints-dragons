@@ -4,7 +4,7 @@ import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.common.item.DragonlordArmorItem;
 import com.leon.saintsdragons.common.item.DragonlordArmorSetBonus;
 import com.leon.saintsdragons.server.flight.DragonFlightVisuals;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
@@ -17,9 +17,9 @@ import java.util.WeakHashMap;
 
 public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
     private static final float DEG_TO_RAD = Mth.DEG_TO_RAD;
-    private static final ResourceLocation MODEL = SaintsDragonsCommon.rl("geo/armor/dragonlord_armor.geo.json");
-    private static final ResourceLocation TEXTURE = SaintsDragonsCommon.rl("textures/armor/dragonlord_armor.png");
-    private static final ResourceLocation ANIMATION = SaintsDragonsCommon.rl("animations/armor/dragonlord_armor.animation.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("geo/armor/dragonlord_armor.geo.json");
+    private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/armor/dragonlord_armor.png");
+    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("animations/armor/dragonlord_armor.animation.json");
     private final Map<LivingEntity, DivePoseTracker> divePoseTrackers = new WeakHashMap<>();
 
     @Override
@@ -87,17 +87,17 @@ public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
     }
 
     @Override
-    public ResourceLocation getModelResource(DragonlordArmorItem animatable) {
+    public Identifier getModelResource(DragonlordArmorItem animatable) {
         return MODEL;
     }
 
     @Override
-    public ResourceLocation getTextureResource(DragonlordArmorItem animatable) {
+    public Identifier getTextureResource(DragonlordArmorItem animatable) {
         return TEXTURE;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(DragonlordArmorItem animatable) {
+    public Identifier getAnimationResource(DragonlordArmorItem animatable) {
         return ANIMATION;
     }
 

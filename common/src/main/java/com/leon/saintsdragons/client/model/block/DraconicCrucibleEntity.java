@@ -9,13 +9,13 @@ import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
 import net.minecraft.client.model.geom.PartPose;
 import net.minecraft.client.model.geom.builders.*;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 public class DraconicCrucibleEntity extends HierarchicalModel<Entity> {
-	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new ResourceLocation("saintsdragons", "draconic_crucible"), "main");
+	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(new Identifier("saintsdragons", "draconic_crucible"), "main");
 	private final ModelPart root;
 	private final ModelPart neck;
 	private final ModelPart upperjaw;

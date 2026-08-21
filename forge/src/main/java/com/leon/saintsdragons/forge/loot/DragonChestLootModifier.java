@@ -4,7 +4,7 @@ import com.leon.saintsdragons.server.loot.DragonChestLootRegistry;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.storage.loot.LootContext;
 import net.minecraft.world.level.storage.loot.predicates.LootItemCondition;
@@ -22,7 +22,7 @@ public class DragonChestLootModifier extends LootModifier {
 
     @Override
     protected @NotNull ObjectArrayList<ItemStack> doApply(ObjectArrayList<ItemStack> generatedLoot, LootContext context) {
-        ResourceLocation lootTable = context.getQueriedLootTableId();
+        Identifier lootTable = context.getQueriedLootTableId();
         for (DragonChestLootRegistry.Entry entry : DragonChestLootRegistry.entriesFor(lootTable)) {
             double chance = entry.resolvedChance();
             if (chance > 0.0D && context.getRandom().nextDouble() < chance) {

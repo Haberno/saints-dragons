@@ -7,7 +7,7 @@ import com.leon.saintsdragons.common.registry.ModRecipes;
 import net.minecraft.core.NonNullList;
 import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.FriendlyByteBuf;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.GsonHelper;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -26,7 +26,7 @@ import java.util.Map;
 public final class DraconicCrucibleShapedRecipe implements Recipe<Container> {
     public static final int GRID_SIZE = 9;
 
-    private final ResourceLocation id;
+    private final Identifier id;
     private final int width;
     private final int height;
     private final NonNullList<Ingredient> ingredients;
@@ -35,7 +35,7 @@ public final class DraconicCrucibleShapedRecipe implements Recipe<Container> {
     private final int processingTime;
     private final int priority;
 
-    public DraconicCrucibleShapedRecipe(ResourceLocation id, int width, int height,
+    public DraconicCrucibleShapedRecipe(Identifier id, int width, int height,
                                         NonNullList<Ingredient> ingredients,
                                         ItemStack result, int requiredHeatLevel, int processingTime,
                                         int priority) {
@@ -154,7 +154,7 @@ public final class DraconicCrucibleShapedRecipe implements Recipe<Container> {
     }
 
     @Override
-    public @NotNull ResourceLocation getId() {
+    public @NotNull Identifier getId() {
         return this.id;
     }
 
@@ -175,7 +175,7 @@ public final class DraconicCrucibleShapedRecipe implements Recipe<Container> {
 
     public static final class Serializer implements RecipeSerializer<DraconicCrucibleShapedRecipe> {
         @Override
-        public @NotNull DraconicCrucibleShapedRecipe fromJson(@NotNull ResourceLocation id,
+        public @NotNull DraconicCrucibleShapedRecipe fromJson(@NotNull Identifier id,
                                                                @NotNull JsonObject json) {
             String[] pattern = readPattern(json);
             Map<Character, Ingredient> key = readKey(json);
@@ -209,7 +209,7 @@ public final class DraconicCrucibleShapedRecipe implements Recipe<Container> {
         }
 
         @Override
-        public @Nullable DraconicCrucibleShapedRecipe fromNetwork(@NotNull ResourceLocation id,
+        public @Nullable DraconicCrucibleShapedRecipe fromNetwork(@NotNull Identifier id,
                                                                   @NotNull FriendlyByteBuf buffer) {
             int width = buffer.readVarInt();
             int height = buffer.readVarInt();

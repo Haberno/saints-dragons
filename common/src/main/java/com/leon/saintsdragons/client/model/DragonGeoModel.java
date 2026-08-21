@@ -2,18 +2,18 @@ package com.leon.saintsdragons.client.model;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.base.DragonEntity;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import software.bernie.geckolib.model.DefaultedEntityGeoModel;
 
 public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEntityGeoModel<T> {
-    protected final ResourceLocation model;
-    protected final ResourceLocation babyModel;
-    protected final ResourceLocation animation;
-    protected final ResourceLocation babyAnimation;
-    protected final ResourceLocation maleTexture;
-    protected final ResourceLocation femaleTexture;
-    protected final ResourceLocation babyMaleTexture;
-    protected final ResourceLocation babyFemaleTexture;
+    protected final Identifier model;
+    protected final Identifier babyModel;
+    protected final Identifier animation;
+    protected final Identifier babyAnimation;
+    protected final Identifier maleTexture;
+    protected final Identifier femaleTexture;
+    protected final Identifier babyMaleTexture;
+    protected final Identifier babyFemaleTexture;
 
     protected DragonGeoModel(String dragonId) {
         this(dragonId, true);
@@ -39,12 +39,12 @@ public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEn
     }
 
     @Override
-    public ResourceLocation getModelResource(T entity) {
+    public Identifier getModelResource(T entity) {
         return entity != null && entity.isBaby() ? babyModel : model;
     }
 
     @Override
-    public ResourceLocation getTextureResource(T entity) {
+    public Identifier getTextureResource(T entity) {
         if (entity == null) {
             return maleTexture;
         }
@@ -55,18 +55,18 @@ public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEn
     }
 
     @Override
-    public ResourceLocation getAnimationResource(T entity) {
+    public Identifier getAnimationResource(T entity) {
         return entity != null && entity.isBaby() ? babyAnimation : animation;
     }
 
-    protected ResourceLocation getAdultTexture(T entity) {
+    protected Identifier getAdultTexture(T entity) {
         if (entity.hasCustomTextureVariant()) {
             return entity.getCustomAdultTextureResource(entity.isFemale());
         }
         return entity.isFemale() ? femaleTexture : maleTexture;
     }
 
-    protected ResourceLocation getBabyTexture(T entity) {
+    protected Identifier getBabyTexture(T entity) {
         return entity.isFemale() ? babyFemaleTexture : babyMaleTexture;
     }
 }

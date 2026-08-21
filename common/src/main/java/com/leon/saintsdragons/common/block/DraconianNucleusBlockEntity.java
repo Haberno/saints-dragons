@@ -13,7 +13,7 @@ import com.leon.saintsdragons.server.entity.draconianswarm.AbstractDraconianSwar
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
@@ -368,7 +368,7 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
 
     private static boolean claimSummonSound(ServerLevel level, BlockPos pos, SoundEvent sound) {
         long gameTime = level.getGameTime();
-        ResourceLocation soundId = sound.getLocation();
+        Identifier soundId = sound.getLocation();
         double mergeRadiusSqr = SUMMON_SOUND_MERGE_RADIUS * SUMMON_SOUND_MERGE_RADIUS;
 
         synchronized (RECENT_SUMMON_SOUNDS) {
@@ -388,7 +388,7 @@ public class DraconianNucleusBlockEntity extends BlockEntity {
         }
     }
 
-    private record RecentSummonSound(ResourceLocation soundId, BlockPos pos, long gameTime) {
+    private record RecentSummonSound(Identifier soundId, BlockPos pos, long gameTime) {
     }
 
     private static void awardNearbyAdvancement(ServerLevel level, BlockPos pos, String advancementId, String criterion) {

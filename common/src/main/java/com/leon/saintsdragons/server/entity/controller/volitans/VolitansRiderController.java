@@ -108,7 +108,7 @@ public final class VolitansRiderController {
         float speed = (float) (dragon.isAccelerating() ? 0.34D : 0.24D);
         dragon.setRunning(dragon.isAccelerating() && rider.zza > 0.05F);
         dragon.setSpeed(speed);
-        dragon.moveRelative(speed, motion);
+        dragon.moveRelativeMovement(speed, motion);
         dragon.move(MoverType.SELF, dragon.getDeltaMovement());
         dragon.setDeltaMovement(dragon.getDeltaMovement().multiply(0.82D, 1.0D, 0.82D));
         dragon.calculateEntityAnimation(true);

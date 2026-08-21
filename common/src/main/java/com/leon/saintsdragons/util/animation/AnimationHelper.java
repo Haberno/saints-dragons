@@ -5,7 +5,7 @@ import com.leon.saintsdragons.server.entity.base.RideableDragonBase;
 import com.leon.saintsdragons.server.entity.interfaces.DancingEntity;
 import com.leon.saintsdragons.server.flight.DragonFlightStateEvaluator;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.Entity;
@@ -48,7 +48,7 @@ public final class AnimationHelper {
 
     @SafeVarargs
     public static <T extends GeoAnimatable> void registerStepKeyframes(Entity entity, AnimationController<T>... controllers) {
-        ResourceLocation entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
+        Identifier entityTypeId = BuiltInRegistries.ENTITY_TYPE.getKey(entity.getType());
         if (entityTypeId == null) {
             return;
         }
@@ -56,10 +56,10 @@ public final class AnimationHelper {
         for (AnimationController<T> controller : controllers) {
             controller.setSoundKeyframeHandler(event -> {
                 String soundKey = event.getKeyframeData().getSound();
-                ResourceLocation soundId = "step".equals(soundKey)
-                        ? new ResourceLocation(entityTypeId.getNamespace(), entityTypeId.getPath() + "_step")
+                Identifier soundId = "step".equals(soundKey)
+                        ? new Identifier(entityTypeId.getNamespace(), entityTypeId.getPath() + "_step")
                         : soundKey != null && soundKey.endsWith("_step")
-                                ? new ResourceLocation(entityTypeId.getNamespace(), soundKey)
+                                ? new Identifier(entityTypeId.getNamespace(), soundKey)
                                 : null;
                 SoundEvent sound = soundId != null ? BuiltInRegistries.SOUND_EVENT.get(soundId) : null;
                 if (sound != null) {

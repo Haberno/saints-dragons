@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.levelgen.GenerationStep;
@@ -24,7 +24,7 @@ public final class AddConditionalFeaturesBiomeModifier implements BiomeModifier 
                     PlacedFeature.LIST_CODEC.fieldOf("features").forGetter(m -> m.features),
                     GenerationStep.Decoration.CODEC.fieldOf("step").forGetter(m -> m.step),
                     Codec.STRING.fieldOf("config_key").forGetter(m -> m.configKey),
-                    ResourceLocation.CODEC.optionalFieldOf("default_biome_tag").forGetter(m ->
+                    Identifier.CODEC.optionalFieldOf("default_biome_tag").forGetter(m ->
                             Optional.ofNullable(m.defaultBiomeTag).map(TagKey::location))
             ).apply(instance, AddConditionalFeaturesBiomeModifier::new)
     );
@@ -39,7 +39,7 @@ public final class AddConditionalFeaturesBiomeModifier implements BiomeModifier 
                                                HolderSet<PlacedFeature> features,
                                                GenerationStep.Decoration step,
                                                String configKey,
-                                               Optional<ResourceLocation> defaultBiomeTag) {
+                                               Optional<Identifier> defaultBiomeTag) {
         this.biomes = biomes;
         this.features = features;
         this.step = step;

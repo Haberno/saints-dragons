@@ -7,7 +7,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import software.bernie.geckolib.cache.object.BakedGeoModel;
@@ -18,13 +18,13 @@ import software.bernie.geckolib.renderer.layer.GeoRenderLayer;
  * Emissive glow layer for Raevyx beam glow.
  */
 public class RaevyxGlowLayer extends GeoRenderLayer<Raevyx> {
-    private static final ResourceLocation GLOW_TEXTURE =
+    private static final Identifier GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_glow.png");
-    private static final ResourceLocation FEMALE_GLOW_TEXTURE =
+    private static final Identifier FEMALE_GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_female_glow.png");
-    private static final ResourceLocation NIGHT_GOLD_GLOW_TEXTURE =
+    private static final Identifier NIGHT_GOLD_GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_night_gold_glow.png");
-    private static final ResourceLocation NIGHT_GOLD_FEMALE_GLOW_TEXTURE =
+    private static final Identifier NIGHT_GOLD_FEMALE_GLOW_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/raevyx/raevyx_night_gold_female_glow.png");
 
     public RaevyxGlowLayer(GeoRenderer<Raevyx> renderer) {
@@ -47,7 +47,7 @@ public class RaevyxGlowLayer extends GeoRenderLayer<Raevyx> {
         float pulse = pulseBase + pulseSwing * (0.5f + 0.5f * Mth.sin(ticks * 0.12F));
         float alpha = pulse;
         boolean nightGold = animatable.getTextureVariant() == Raevyx.VARIANT_NIGHT_GOLD;
-        ResourceLocation texture;
+        Identifier texture;
         if (nightGold) {
             texture = animatable.isFemale() ? NIGHT_GOLD_FEMALE_GLOW_TEXTURE : NIGHT_GOLD_GLOW_TEXTURE;
         } else {

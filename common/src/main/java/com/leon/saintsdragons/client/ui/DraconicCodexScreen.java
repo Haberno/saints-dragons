@@ -21,9 +21,11 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.input.MouseButtonEvent;
+import net.minecraft.client.input.MouseButtonInfo;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -34,45 +36,45 @@ import java.util.Objects;
 @Environment(EnvType.CLIENT)
 public class DraconicCodexScreen extends Screen {
     public static final ThreadLocal<Boolean> RENDERING_IN_GUI = ThreadLocal.withInitial(() -> false);
-    private static final ResourceLocation BOOK_TEXTURE =
+    private static final Identifier BOOK_TEXTURE =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/draconic_codex.png");
-    private static final ResourceLocation TAB_PHYSIOLOGY =
+    private static final Identifier TAB_PHYSIOLOGY =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/physiology_tab.png");
-    private static final ResourceLocation TAB_ECOLOGY =
+    private static final Identifier TAB_ECOLOGY =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/ecology_tab.png");
-    private static final ResourceLocation TAB_ALLY =
+    private static final Identifier TAB_ALLY =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/ally_tab.png");
-    private static final ResourceLocation TAB_PHYSIOLOGY_CLOSED =
+    private static final Identifier TAB_PHYSIOLOGY_CLOSED =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/physiology_tab_closed.png");
-    private static final ResourceLocation TAB_ECOLOGY_CLOSED =
+    private static final Identifier TAB_ECOLOGY_CLOSED =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/ecology_tab_closed.png");
-    private static final ResourceLocation TAB_ALLY_CLOSED =
+    private static final Identifier TAB_ALLY_CLOSED =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/ally_tab_closed.png");
-    private static final ResourceLocation HEALTH_ICON =
+    private static final Identifier HEALTH_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/health_icon.png");
-    private static final ResourceLocation ARMOR_ICON =
+    private static final Identifier ARMOR_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/armor_icon.png");
-    private static final ResourceLocation GENDER_ICON =
+    private static final Identifier GENDER_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/gender_icon.png");
-    private static final ResourceLocation HUNGER_ICON =
+    private static final Identifier HUNGER_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/hunger_icon.png");
-    private static final ResourceLocation HAPPINESS_ICON =
+    private static final Identifier HAPPINESS_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/happiness_icon.png");
-    private static final ResourceLocation VARIANT_ICON =
+    private static final Identifier VARIANT_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/variant_icon.png");
-    private static final ResourceLocation BRUSHING_AVAILABLE_1 =
+    private static final Identifier BRUSHING_AVAILABLE_1 =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/brushing_available1.png");
-    private static final ResourceLocation BRUSHING_AVAILABLE_2 =
+    private static final Identifier BRUSHING_AVAILABLE_2 =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/brushing_available2.png");
-    private static final ResourceLocation BRUSHING_UNAVAILABLE =
+    private static final Identifier BRUSHING_UNAVAILABLE =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/brushing_unavailable.png");
-    private static final ResourceLocation CODEX_EDIT_BOX =
+    private static final Identifier CODEX_EDIT_BOX =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/codex_edit_box.png");
-    private static final ResourceLocation ADD_ICON =
+    private static final Identifier ADD_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/add_icon.png");
-    private static final ResourceLocation REMOVE_ICON =
+    private static final Identifier REMOVE_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/remove_icon.png");
-    private static final ResourceLocation REFRESH_ICON =
+    private static final Identifier REFRESH_ICON =
             SaintsDragonsCommon.rl("textures/gui/draconiccodex/icons/refresh_icon.png");
     private static final int REFRESH_ICON_OFFSET_X = 72;
     private static final int REFRESH_ICON_OFFSET_Y = 46;
@@ -165,7 +167,7 @@ public class DraconicCodexScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics);
+        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         guiGraphics.blit(BOOK_TEXTURE, leftPos, topPos, 0, 0,
                 CodexLayout.GUI_WIDTH, CodexLayout.GUI_HEIGHT,
@@ -189,7 +191,6 @@ public class DraconicCodexScreen extends Screen {
         dragonRenderer.drawDragonPortrait(guiGraphics, this.minecraft, getSelectedEntry(), leftPos, topPos, mouseX, mouseY);
     }
 
-    @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
         if (button == 0) {
             if (activeTab == CodexTab.ECOLOGY && handleEcologyLinkClick(mouseX, mouseY)) {
@@ -220,6 +221,7 @@ public class DraconicCodexScreen extends Screen {
                 return true;
             }
         }
+
         return super.mouseClicked(mouseX, mouseY, button);
     }
 

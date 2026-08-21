@@ -5,7 +5,7 @@ import com.leon.saintsdragons.common.block.DraconicCrucibleBlockEntity;
 import com.leon.saintsdragons.common.integration.JadeCrucibleTooltipHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import snownee.jade.api.BlockAccessor;
 import snownee.jade.api.IBlockComponentProvider;
 import snownee.jade.api.IServerDataProvider;
@@ -30,7 +30,7 @@ public enum DraconicCrucibleBlockProvider implements IBlockComponentProvider, IS
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return SaintsDragonsCommon.rl("draconic_crucible_timer");
     }
 }

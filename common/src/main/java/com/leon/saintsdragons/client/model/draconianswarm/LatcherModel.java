@@ -2,7 +2,7 @@ package com.leon.saintsdragons.client.model.draconianswarm;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.draconianswarm.Latcher;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animation.AnimationState;
@@ -10,25 +10,25 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.model.data.EntityModelData;
 
 public class LatcherModel extends GeoModel<Latcher> {
-    private static final ResourceLocation MODEL =
+    private static final Identifier MODEL =
             SaintsDragonsCommon.rl("geo/entity/latcher.geo.json");
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/latcher/latcher.png");
-    private static final ResourceLocation ANIMATIONS =
+    private static final Identifier ANIMATIONS =
             SaintsDragonsCommon.rl("animations/entity/latcher.animation.json");
 
     @Override
-    public ResourceLocation getModelResource(Latcher animatable) {
+    public Identifier getModelResource(Latcher animatable) {
         return MODEL;
     }
 
     @Override
-    public ResourceLocation getTextureResource(Latcher animatable) {
+    public Identifier getTextureResource(Latcher animatable) {
         return TEXTURE;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(Latcher animatable) {
+    public Identifier getAnimationResource(Latcher animatable) {
         return ANIMATIONS;
     }
 

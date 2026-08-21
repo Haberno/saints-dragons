@@ -13,7 +13,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.NonNullList;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.ContainerHelper;
 import net.minecraft.world.Containers;
@@ -61,7 +61,7 @@ public class DraconicCrucibleBlockEntity extends RandomizableContainerBlockEntit
     private int reservedFuelHeatLevel;
     private ItemStack pendingResult = ItemStack.EMPTY;
     @Nullable
-    private ResourceLocation activeRecipeId;
+    private Identifier activeRecipeId;
     private int activeInputSlot = NO_JOB_SLOT;
 
     private boolean animationInitialized;
@@ -595,7 +595,7 @@ public class DraconicCrucibleBlockEntity extends RandomizableContainerBlockEntit
                 ? ItemStack.of(tag.getCompound("PendingResult"))
                 : ItemStack.EMPTY;
         this.activeRecipeId = tag.contains("ActiveRecipe")
-                ? ResourceLocation.tryParse(tag.getString("ActiveRecipe"))
+                ? Identifier.tryParse(tag.getString("ActiveRecipe"))
                 : null;
         this.activeInputSlot = this.activeRecipeId == null
                 ? NO_JOB_SLOT
@@ -705,7 +705,7 @@ public class DraconicCrucibleBlockEntity extends RandomizableContainerBlockEntit
     }
 
     private record CrucibleJob(
-            ResourceLocation recipeId,
+            Identifier recipeId,
             int inputSlot,
             ItemStack result,
             int requiredHeatLevel,

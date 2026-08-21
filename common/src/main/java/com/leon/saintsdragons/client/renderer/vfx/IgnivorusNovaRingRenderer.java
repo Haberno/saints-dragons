@@ -9,7 +9,7 @@ import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.jetbrains.annotations.NotNull;
 import org.joml.Matrix3f;
 import org.joml.Matrix4f;
@@ -18,7 +18,7 @@ import org.joml.Vector3f;
 public class IgnivorusNovaRingRenderer extends EntityRenderer<IgnivorusNovaRingEntity> {
 
     private static final int TOTAL_FRAMES = 5;
-    private static final ResourceLocation[] TEXTURES = new ResourceLocation[TOTAL_FRAMES];
+    private static final Identifier[] TEXTURES = new Identifier[TOTAL_FRAMES];
 
     static {
         for (int i = 0; i < TOTAL_FRAMES; i++) {
@@ -46,7 +46,7 @@ public class IgnivorusNovaRingRenderer extends EntityRenderer<IgnivorusNovaRingE
 
         int frame = (entity.getAge() * TOTAL_FRAMES) / entity.getDuration();
         frame = Math.min(frame, TOTAL_FRAMES - 1);
-        ResourceLocation texture = TEXTURES[frame];
+        Identifier texture = TEXTURES[frame];
 
         VertexConsumer consumer = bufferSource.getBuffer(RenderType.entityTranslucent(texture));
 
@@ -106,7 +106,7 @@ public class IgnivorusNovaRingRenderer extends EntityRenderer<IgnivorusNovaRingE
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull IgnivorusNovaRingEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull IgnivorusNovaRingEntity entity) {
         return TEXTURES[0];
     }
 }

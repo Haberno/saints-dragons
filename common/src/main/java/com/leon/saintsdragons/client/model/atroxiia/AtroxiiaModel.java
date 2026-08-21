@@ -10,6 +10,7 @@ import software.bernie.geckolib.constant.DataTickets;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.data.EntityModelData;
 
+
 public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
 
     private static final DragonModelPoseHelper.WeightedBoneChain NECK = DragonModelPoseHelper.WeightedBoneChain.of(
@@ -82,6 +83,7 @@ public class AtroxiiaModel extends DragonGeoModel<Atroxiia> {
         if (entity.isFlying()) {
             lookPitchRad *= 0.5f;
         }
+
 
         float totalYawRad = DragonModelPoseHelper.lookYawWithBodyDeviation(entity, modelData, partialTick, 2.0);
         DragonModelPoseHelper.applyWeightedNeckFollow(this, entity, NECK, lookPitchRad, totalYawRad);

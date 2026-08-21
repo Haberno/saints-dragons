@@ -2,7 +2,7 @@ package com.leon.saintsdragons.forge.platform;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.platform.NetworkHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.Level;
@@ -25,7 +25,7 @@ public final class ForgeNetworkHelper implements NetworkHelper {
     private SimpleChannel getChannel() {
         if (channel == null) {
             channel = NetworkRegistry.newSimpleChannel(
-                    new ResourceLocation(SaintsDragonsCommon.MOD_ID, "main"),
+                    new Identifier(SaintsDragonsCommon.MOD_ID, "main"),
                     () -> PROTOCOL_VERSION,
                     PROTOCOL_VERSION::equals,
                     PROTOCOL_VERSION::equals
@@ -36,7 +36,7 @@ public final class ForgeNetworkHelper implements NetworkHelper {
 
     @Override
     public <T> void registerServerbound(Class<T> type,
-                                        ResourceLocation id,
+                                        Identifier id,
                                         PacketEncoder<T> encoder,
                                         PacketDecoder<T> decoder,
                                         ServerboundHandler<T> handler) {
@@ -54,7 +54,7 @@ public final class ForgeNetworkHelper implements NetworkHelper {
 
     @Override
     public <T> void registerClientbound(Class<T> type,
-                                        ResourceLocation id,
+                                        Identifier id,
                                         PacketEncoder<T> encoder,
                                         PacketDecoder<T> decoder,
                                         ClientboundHandler<T> handler) {

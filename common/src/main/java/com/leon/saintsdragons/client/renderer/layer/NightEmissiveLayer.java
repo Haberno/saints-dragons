@@ -6,7 +6,7 @@ import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.RenderType;
 import net.minecraft.client.renderer.texture.OverlayTexture;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -46,7 +46,7 @@ public abstract class NightEmissiveLayer<T extends DragonEntity> extends GeoRend
             return;
         }
 
-        ResourceLocation texture = getEmissiveTexture(animatable);
+        Identifier texture = getEmissiveTexture(animatable);
         if (texture == null) {
             return;
         }
@@ -72,7 +72,7 @@ public abstract class NightEmissiveLayer<T extends DragonEntity> extends GeoRend
     }
 
     @Nullable
-    protected abstract ResourceLocation getEmissiveTexture(T animatable);
+    protected abstract Identifier getEmissiveTexture(T animatable);
 
     protected boolean allowCustomTextureVariantEmissive(T animatable) {
         return false;

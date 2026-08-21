@@ -13,7 +13,7 @@ import mezz.jei.api.registration.IRecipeCatalystRegistration;
 import mezz.jei.api.registration.IRecipeCategoryRegistration;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.client.Minecraft;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import java.util.List;
 
@@ -26,10 +26,10 @@ public final class SaintsDragonsJeiPlugin implements IModPlugin {
             RecipeType.create(SaintsDragonsCommon.MOD_ID, "draconic_crucible_smelting",
                     DraconicCrucibleSmeltingRecipe.class);
 
-    private static final ResourceLocation PLUGIN_ID = SaintsDragonsCommon.rl("jei_plugin");
+    private static final Identifier PLUGIN_ID = SaintsDragonsCommon.rl("jei_plugin");
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return PLUGIN_ID;
     }
 

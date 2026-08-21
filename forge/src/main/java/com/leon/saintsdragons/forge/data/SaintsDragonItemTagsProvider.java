@@ -10,7 +10,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.data.tags.TagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 public final class SaintsDragonItemTagsProvider extends ItemTagsProvider {
     private static final TagKey<Item> MINECRAFT_EGGS = TagKey.create(
             Registries.ITEM,
-            ResourceLocation.fromNamespaceAndPath("minecraft", "eggs")
+            Identifier.fromNamespaceAndPath("minecraft", "eggs")
     );
 
     public SaintsDragonItemTagsProvider(

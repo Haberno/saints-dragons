@@ -39,7 +39,7 @@ import net.minecraft.network.syncher.EntityDataAccessor;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -229,7 +229,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(DATA_TAMING_STUNNED, false);
+        this.entityData.defineId(DATA_TAMING_STUNNED, false);
         this.entityData.define(DATA_SCREEN_SHAKE_AMOUNT, 0.0F);
         this.entityData.define(DATA_PRECISE_STRIKE_NUDGE_TICKS, 0);
         this.entityData.define(DATA_PRECISE_STRIKE_NUDGE_X, 0.0F);
@@ -1044,7 +1044,7 @@ public class Atroxiia extends RideableGroundDragon implements ShakesScreen, Pass
     }
 
     @Override
-    protected ResourceLocation getDragonAttributesId() {
+    protected Identifier getDragonAttributesId() {
         return DragonAttributeConfigLoader.ATROXIIA_ID;
     }
 

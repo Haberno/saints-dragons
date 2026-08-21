@@ -8,7 +8,7 @@ import net.minecraft.client.renderer.entity.EntityRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.client.renderer.texture.TextureAtlas;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,7 +40,7 @@ public class StegonautGroundChunkRenderer extends EntityRenderer<StegonautGround
     }
 
     @Override
-    public @NotNull ResourceLocation getTextureLocation(@NotNull StegonautGroundChunkEntity entity) {
+    public @NotNull Identifier getTextureLocation(@NotNull StegonautGroundChunkEntity entity) {
         return TextureAtlas.LOCATION_BLOCKS;
     }
 }

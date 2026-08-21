@@ -2,30 +2,30 @@ package com.leon.saintsdragons.client.model.draconianswarm;
 
 import com.leon.saintsdragons.common.SaintsDragonsCommon;
 import com.leon.saintsdragons.server.entity.draconianswarm.Whettled;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import software.bernie.geckolib.core.animation.AnimationState;
 import software.bernie.geckolib.model.GeoModel;
 
 public class WhettledModel extends GeoModel<Whettled> {
-    private static final ResourceLocation MODEL = SaintsDragonsCommon.rl("geo/entity/whettled.geo.json");
-    private static final ResourceLocation TEXTURE =
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("geo/entity/whettled.geo.json");
+    private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/whettled/whettled.png");
-    private static final ResourceLocation ANIMATIONS =
+    private static final Identifier ANIMATIONS =
             SaintsDragonsCommon.rl("animations/entity/whettled.animation.json");
 
     @Override
-    public ResourceLocation getModelResource(Whettled animatable) {
+    public Identifier getModelResource(Whettled animatable) {
         return MODEL;
     }
 
     @Override
-    public ResourceLocation getTextureResource(Whettled animatable) {
+    public Identifier getTextureResource(Whettled animatable) {
         return TEXTURE;
     }
 
     @Override
-    public ResourceLocation getAnimationResource(Whettled animatable) {
+    public Identifier getAnimationResource(Whettled animatable) {
         return ANIMATIONS;
     }
 

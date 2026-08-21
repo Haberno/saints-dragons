@@ -4,23 +4,23 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public class CodexPhysiologyPanel {
-    private final ResourceLocation healthIcon;
-    private final ResourceLocation armorIcon;
-    private final ResourceLocation genderIcon;
-    private final ResourceLocation hungerIcon;
-    private final ResourceLocation happinessIcon;
-    private final ResourceLocation variantIcon;
-    private final ResourceLocation brushingAvailableIcon1;
-    private final ResourceLocation brushingAvailableIcon2;
-    private final ResourceLocation brushingUnavailableIcon;
+    private final Identifier healthIcon;
+    private final Identifier armorIcon;
+    private final Identifier genderIcon;
+    private final Identifier hungerIcon;
+    private final Identifier happinessIcon;
+    private final Identifier variantIcon;
+    private final Identifier brushingAvailableIcon1;
+    private final Identifier brushingAvailableIcon2;
+    private final Identifier brushingUnavailableIcon;
 
-    public CodexPhysiologyPanel(ResourceLocation healthIcon, ResourceLocation armorIcon, ResourceLocation genderIcon,
-                                ResourceLocation hungerIcon, ResourceLocation happinessIcon, ResourceLocation variantIcon,
-                                ResourceLocation brushingAvailableIcon1, ResourceLocation brushingAvailableIcon2,
-                                ResourceLocation brushingUnavailableIcon) {
+    public CodexPhysiologyPanel(Identifier healthIcon, Identifier armorIcon, Identifier genderIcon,
+                                Identifier hungerIcon, Identifier happinessIcon, Identifier variantIcon,
+                                Identifier brushingAvailableIcon1, Identifier brushingAvailableIcon2,
+                                Identifier brushingUnavailableIcon) {
         this.healthIcon = healthIcon;
         this.armorIcon = armorIcon;
         this.genderIcon = genderIcon;
@@ -203,7 +203,7 @@ public class CodexPhysiologyPanel {
         long animationTick = minecraft.level != null
                 ? minecraft.level.getGameTime()
                 : System.currentTimeMillis() / 50L;
-        ResourceLocation frame = (animationTick / 3L) % 2L == 0L
+        Identifier frame = (animationTick / 3L) % 2L == 0L
                 ? brushingAvailableIcon1
                 : brushingAvailableIcon2;
         guiGraphics.blit(frame, iconX, iconY, 0, 0,

@@ -6,7 +6,7 @@ import com.leon.saintsdragons.common.registry.ModTags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.BiomeTagsProvider;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.BiomeTags;
 import net.minecraft.world.level.biome.Biome;
 import net.minecraft.world.level.biome.Biomes;
@@ -16,7 +16,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.concurrent.CompletableFuture;
 
 public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
-    private static final ResourceLocation[] CINDERVANE_COMPAT_BIOMES = {
+    private static final Identifier[] CINDERVANE_COMPAT_BIOMES = {
             rl("natures_spirit", "dusty_slopes"),
             rl("natures_spirit", "lively_dunes"),
             rl("natures_spirit", "blooming_dunes"),
@@ -42,7 +42,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
             rl("biomesoplenty", "lush_desert")
     };
 
-    private static final ResourceLocation[] RAEVYX_HOME_COMPAT_BIOMES = {
+    private static final Identifier[] RAEVYX_HOME_COMPAT_BIOMES = {
             rl("natures_spirit", "windswept_sugi_forest"),
             rl("natures_spirit", "sugi_forest"),
             rl("regions_unexplored", "pine_slopes"),
@@ -53,7 +53,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
             rl("biomesoplenty", "highland")
     };
 
-    private static final ResourceLocation[] RAEVYX_ADDITIONAL_COMPAT_BIOMES = {
+    private static final Identifier[] RAEVYX_ADDITIONAL_COMPAT_BIOMES = {
             rl("terralith", "gravel_desert"),
             rl("terralith", "volcanic_crater"),
             rl("terralith", "caldera"),
@@ -64,7 +64,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
             rl("biomesoplenty", "dead_forest")
     };
 
-    private static final ResourceLocation[] STEGONAUT_CAVE_COMPAT_BIOMES = {
+    private static final Identifier[] STEGONAUT_CAVE_COMPAT_BIOMES = {
             rl("biomeswevegone", "fragment_jungle"),
             rl("biomeswevegone", "crag_gardens"),
             rl("biomesoplenty", "rocky_rainforest"),
@@ -74,7 +74,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
             rl("natures_spirit", "white_cliffs")
     };
 
-    private static final ResourceLocation[] IGNIVORUS_ROOST_COMPAT_BIOMES = {
+    private static final Identifier[] IGNIVORUS_ROOST_COMPAT_BIOMES = {
             rl("regions_unexplored", "ashen_woodland"),
             rl("regions_unexplored", "gravel_beach"),
             rl("terralith", "yellowstone"),
@@ -96,7 +96,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
             rl("biomesoplenty", "gravel_beach")
     };
 
-    private static final ResourceLocation[] VARASUCHUS_ROOST_COMPAT_BIOMES = {
+    private static final Identifier[] VARASUCHUS_ROOST_COMPAT_BIOMES = {
             rl("natures_spirit", "bamboo_wetlands"),
             rl("natures_spirit", "wisteria_forest"),
             rl("natures_spirit", "marsh"),
@@ -161,7 +161,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .add(Biomes.CHERRY_GROVE)
                 .add(Biomes.MEADOW)
                 .add(Biomes.DESERT);
-        for (ResourceLocation biome : CINDERVANE_COMPAT_BIOMES) {
+        for (Identifier biome : CINDERVANE_COMPAT_BIOMES) {
             cindervaneBiomes.addOptional(biome);
         }
 
@@ -190,10 +190,10 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .add(Biomes.GROVE)
                 .add(Biomes.SNOWY_PLAINS)
                 .add(Biomes.SAVANNA_PLATEAU);
-        for (ResourceLocation biome : RAEVYX_HOME_COMPAT_BIOMES) {
+        for (Identifier biome : RAEVYX_HOME_COMPAT_BIOMES) {
             raevyxHomeBiomes.addOptional(biome);
         }
-        for (ResourceLocation biome : RAEVYX_ADDITIONAL_COMPAT_BIOMES) {
+        for (Identifier biome : RAEVYX_ADDITIONAL_COMPAT_BIOMES) {
             raevyxHomeBiomes.addOptional(biome);
         }
 
@@ -215,7 +215,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .addTag(ModTags.Biomes.HAS_STEGONAUT)
                 .addOptionalTag(rl("forge", "is_lush"))
                 .add(Biomes.LUSH_CAVES);
-        for (ResourceLocation biome : STEGONAUT_CAVE_COMPAT_BIOMES) {
+        for (Identifier biome : STEGONAUT_CAVE_COMPAT_BIOMES) {
             stegonautCaveBiomes.addOptional(biome);
         }
 
@@ -282,7 +282,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .add(Biomes.WINDSWEPT_GRAVELLY_HILLS)
                 .add(Biomes.WINDSWEPT_FOREST)
                 .add(Biomes.DESERT);
-        for (ResourceLocation biome : IGNIVORUS_ROOST_COMPAT_BIOMES) {
+        for (Identifier biome : IGNIVORUS_ROOST_COMPAT_BIOMES) {
             ignivorusRoostBiomes.addOptional(biome);
         }
 
@@ -299,7 +299,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .add(Biomes.SWAMP)
                 .add(Biomes.MANGROVE_SWAMP)
                 .addOptional(rl("terralith", "gravel_beach"));
-        for (ResourceLocation biome : VARASUCHUS_ROOST_COMPAT_BIOMES) {
+        for (Identifier biome : VARASUCHUS_ROOST_COMPAT_BIOMES) {
             varasuchusRoostBiomes.addOptional(biome);
         }
 
@@ -316,7 +316,7 @@ public final class SaintsDragonBiomeTagsProvider extends BiomeTagsProvider {
                 .addTag(ConventionalTags.Biomes.JUNGLE);
     }
 
-    private static ResourceLocation rl(String namespace, String path) {
-        return ResourceLocation.fromNamespaceAndPath(namespace, path);
+    private static Identifier rl(String namespace, String path) {
+        return Identifier.fromNamespaceAndPath(namespace, path);
     }
 }
