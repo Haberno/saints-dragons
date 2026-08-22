@@ -14,4 +14,14 @@ public final class SaintsDragonsHumanoidRenderState extends HumanoidRenderState 
     public Map<DataTicket<?>, Object> getDataMap() {
         return geckolibData;
     }
+
+    @Override
+    public <D> void addGeckolibData(DataTicket<D> dataTicket, D data) {
+        this.geckolibData.put(dataTicket, data);
+    }
+
+    @Override
+    public boolean hasGeckolibData(DataTicket<?> dataTicket) {
+        return this.geckolibData.containsKey(dataTicket);
+    }
 }

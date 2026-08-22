@@ -9,11 +9,11 @@ import net.minecraft.util.Mth;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class WhettledModel extends LegacyEntityGeoModel<Whettled> {
-    private static final Identifier MODEL = SaintsDragonsCommon.rl("geckolib/models/entity/whettled.geo.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("entity/whettled");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/whettled/whettled.png");
     private static final Identifier ANIMATIONS =
-            SaintsDragonsCommon.rl("geckolib/animations/entity/whettled.animation.json");
+            SaintsDragonsCommon.rl("entity/whettled");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

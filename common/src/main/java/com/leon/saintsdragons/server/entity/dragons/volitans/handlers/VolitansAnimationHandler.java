@@ -99,6 +99,7 @@ public final class VolitansAnimationHandler {
     }
 
     public void setupMovementController(AnimationController<Volitans> controller) {
+        controller.receiveTriggeredAnimations();
         AnimationHelper.registerRestAnimations(controller, GROUND_ANIMATIONS);
         AnimationHelper.register(controller, AnimationHelper.LANDED, LANDED);
         AnimationHelper.register(controller, "sleep_underwater", SLEEP_UNDERWATER);
@@ -146,6 +147,10 @@ public final class VolitansAnimationHandler {
     public PlayState movementPredicate(AnimationTest<Volitans> state) {
         if (dragon.isDying()) {
             return PlayState.STOP;
+        }
+
+        if (AnimationHelper.holdTriggeredAnimation(state, 0)) {
+            return PlayState.CONTINUE;
         }
 
         var controller = state.controller();

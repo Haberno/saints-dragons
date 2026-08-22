@@ -19,9 +19,9 @@ import java.util.WeakHashMap;
 
 public class DragonlordArmorModel extends GeoModel<DragonlordArmorItem> {
     private static final float DEG_TO_RAD = Mth.DEG_TO_RAD;
-    private static final Identifier MODEL = SaintsDragonsCommon.rl("geckolib/models/armor/dragonlord_armor.geo.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("armor/dragonlord_armor");
     private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/armor/dragonlord_armor.png");
-    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("geckolib/animations/armor/dragonlord_armor.animation.json");
+    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("armor/dragonlord_armor");
     private final Map<LivingEntity, DivePoseTracker> divePoseTrackers = new WeakHashMap<>();
 
     public void applyCustomBonePose(LivingEntity living, float partialTick, BoneSnapshots snapshots) {

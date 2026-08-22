@@ -8,11 +8,11 @@ import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class VolitansSpineModel extends GeoModel<VolitansSpineEntity> {
     private static final Identifier MODEL =
-            SaintsDragonsCommon.rl("geckolib/models/entity/volitans_spine.geo.json");
+            SaintsDragonsCommon.rl("entity/volitans_spine");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/volitans/volitans_spine.png");
     private static final Identifier ANIMATION =
-            SaintsDragonsCommon.rl("geckolib/animations/entity/volitans_spine.animation.json");
+            SaintsDragonsCommon.rl("entity/volitans_spine");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

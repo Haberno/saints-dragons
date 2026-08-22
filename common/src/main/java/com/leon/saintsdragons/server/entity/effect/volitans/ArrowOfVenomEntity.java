@@ -41,8 +41,11 @@ public class ArrowOfVenomEntity extends AbstractArrow implements GeoEntity {
     }
 
     public ArrowOfVenomEntity(Level level, LivingEntity owner) {
+        // firedFromWeapon must be null, never ItemStack.EMPTY: AbstractArrow rejects an
+        // empty weapon stack with "Invalid weapon firing an arrow". Ivy throws these by
+        // hand, so there is no weapon to attribute the shot to.
         super(ModEntities.ARROW_OF_VENOM.get(), owner, level,
-                new ItemStack(ModItems.ARROW_OF_VENOM.get()), ItemStack.EMPTY);
+                new ItemStack(ModItems.ARROW_OF_VENOM.get()), null);
     }
 
     @Override

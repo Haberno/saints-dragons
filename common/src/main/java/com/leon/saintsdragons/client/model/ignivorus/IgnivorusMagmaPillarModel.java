@@ -7,9 +7,9 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class IgnivorusMagmaPillarModel extends GeoModel<IgnivorusMagmaPillarEntity> {
-    private static final Identifier MODEL = SaintsDragonsCommon.rl("geckolib/models/blocks/ignivorus_magma_pillar.geo.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("blocks/ignivorus_magma_pillar");
     private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/blocks/ignivorus_magma_pillar.png");
-    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("geckolib/animations/blocks/ignivorus_magma_pillar.animation.json");
+    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("blocks/ignivorus_magma_pillar");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

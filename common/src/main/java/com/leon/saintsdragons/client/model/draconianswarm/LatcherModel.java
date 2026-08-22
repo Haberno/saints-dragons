@@ -11,11 +11,11 @@ import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class LatcherModel extends LegacyEntityGeoModel<Latcher> {
     private static final Identifier MODEL =
-            SaintsDragonsCommon.rl("geckolib/models/entity/latcher.geo.json");
+            SaintsDragonsCommon.rl("entity/latcher");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/latcher/latcher.png");
     private static final Identifier ANIMATIONS =
-            SaintsDragonsCommon.rl("geckolib/animations/entity/latcher.animation.json");
+            SaintsDragonsCommon.rl("entity/latcher");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

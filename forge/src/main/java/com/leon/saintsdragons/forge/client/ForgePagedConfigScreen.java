@@ -117,7 +117,6 @@ public abstract class ForgePagedConfigScreen extends Screen {
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
-        renderBackground(graphics, mouseX, mouseY, partialTick);
         graphics.drawCenteredString(font, title, width / 2, 12, 0xFFFFFF);
         setEntryWidgetsVisible(false);
         super.render(graphics, mouseX, mouseY, partialTick);

@@ -19,6 +19,8 @@ public class IgnivorusMouthSmokeLayer
         super(renderer);
     }
 
+    private int lastSmokeTick = Integer.MIN_VALUE;
+
     @Override
     public void submitRenderTask(RenderPassInfo<SaintsDragonsLivingEntityRenderState> renderPassInfo,
                                  SubmitNodeCollector renderTasks) {
@@ -37,6 +39,13 @@ public class IgnivorusMouthSmokeLayer
 
         Vec3 look = Vec3.directionFromRotation(animatable.getXRot(), animatable.yHeadRot).normalize();
         Vec3 spawnCenter = start.add(look.scale(0.35D));
+        // submitRenderTask runs once per render pass; gate on the tick so the emission
+        // rate does not scale with framerate (and does not double up per render layer).
+        if (animatable.tickCount == lastSmokeTick) {
+            return;
+        }
+        lastSmokeTick = animatable.tickCount;
+
         RandomSource random = animatable.getRandom();
         for (int i = 0; i < 4; i++) {
             double px = spawnCenter.x + (random.nextDouble() - 0.5D) * 0.2D;

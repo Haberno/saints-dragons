@@ -133,7 +133,6 @@ public class DraconicCrucibleScreen extends AbstractContainerScreen<DraconicCruc
         if (this.crucibleButton != null) {
             this.crucibleButton.active = this.menu.canStartProcessing();
         }
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
         super.render(guiGraphics, mouseX, mouseY, partialTick);
         this.renderTooltip(guiGraphics, mouseX, mouseY);
     }

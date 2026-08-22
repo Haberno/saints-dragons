@@ -134,6 +134,7 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
     }
 
     public void setupMovementController(AnimationController<Raevyx> controller) {
+        controller.receiveTriggeredAnimations();
         AnimationHelper.registerRestAnimations(controller, GROUND_ANIMATIONS);
         AnimationHelper.register(controller, AnimationHelper.LANDED, LANDED);
         controller.triggerableAnim("dodge_left",
@@ -179,6 +180,10 @@ public record RaevyxAnimationHandler(Raevyx wyvern) {
     public PlayState movementPredicate(AnimationTest<Raevyx> state) {
         if (wyvern.isDying()) {
             return PlayState.STOP;
+        }
+
+        if (AnimationHelper.holdTriggeredAnimation(state, 0)) {
+            return PlayState.CONTINUE;
         }
         if (wyvern.isScentAssessing() && !wyvern.isTamingStunned()) {
             state.controller().setTransitionTicks(GROUND_TRANSITIONS.idle());

@@ -112,6 +112,7 @@ public record IgnivorusAnimationHandler(Ignivorus dragon) {
     }
 
     public void setupMovementController(AnimationController<Ignivorus> controller) {
+        controller.receiveTriggeredAnimations();
         AnimationHelper.registerRestAnimations(controller, GROUND_ANIMATIONS);
         AnimationHelper.register(controller, AnimationHelper.LANDED, LANDED);
         AnimationHelper.register(controller, AnimationHelper.PHASE2_LANDED, PHASE2_LANDED);
@@ -192,6 +193,10 @@ public record IgnivorusAnimationHandler(Ignivorus dragon) {
 
         if (dragon.isDying()) {
             return PlayState.STOP;
+        }
+
+        if (AnimationHelper.holdTriggeredAnimation(state, 0)) {
+            return PlayState.CONTINUE;
         }
 
         if (dragon.isTamingStunned()) {

@@ -73,6 +73,7 @@ public class CindervaneAnimationHandler {
     }
 
     public void setupMovementController(AnimationController<Cindervane> controller) {
+        controller.receiveTriggeredAnimations();
         AnimationHelper.registerRestAnimations(controller, GROUND_ANIMATIONS);
         AnimationHelper.register(controller, AnimationHelper.LANDED, LANDED);
         controller.triggerableAnim(DRINKING_TRIGGER, DRINKING);
@@ -122,6 +123,10 @@ public class CindervaneAnimationHandler {
 
         if (amphithere.isDying()) {
             return PlayState.STOP;
+        }
+
+        if (AnimationHelper.holdTriggeredAnimation(state, 0)) {
+            return PlayState.CONTINUE;
         }
 
         PlayState sleepPose = AnimationHelper.tryHandleRestPose(

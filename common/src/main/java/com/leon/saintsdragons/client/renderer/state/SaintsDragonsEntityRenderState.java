@@ -24,6 +24,16 @@ public class SaintsDragonsEntityRenderState extends EntityRenderState implements
     }
 
     @Override
+    public <D> void addGeckolibData(DataTicket<D> dataTicket, D data) {
+        this.geckolibData.put(dataTicket, data);
+    }
+
+    @Override
+    public boolean hasGeckolibData(DataTicket<?> dataTicket) {
+        return this.geckolibData.containsKey(dataTicket);
+    }
+
+    @Override
     public int getPackedLight() {
         return getOrDefaultGeckolibData(DataTickets.PACKED_LIGHT, lightCoords);
     }

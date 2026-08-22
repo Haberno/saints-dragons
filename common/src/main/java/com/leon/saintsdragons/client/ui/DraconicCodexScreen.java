@@ -164,7 +164,6 @@ public class DraconicCodexScreen extends Screen {
 
     @Override
     public void render(@NotNull GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        this.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
 
         guiGraphics.blit(BOOK_TEXTURE, leftPos, topPos, 0, 0,
                 CodexLayout.GUI_WIDTH, CodexLayout.GUI_HEIGHT,

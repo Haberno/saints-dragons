@@ -7,9 +7,9 @@ import software.bernie.geckolib.model.GeoModel;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class StegonautAmethystPillarModel extends GeoModel<StegonautAmethystPillarEntity> {
-    private static final Identifier MODEL = SaintsDragonsCommon.rl("geckolib/models/blocks/amethyst_pillar.geo.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("blocks/amethyst_pillar");
     private static final Identifier TEXTURE = SaintsDragonsCommon.rl("textures/blocks/amethyst_pillar.png");
-    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("geckolib/animations/blocks/amethyst_pillar.animation.json");
+    private static final Identifier ANIMATION = SaintsDragonsCommon.rl("blocks/amethyst_pillar");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

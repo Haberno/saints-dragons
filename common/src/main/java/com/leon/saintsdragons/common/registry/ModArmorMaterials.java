@@ -17,7 +17,9 @@ public final class ModArmorMaterials {
             1.0F,
             0.0F,
             ItemTags.REPAIRS_LEATHER_ARMOR,
-            EquipmentAssets.LEATHER
+            // Must be our own equipment asset: EquipmentAssets.LEATHER made the worn
+            // armour render with vanilla's dyeable leather textures.
+            ModEquipmentAssets.DRACONIAN
     );
 
     public static final ArmorMaterial DRAGONHEART_CHUNK = new ArmorMaterial(

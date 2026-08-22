@@ -7,6 +7,34 @@ architectury {
     fabric()
 }
 
+loom {
+    runs {
+        client {
+            // HotSwap upgrades. -XX:+IgnoreUnrecognizedVMOptions keeps these harmless
+            // on a stock JDK, where they are simply ignored.
+            vmArgs(
+                    '-XX:+IgnoreUnrecognizedVMOptions',
+                    '-XX:+AllowEnhancedClassRedefinition',
+                    '-XX:+AllowRedefinitionToAddDeleteMethods'
+            )
+            programArgs('--username', 'DevPlayer')
+
+            // Boot straight into the dev world (see dev_world in gradle.properties).
+            def devWorld = rootProject.findProperty('dev_world')?.toString()?.trim()
+            if (devWorld && file("run/saves/${devWorld}").isDirectory()) {
+                programArgs('--quickPlaySingleplayer', devWorld)
+            }
+        }
+        server {
+            vmArgs(
+                    '-XX:+IgnoreUnrecognizedVMOptions',
+                    '-XX:+AllowEnhancedClassRedefinition',
+                    '-XX:+AllowRedefinitionToAddDeleteMethods'
+            )
+        }
+    }
+}
+
 configurations.configureEach {
     resolutionStrategy {
         force("net.fabricmc:fabric-loader:$fabric_loader_version")

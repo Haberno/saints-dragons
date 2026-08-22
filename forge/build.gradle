@@ -24,6 +24,17 @@ loom {
             ideConfigGenerated(true)
             runDir("../run")
             programArgs("--username", "DevPlayer")
+            vmArgs(
+                    '-XX:+IgnoreUnrecognizedVMOptions',
+                    '-XX:+AllowEnhancedClassRedefinition',
+                    '-XX:+AllowRedefinitionToAddDeleteMethods'
+            )
+
+            // Boot straight into the dev world (see dev_world in gradle.properties).
+            def devWorld = rootProject.findProperty('dev_world')?.toString()?.trim()
+            if (devWorld && rootProject.file("run/saves/${devWorld}").isDirectory()) {
+                programArgs('--quickPlaySingleplayer', devWorld)
+            }
         }
         server {
             server()

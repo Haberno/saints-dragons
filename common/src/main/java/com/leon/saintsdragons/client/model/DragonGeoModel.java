@@ -31,13 +31,13 @@ public abstract class DragonGeoModel<T extends DragonEntity> extends DefaultedEn
 
     protected DragonGeoModel(String dragonId, boolean hasBabyResources) {
         super(SaintsDragonsCommon.rl(dragonId));
-        this.model = SaintsDragonsCommon.rl("geckolib/models/entity/" + dragonId + ".geo.json");
-        this.animation = SaintsDragonsCommon.rl("geckolib/animations/entity/" + dragonId + ".animation.json");
+        this.model = SaintsDragonsCommon.rl("entity/" + dragonId);
+        this.animation = SaintsDragonsCommon.rl("entity/" + dragonId);
         this.maleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/" + dragonId + ".png");
         this.femaleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/" + dragonId + "_female.png");
         if (hasBabyResources) {
-            this.babyModel = SaintsDragonsCommon.rl("geckolib/models/entity/baby_" + dragonId + ".geo.json");
-            this.babyAnimation = SaintsDragonsCommon.rl("geckolib/animations/entity/baby_" + dragonId + ".animation.json");
+            this.babyModel = SaintsDragonsCommon.rl("entity/baby_" + dragonId);
+            this.babyAnimation = SaintsDragonsCommon.rl("entity/baby_" + dragonId);
             this.babyMaleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/baby_" + dragonId + ".png");
             this.babyFemaleTexture = SaintsDragonsCommon.rl("textures/entity/" + dragonId + "/baby_" + dragonId + "_female.png");
         } else {

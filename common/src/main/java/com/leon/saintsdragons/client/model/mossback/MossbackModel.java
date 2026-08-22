@@ -9,17 +9,17 @@ import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class MossbackModel extends DefaultedEntityGeoModel<Mossback> {
     private static final Identifier ADULT_MODEL =
-            SaintsDragonsCommon.rl("geckolib/models/entity/mossback.geo.json");
+            SaintsDragonsCommon.rl("entity/mossback");
     private static final Identifier BABY_MODEL =
-            SaintsDragonsCommon.rl("geckolib/models/entity/baby_mossback.geo.json");
+            SaintsDragonsCommon.rl("entity/baby_mossback");
     private static final Identifier ADULT_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/mossback/mossback.png");
     private static final Identifier BABY_TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/mossback/baby_mossback.png");
     private static final Identifier ADULT_ANIMATION =
-            SaintsDragonsCommon.rl("geckolib/animations/entity/mossback.animation.json");
+            SaintsDragonsCommon.rl("entity/mossback");
     private static final Identifier BABY_ANIMATION =
-            SaintsDragonsCommon.rl("geckolib/animations/entity/baby_mossback.animation.json");
+            SaintsDragonsCommon.rl("entity/baby_mossback");
 
     public MossbackModel() {
         super(SaintsDragonsCommon.rl("mossback"));

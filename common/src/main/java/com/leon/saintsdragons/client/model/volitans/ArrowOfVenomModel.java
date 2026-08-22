@@ -8,11 +8,11 @@ import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class ArrowOfVenomModel extends GeoModel<ArrowOfVenomEntity> {
     private static final Identifier MODEL =
-            SaintsDragonsCommon.rl("geckolib/models/entity/arrow_of_venom.geo.json");
+            SaintsDragonsCommon.rl("entity/arrow_of_venom");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/arrow_of_venom.png");
     private static final Identifier ANIMATION =
-            SaintsDragonsCommon.rl("geckolib/animations/entity/arrow_of_venom.animation.json");
+            SaintsDragonsCommon.rl("entity/arrow_of_venom");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

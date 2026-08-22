@@ -529,7 +529,9 @@ public class Ignivorus extends RideableFlyingDragon implements ShakesScreen, Dra
         }
         super.tick();
 
-        if (level() instanceof ServerLevel serverLevel) {
+        if (level() instanceof ServerLevel serverLevel
+                && (this.horizontalCollision || getDeltaMovement().horizontalDistanceSqr() > 1.0E-4D)) {
+            // Ignivorus' 8x6 hitbox makes this a ~1,200-position scan; skip it while stationary.
             DragonDestructionManager.applyPassiveTreeDestruction(serverLevel, this);
         }
 
@@ -1194,9 +1196,14 @@ public class Ignivorus extends RideableFlyingDragon implements ShakesScreen, Dra
     }
 
     private BlockPos findGroundLevel(BlockPos startPos) {
-        int dragonY = blockPosition().getY();
-        for (int y = dragonY; y > level().getMinY(); y--) {
-            BlockPos checkPos = new BlockPos(startPos.getX(), y, startPos.getZ());
+        // Was a downward getBlockState() walk from the dragon's Y to world bottom, allocating a
+        // BlockPos per step. Called 180x per leap impact -> ~30k blockstate reads in a single tick.
+        int x = startPos.getX();
+        int z = startPos.getZ();
+        int surfaceY = level().getHeight(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, x, z) - 1;
+        int maxY = Math.min(surfaceY, blockPosition().getY());
+        for (int y = maxY; y > level().getMinY() && y > maxY - 8; y--) {
+            BlockPos checkPos = new BlockPos(x, y, z);
             BlockState state = level().getBlockState(checkPos);
             if (!state.isAir() && !state.liquid() && state.isSolidRender()) {
                 return checkPos;
@@ -2670,7 +2677,7 @@ public class Ignivorus extends RideableFlyingDragon implements ShakesScreen, Dra
             return;
         }
 
-        int tickInterval = isBeingRidden ? 1 : 3;
+        int tickInterval = isBeingRidden ? 1 : 10;
         if (this.tickCount % tickInterval != 0) {
             return;
         }

@@ -10,11 +10,11 @@ import net.minecraft.util.Mth;
 import software.bernie.geckolib.renderer.base.GeoRenderState;
 
 public class WingedModel extends LegacyEntityGeoModel<Winged> {
-    private static final Identifier MODEL = SaintsDragonsCommon.rl("geckolib/models/entity/winged.geo.json");
+    private static final Identifier MODEL = SaintsDragonsCommon.rl("entity/winged");
     private static final Identifier TEXTURE =
             SaintsDragonsCommon.rl("textures/entity/draconian_swarm/winged/winged.png");
     private static final Identifier ANIMATIONS =
-            SaintsDragonsCommon.rl("geckolib/animations/entity/winged.animation.json");
+            SaintsDragonsCommon.rl("entity/winged");
 
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {

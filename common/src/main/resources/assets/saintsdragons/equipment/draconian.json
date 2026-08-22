@@ -1,0 +1,14 @@
+{
+  "layers": {
+    "humanoid": [
+      {
+        "texture": "saintsdragons:draconian"
+      }
+    ],
+    "humanoid_leggings": [
+      {
+        "texture": "saintsdragons:draconian"
+      }
+    ]
+  }
+}

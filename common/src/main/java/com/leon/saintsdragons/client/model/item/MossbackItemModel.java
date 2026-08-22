@@ -20,8 +20,8 @@ public class MossbackItemModel extends GeoModel<MossbackItem> {
     @Override
     public Identifier getModelResource(GeoRenderState renderState) {
         return SaintsDragonsCommon.rl(baby
-                ? "geckolib/models/entity/baby_mossback.geo.json"
-                : "geckolib/models/entity/mossback.geo.json");
+                ? "entity/baby_mossback"
+                : "entity/mossback");
     }
 
     @Override
@@ -34,7 +34,7 @@ public class MossbackItemModel extends GeoModel<MossbackItem> {
     @Override
     public Identifier getAnimationResource(MossbackItem animatable) {
         return SaintsDragonsCommon.rl(baby
-                ? "geckolib/animations/entity/baby_mossback.animation.json"
-                : "geckolib/animations/entity/mossback.animation.json");
+                ? "entity/baby_mossback"
+                : "entity/mossback");
     }
 }

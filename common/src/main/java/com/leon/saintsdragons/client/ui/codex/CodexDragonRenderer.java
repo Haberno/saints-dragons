@@ -248,8 +248,8 @@ public class CodexDragonRenderer {
                                                          int babyScaleAdjustment, int babyOffsetX, int babyOffsetY) {
         return new PortraitDefinition(
                 SaintsDragonsCommon.rl(dragonType),
-                SaintsDragonsCommon.rl("geckolib/models/entity/" + dragonType + "_baked.geo.json"),
-                SaintsDragonsCommon.rl("geckolib/models/entity/baby_" + dragonType + "_baked.geo.json"),
+                SaintsDragonsCommon.rl("entity/" + dragonType + "_baked"),
+                SaintsDragonsCommon.rl("entity/baby_" + dragonType + "_baked"),
                 scale,
                 offsetX,
                 offsetY,

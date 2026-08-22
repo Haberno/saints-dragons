@@ -130,9 +130,33 @@ subprojects {
         it.options.encoding = 'UTF-8'
     }
 
-    tasks.withType(JavaExec).configureEach {
-        javaLauncher = javaToolchains.launcherFor {
-            languageVersion = JavaLanguageVersion.of(21)
+    // Dev launches (runClient/runServer/runData) prefer the JetBrains Runtime so
+    // HotSwap can add and remove methods and fields while the game is running.
+    // Falls back to the plain Java 21 toolchain when no JBR is visible to Gradle;
+    // see DEV-ITERATION.md.
+    def useJbrForRuns = (rootProject.findProperty('use_jbr_for_runs') ?: 'true').toString().toBoolean()
+    def jbrLauncher = null
+    if (useJbrForRuns) {
+        try {
+            jbrLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(21)
+                vendor = JvmVendorSpec.JETBRAINS
+            }.getOrNull()
+        } catch (Exception ignored) {
+            jbrLauncher = null
+        }
+    }
+
+    tasks.withType(JavaExec).configureEach { execTask ->
+        if (jbrLauncher != null && execTask.name.startsWith('run')) {
+            execTask.javaLauncher.set(jbrLauncher)
+            execTask.doFirst {
+                logger.lifecycle("[dev] launching on JetBrains Runtime: ${jbrLauncher.metadata.installationPath}")
+            }
+        } else {
+            execTask.javaLauncher = javaToolchains.launcherFor {
+                languageVersion = JavaLanguageVersion.of(21)
+            }
         }
     }
 
